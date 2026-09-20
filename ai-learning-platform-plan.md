@@ -104,8 +104,8 @@ Only build this once localStorage-only progress proves insufficient (e.g. you wa
 - [x] Convolution kernel visualizer (Computer Vision) — 4 selectable kernels (vertical/horizontal edge, blur, sharpen) sliding over a hollow-square test image, feature map builds live, cell by cell
 - [x] Attention weight visualizer (Attention & Transformers) — 3 hand-crafted example sentences (the lesson's own trophy/suitcase coreference example, a second coreference example, and a subject-verb agreement long-range example), click a token to see its full attention row as a bar chart
 - [x] Tokenizer playground (LLMs) — live, real BPE tokenizer via the `gpt-tokenizer` package (cl100k_base), fully client-side, editable text input
-- [ ] KV-cache latency simulator (Inference & Serving)
-- [ ] Slot each into its lesson's MDX as it's ready — content structure from Phase 1 doesn't need to change
+- [x] KV-cache latency simulator (Inference & Serving) — simulated (not measured) per-token cost bars, quadratic without cache vs. linear with cache, live speedup readout
+- [x] All 6 planned widgets shipped. Slotted directly into each lesson's MDX — content structure from Phase 1 didn't need to change, as planned.
 
 **Phase 3 — Progress tracking (deferred, localStorage only)**
 - [ ] Define localStorage schema (see Section 3) and a small typed helper module to read/write it

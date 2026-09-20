@@ -3,6 +3,8 @@ title: Inference & Serving
 description: Batching, KV caching, quantization, latency/throughput tradeoffs
 ---
 
+import { KVCacheSimulator } from '@/components/widgets/kv-cache-simulator';
+
 Everything so far has been about **training** — producing a model's
 weights. **Inference** is using a trained model to generate output, and it
 turns out to be its own deep engineering problem: the naive way to run a
@@ -66,6 +68,13 @@ The tradeoff: the KV cache consumes GPU memory proportional to sequence
 length and batch size, and at long context lengths or high concurrent
 request counts, KV cache memory — not raw compute — is often the binding
 constraint on how many requests a server can handle at once.
+
+Generate some tokens both ways below and watch the gap widen — these are
+simulated costs illustrating the shape of the difference, not measured
+hardware timing, but the quadratic-vs-linear growth is exactly the real
+effect:
+
+<KVCacheSimulator />
 
 ## Batching: trading latency for throughput
 
