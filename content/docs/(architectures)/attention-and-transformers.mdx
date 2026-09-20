@@ -3,6 +3,8 @@ title: Attention & Transformers
 description: The core architecture behind modern AI
 ---
 
+import { AttentionVisualizer } from '@/components/widgets/attention-visualizer';
+
 CNNs (previous lesson) encode an assumption that works great for images:
 nearby things are related. Language breaks that assumption constantly — in
 "the trophy didn't fit in the suitcase because **it** was too big," what
@@ -42,6 +44,14 @@ The `√d_k` term just rescales the dot products to keep training stable;
 the important part is `softmax(Q · Kᵀ)`: a matrix of "how much should
 token *i* attend to token *j*" for every pair of tokens, learned entirely
 from data, not hand-specified.
+
+Click through a few example sentences below to build intuition for what
+that attention matrix actually looks like. These weights are
+hand-set to illustrate the pattern a trained model learns, not live
+model output — but they show the same kind of long-range dependency real
+attention heads pick up on:
+
+<AttentionVisualizer />
 
 ## Why "self"-attention, and why "multi-head"
 

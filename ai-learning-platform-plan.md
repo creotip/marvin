@@ -102,7 +102,7 @@ Only build this once localStorage-only progress proves insufficient (e.g. you wa
 - [x] Gradient descent playground — live, pure SVG/JS, no libs. Click to set a start point, adjustable learning rate, step/run/reset, detects both convergence and divergence. Embedded in [ML Fundamentals](content/docs/(foundations)/ml-fundamentals.mdx)
 - [x] Backprop stepper (Neural Networks & Backprop) — SVG computation graph for the lesson's exact `loss = a*b + c` example, step through forward then backward, editable a/b/c
 - [x] Convolution kernel visualizer (Computer Vision) — 4 selectable kernels (vertical/horizontal edge, blur, sharpen) sliding over a hollow-square test image, feature map builds live, cell by cell
-- [ ] Attention weight visualizer (Attention & Transformers) — precomputed data, see Section 3
+- [x] Attention weight visualizer (Attention & Transformers) — 3 hand-crafted example sentences (the lesson's own trophy/suitcase coreference example, a second coreference example, and a subject-verb agreement long-range example), click a token to see its full attention row as a bar chart
 - [ ] Tokenizer playground (LLMs)
 - [ ] KV-cache latency simulator (Inference & Serving)
 - [ ] Slot each into its lesson's MDX as it's ready — content structure from Phase 1 doesn't need to change
