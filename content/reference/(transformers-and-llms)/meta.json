@@ -1,0 +1,25 @@
+{
+  "title": "Transformers & LLMs",
+  "collapsible": true,
+  "defaultOpen": true,
+  "pages": [
+    "transformer",
+    "attention",
+    "positional-encoding",
+    "rope",
+    "causal-masking",
+    "encoder-decoder",
+    "rnn",
+    "llm",
+    "tokenization",
+    "embedding",
+    "pretraining",
+    "fine-tuning",
+    "lora",
+    "rlhf",
+    "dpo",
+    "scaling-laws",
+    "decoding-strategies",
+    "hallucination"
+  ]
+}

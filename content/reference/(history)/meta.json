@@ -1,0 +1,6 @@
+{
+  "title": "History",
+  "collapsible": true,
+  "defaultOpen": true,
+  "pages": ["expert-system", "perceptron", "word2vec"]
+}

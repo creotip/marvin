@@ -1,0 +1,6 @@
+{
+  "title": "Computer Vision",
+  "collapsible": true,
+  "defaultOpen": true,
+  "pages": ["cnn", "opencv", "alexnet", "resnet", "vit", "data-augmentation"]
+}

@@ -1,0 +1,17 @@
+{
+  "title": "Inference & Applied Systems",
+  "collapsible": true,
+  "defaultOpen": true,
+  "pages": [
+    "inference",
+    "quantization",
+    "kv-cache",
+    "speculative-decoding",
+    "tensor-parallelism",
+    "batching",
+    "rag",
+    "prompt-engineering",
+    "agent",
+    "mcp"
+  ]
+}

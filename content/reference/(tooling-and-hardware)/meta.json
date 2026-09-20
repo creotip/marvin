@@ -1,0 +1,6 @@
+{
+  "title": "Tooling & Hardware",
+  "collapsible": true,
+  "defaultOpen": true,
+  "pages": ["pytorch", "tensorflow", "jax", "hugging-face", "distributed-training", "cuda", "gpu"]
+}
