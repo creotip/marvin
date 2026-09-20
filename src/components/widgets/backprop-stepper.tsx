@@ -72,32 +72,45 @@ function OpNode({ x, y, symbol }: { x: number; y: number; symbol: string }) {
   );
 }
 
-function Edge({
+function Edge({ from, to }: { from: [number, number]; to: [number, number] }) {
+  const [x1, y1] = from;
+  const [x2, y2] = to;
+  return <line x1={x1} y1={y1} x2={x2} y2={y2} className="stroke-fd-border" strokeWidth={1.5} />;
+}
+
+// Rendered in a separate pass, after every node, so labels are never
+// painted over by a node box regardless of how close they sit to one.
+function EdgeLabel({
   from,
   to,
-  gradLabel,
+  text,
 }: {
   from: [number, number];
   to: [number, number];
-  gradLabel?: string;
+  text: string;
 }) {
   const [x1, y1] = from;
   const [x2, y2] = to;
   const mx = (x1 + x2) / 2;
-  const my = (y1 + y2) / 2;
+  // Horizontal edges need more vertical clearance since the label would
+  // otherwise land right on top of a node's own label/value text, which
+  // sits at the same height; diagonal edges already clear naturally.
+  const isHorizontal = y1 === y2;
+  const my = (y1 + y2) / 2 - (isHorizontal ? 26 : 10);
+  const width = text.length * 6.5 + 10;
   return (
     <g>
-      <line x1={x1} y1={y1} x2={x2} y2={y2} className="stroke-fd-border" strokeWidth={1.5} />
-      {gradLabel && (
-        <text
-          x={mx}
-          y={my - 8}
-          textAnchor="middle"
-          className="fill-orange-500 font-mono text-[11px] font-semibold"
-        >
-          {gradLabel}
-        </text>
-      )}
+      <rect
+        x={mx - width / 2}
+        y={my - 11}
+        width={width}
+        height={16}
+        rx={4}
+        className="fill-fd-background"
+      />
+      <text x={mx} y={my} textAnchor="middle" className="fill-orange-500 font-mono text-[11px] font-semibold">
+        {text}
+      </text>
     </g>
   );
 }
@@ -147,12 +160,12 @@ export function BackpropStepper() {
           viewBox="0 0 420 230"
           className="w-full max-w-[420px] shrink-0 rounded-lg border bg-fd-background lg:w-[420px]"
         >
-          <Edge from={positions.a} to={positions.mul} gradLabel={showMulGrads ? `dL/da=${dLda}` : undefined} />
-          <Edge from={positions.b} to={positions.mul} gradLabel={showMulGrads ? `dL/db=${dLdb}` : undefined} />
+          <Edge from={positions.a} to={positions.mul} />
+          <Edge from={positions.b} to={positions.mul} />
           <Edge from={positions.mul} to={positions.d} />
-          <Edge from={positions.d} to={positions.plus} gradLabel={showAddGrads ? `dL/dd=${dLdd}` : undefined} />
-          <Edge from={positions.c} to={positions.plus} gradLabel={showAddGrads ? `dL/dc=${dLdc}` : undefined} />
-          <Edge from={positions.plus} to={positions.loss} gradLabel={showSeed ? 'dL/dL=1' : undefined} />
+          <Edge from={positions.d} to={positions.plus} />
+          <Edge from={positions.c} to={positions.plus} />
+          <Edge from={positions.plus} to={positions.loss} />
 
           <Node x={positions.a[0]} y={positions.a[1]} label="a" value={String(a)} />
           <Node x={positions.b[0]} y={positions.b[1]} label="b" value={String(b)} />
@@ -173,6 +186,12 @@ export function BackpropStepper() {
             value={showForwardLoss ? String(lossVal) : '?'}
             highlight={stage === 2}
           />
+
+          {showMulGrads && <EdgeLabel from={positions.a} to={positions.mul} text={`dL/da=${dLda}`} />}
+          {showMulGrads && <EdgeLabel from={positions.b} to={positions.mul} text={`dL/db=${dLdb}`} />}
+          {showAddGrads && <EdgeLabel from={positions.d} to={positions.plus} text={`dL/dd=${dLdd}`} />}
+          {showAddGrads && <EdgeLabel from={positions.c} to={positions.plus} text={`dL/dc=${dLdc}`} />}
+          {showSeed && <EdgeLabel from={positions.plus} to={positions.loss} text="dL/dL=1" />}
         </svg>
 
         <div className="flex flex-1 flex-col gap-3 text-sm">
