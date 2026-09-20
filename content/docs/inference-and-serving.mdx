@@ -23,6 +23,28 @@ all positions), inference is fundamentally a sequential loop.
 This sequential nature is the root cause of most of the engineering
 problems in this lesson.
 
+## Prefill vs. decode: two different phases
+
+Serving a request actually involves two phases with very different
+performance characteristics:
+
+- **Prefill**: process the entire input prompt at once. Every prompt
+  token's Key and Value can be computed in parallel — no sequential
+  dependency yet, since none of these tokens depend on a model-generated
+  token. This phase is **compute-bound**: it's a large, parallel matrix
+  operation, so it's mostly limited by raw GPU compute throughput.
+- **Decode**: generate the output, one token at a time, autoregressively.
+  Each step does comparatively little computation (one new token) but
+  must read the entire growing KV cache from GPU memory at every step.
+  This phase is **memory-bandwidth-bound**: the bottleneck is how fast
+  data can move, not how much math the GPU can do.
+
+This distinction is why **time to first token** and **tokens per second**
+(below) behave so differently and are optimized somewhat separately: a
+long prompt mostly costs prefill time; a long generated response mostly
+costs decode time, dominated by repeatedly reading an ever-growing KV
+cache.
+
 ## KV caching: don't recompute what hasn't changed
 
 Recall from [Attention & Transformers](/docs/attention-and-transformers)
@@ -88,6 +110,40 @@ width drops (4-bit is noticeably riskier than 8-bit), which is why
 quantization level is itself a tuned tradeoff — lower precision saves
 memory and cost, but can measurably degrade output quality if pushed too
 far for a given model and use case.
+
+## Speculative decoding: guessing ahead to go faster
+
+Because decode is memory-bandwidth-bound rather than compute-bound (see
+above), the GPU often has *spare compute capacity* during generation even
+though it's the bottleneck on speed. **Speculative decoding** exploits
+this: use a small, fast "draft" model to quickly generate several
+candidate next tokens (say, 4–5) ahead of time, then have the full model
+verify all of them in a *single* parallel forward pass — which the GPU
+has the spare compute for, since checking several tokens at once costs
+barely more than checking one, thanks to that same prefill-style
+parallelism.
+
+If the draft model's guesses match what the full model would have
+generated (checked exactly, not approximately — the output is
+mathematically identical to normal decoding), all of them are accepted at
+once, several tokens for roughly the cost of one decode step; wherever a
+guess is wrong, generation falls back to the full model's actual choice
+from that point on. The speedup depends entirely on how often the small
+model's guesses match the large model's — most effective when the two
+models are closely related (e.g. distilled from each other) or the text
+is fairly predictable.
+
+## Serving models too large for one GPU
+
+Some models don't fit in a single GPU's memory even quantized, requiring
+the same kind of **model parallelism** used in large-scale training (see
+[Tooling & The Dev Stack](/docs/tooling-and-the-dev-stack)) — most
+commonly **tensor parallelism**, which splits individual weight matrices
+across multiple GPUs, each computing a portion of every matrix
+multiplication and exchanging partial results. This adds inter-GPU
+communication overhead on the critical path of every single forward pass,
+which is why serving very large models efficiently also depends heavily
+on fast GPU-to-GPU interconnects, not just raw GPU count.
 
 ## Putting it together: the tradeoffs that define an LLM API
 

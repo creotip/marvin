@@ -39,6 +39,31 @@ The output of applying a kernel across an image is called a **feature
 map** — a new grid where each value indicates how strongly that pattern
 (whatever the kernel learned to detect) appeared at that location.
 
+A real convolutional layer learns *many* kernels in parallel (commonly
+dozens to hundreds), each producing its own feature map — one might learn
+to detect vertical edges, another horizontal edges, another a particular
+color transition — stacked together into a multi-channel output that the
+next layer takes as input.
+
+### Strides and padding
+
+Two more knobs control exactly how a convolution scans the image:
+
+- **Stride**: how many pixels the kernel moves between positions. Stride 1
+  (the default assumed above) produces a feature map close to the input's
+  size; stride 2 skips every other position, halving the output's spatial
+  size directly — an alternative to pooling for downsampling.
+- **Padding**: convolutions naturally shrink the output slightly, since a
+  kernel can't center on a pixel too close to the edge without going out
+  of bounds. Adding a border of zero-valued pixels around the image
+  ("padding") lets the output stay the same size as the input, if desired.
+
+The output size of a convolution follows directly from these:
+`output_size = (input_size - kernel_size + 2 * padding) / stride + 1`.
+You won't compute this by hand in practice — frameworks handle it — but
+it's worth being able to sanity-check why a feature map came out the
+size it did.
+
 ## Pooling
 
 After a convolution, networks typically apply **pooling** — most commonly
@@ -72,6 +97,64 @@ Nobody hand-designs this hierarchy — it emerges from training, which is
 exactly the feature-engineering bottleneck from
 [History & Landscape](/docs/history-and-landscape) being solved
 automatically.
+
+## Named architectures: a brief tour
+
+A handful of specific CNN architectures mark the field's progress and are
+worth recognizing by name:
+
+- **LeNet** (1998, Yann LeCun): the original convolution-plus-pooling
+  design, applied to handwritten digit recognition — small by modern
+  standards, but the architectural template every later CNN follows.
+- **AlexNet** (2012): the ImageNet-winning network from
+  [History & Landscape](/docs/history-and-landscape) — essentially a
+  scaled-up LeNet trained on GPUs with ReLU activations, proving deep
+  CNNs could dramatically outperform hand-engineered feature pipelines.
+- **VGG** (2014): showed that simply stacking many small (3×3) convolution
+  layers very deep — 16 to 19 layers — outperformed shallower networks
+  with larger kernels, reinforcing that depth itself was valuable.
+- **ResNet** (2015): pushed depth much further (50, 101, even 152+
+  layers) by introducing **residual connections** — the skip-connection
+  fix from
+  [Neural Networks & Backprop](/docs/neural-networks-and-backprop) that
+  keeps gradients flowing through very deep networks. Before ResNet,
+  networks much deeper than VGG actually got *worse*, not better — a
+  direct symptom of the vanishing-gradient problem; residual connections
+  were the fix that made extreme depth practical, in vision first and
+  transformers later.
+
+Each of these solved a specific obstacle the previous one hit, which is
+the same pattern seen throughout this course: architecture progress is
+mostly a series of fixes to specific training failure modes, not
+unrelated leaps.
+
+## Beyond classification
+
+Everything above describes **image classification** — one label per
+image. Two other common vision tasks build on the same convolutional
+feature extractor but change what the final layers do with it:
+
+- **Object detection**: output not just a label but a bounding box
+  (location) for each object in an image, potentially many per image.
+- **Semantic/instance segmentation**: classify *every pixel* in the image,
+  producing a full mask of which pixels belong to which object rather
+  than a single label or box.
+
+Both reuse the same hierarchical features a classifier learns — the
+difference is entirely in the output layers and loss function, another
+instance of the "model, loss, optimize" recipe from
+[ML Fundamentals](/docs/ml-fundamentals) being reused with a different
+head bolted onto the same backbone.
+
+## Data augmentation
+
+A cheap way to fight overfitting (see
+[ML Fundamentals](/docs/ml-fundamentals)) specifically for images:
+artificially expand the training set by applying label-preserving
+transformations — random crops, flips, rotations, color jitter — to each
+training image. A photo of a cat flipped horizontally is still obviously
+a cat, so this manufactures new, valid training examples for free, and
+it's standard practice in nearly every CNN training pipeline.
 
 ## Transfer learning
 
@@ -107,6 +190,17 @@ architecture — locality and translation invariance — that turn out to
 match how images are actually structured. That's a general pattern worth
 remembering: **good architectures encode assumptions about the data's
 structure**, so the network doesn't have to learn those assumptions from
-scratch. The next lesson looks at a different structural problem —
-sequences, where order and long-range relationships matter — and the
-architecture (attention) built to handle it.
+scratch.
+
+Worth flagging before moving on: this hard-coded assumption isn't the
+final word. **Vision Transformers (ViT)**, introduced in 2020, apply the
+attention mechanism from the next lesson directly to images — splitting
+an image into patches and treating them like tokens in a sequence — and
+match or beat CNNs given enough training data, without locality built in
+at all; the model learns spatial relationships from data instead. This is
+a preview of a broader theme: attention has proven to be a genuinely
+general-purpose mechanism, not just a language-specific trick.
+
+The next lesson looks at a different structural problem — sequences,
+where order and long-range relationships matter — and the architecture
+(attention) built to handle it.

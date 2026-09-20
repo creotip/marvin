@@ -67,7 +67,14 @@ with a few other components to form a working architecture:
   *order* — swap two tokens and, by itself, attention treats it
   identically. Transformers inject order via **positional encodings**
   added to each token's embedding before attention, so the model can tell
-  "dog bites man" from "man bites dog."
+  "dog bites man" from "man bites dog." The original transformer used a
+  fixed **sinusoidal encoding** (a deterministic pattern of sine/cosine
+  waves, one per position); many models instead learn positional
+  embeddings directly from data. Most current LLMs use a newer scheme
+  called **RoPE** (rotary positional embedding), which encodes position by
+  rotating the Query/Key vectors by an amount depending on their position
+  — it tends to generalize better to sequence lengths longer than what the
+  model was trained on, which matters a lot for long-context models.
 - **Feedforward layer**: after attention mixes information *across*
   tokens, a regular feedforward network (same idea as
   [Neural Networks & Backprop](/docs/neural-networks-and-backprop)) is
@@ -82,6 +89,51 @@ with a few other components to form a working architecture:
 A full transformer stacks many of these blocks (attention → feedforward,
 repeated), with the final layer producing a prediction — in a language
 model, a probability distribution over the next token.
+
+## Causal masking: attention for generation
+
+Plain self-attention, as described above, lets every token look at every
+other token — including tokens *later* in the sequence. That's fine for
+understanding a complete sentence, but breaks generation: predicting the
+next word can't be allowed to "see" the actual next word, or the task
+becomes trivial and the model learns nothing useful.
+
+**Causal (masked) self-attention** fixes this by zeroing out (masking to
+`-∞` before the softmax) every attention score where a token would attend
+to a position *after* itself. Token 5 can attend to tokens 1–5, never to
+token 6 onward. This single constraint is what makes autoregressive
+generation — the token-by-token process covered in
+[Inference & Serving](/docs/inference-and-serving) — trainable at all: the
+model is trained on the exact task it will perform at generation time,
+predicting each next token from only what came before it.
+
+## Encoder, decoder, and encoder-decoder transformers
+
+The original transformer paper actually describes two halves working
+together, and different modern model families use different halves:
+
+- **Encoder-only** (e.g. **BERT**): uses full (non-causal) self-attention
+  — every token sees every other token, including future ones. Good at
+  *understanding* a fixed piece of text (classification, extracting
+  answers from a passage), not at generating new text token by token.
+- **Decoder-only** (e.g. **GPT**, and most current LLMs): uses causal
+  self-attention exclusively, exactly as described above. This is the
+  architecture behind essentially every general-purpose chat/completion
+  LLM today, because it directly matches the pretraining objective
+  (predict the next token) covered in the next lesson.
+- **Encoder-decoder** (e.g. **T5**, the original translation-focused
+  transformer): an encoder processes the full input (say, an English
+  sentence) with unmasked attention, and a decoder generates the output
+  (its French translation) with causal attention, additionally attending
+  back to the encoder's output at each step. Common for tasks with a
+  clear "input document → output document" shape, like translation or
+  summarization.
+
+Decoder-only won out as the default for general-purpose LLMs largely
+because a single decoder-only model, trained purely on next-token
+prediction, turned out to generalize to *both* understanding and
+generation tasks reasonably well via prompting — removing the need to
+pick an architecture per task.
 
 ## Why this architecture won
 

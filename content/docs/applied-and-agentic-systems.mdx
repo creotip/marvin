@@ -25,6 +25,42 @@ A deployed LLM has two structural limits worth naming explicitly:
 Everything in this lesson is a pattern for working around one or both of
 these limits.
 
+## Prompt engineering: shaping behavior without training
+
+Before reaching for RAG or tool use, the cheapest lever available is the
+**prompt** itself — how you phrase the input, entirely without touching
+the model's weights. A few patterns that measurably change output
+quality, worth knowing by name:
+
+- **Zero-shot vs. few-shot prompting**: asking directly ("translate this
+  sentence to French") is zero-shot; including a couple of example
+  input/output pairs in the prompt before the real request is **few-shot**
+  — it lets the model infer the exact format and style you want from
+  examples rather than a description, often substantially improving
+  output quality with no training involved.
+- **Chain-of-thought prompting**: explicitly asking the model to reason
+  step by step before giving a final answer (or simply appending
+  "let's think step by step") measurably improves accuracy on tasks
+  requiring multi-step reasoning — arithmetic, logic puzzles, multi-hop
+  questions. The mechanism is a direct consequence of how these models
+  generate: each output token is produced conditioned on everything
+  generated so far, so making intermediate reasoning steps *part of the
+  output* gives later tokens access to that reasoning as context, rather
+  than forcing the model to reach a correct answer in a single forward
+  pass with no working-out space.
+- **System prompts**: a separate instruction channel (set by the
+  application, not the end user) used to configure a model's persona,
+  constraints, and behavior for an entire conversation — this is how
+  products differentiate a single underlying model into different
+  assistants with different tones, capabilities, and guardrails.
+
+Prompt engineering, RAG, and fine-tuning aren't competing choices so much
+as a rough order of what to try first: prompting is fastest and cheapest
+to iterate on; RAG adds external knowledge without touching the model;
+fine-tuning (from [LLMs](/docs/llms)) is the heaviest lever, worth
+reaching for mainly when prompting and RAG genuinely can't produce the
+behavior or format you need.
+
 ## RAG: retrieval-augmented generation
 
 **RAG** addresses the frozen-knowledge problem by giving the model
@@ -73,6 +109,14 @@ model" from the top of this lesson — tool use just gives the surrounding
 system a clean protocol for extending what the model can effectively
 accomplish, without changing what the model fundamentally is.
 
+A practical problem tool use created: every application wiring an LLM to
+its own tools originally had to define its own bespoke integration.
+**MCP (Model Context Protocol)** is an open standard, introduced by
+Anthropic in late 2024, that standardizes how applications expose tools
+and data to LLMs — letting a tool built once be reused across different
+LLM-powered applications, the same way a USB standard means a peripheral
+doesn't need custom wiring for every computer it plugs into.
+
 ## Agents: chaining tool use over multiple steps
 
 An **agent** is what you get when you put an LLM in a loop with tool use
@@ -115,13 +159,15 @@ acting on what comes *out* of it.
 
 ## Course recap
 
-Across these eight lessons: learning as loss minimization via gradient
+Across these nine lessons: learning as loss minimization via gradient
 descent, backpropagation as the mechanism that makes that tractable at
-scale, CNNs and transformers as two different architectural answers to
-"what structural assumptions should the network encode," the multi-stage
-recipe (pretrain → fine-tune → RLHF) that turns a transformer into an
-LLM, the engineering (KV caching, batching, quantization) that makes
-serving one practical, and finally RAG/tool use/agents as the patterns
-that turn a single trained model into real, capable applications. Each
-layer builds directly on the one before it — which is exactly why this
-course was ordered the way it was.
+scale, the practitioner tooling (PyTorch, Hugging Face, and friends) that
+turns that math into runnable code, CNNs and transformers as two
+different architectural answers to "what structural assumptions should
+the network encode," the multi-stage recipe (pretrain → fine-tune → RLHF)
+that turns a transformer into an LLM, the engineering (KV caching,
+batching, quantization) that makes serving one practical, and finally
+prompting/RAG/tool use/agents as the patterns that turn a single trained
+model into real, capable applications. Each layer builds directly on the
+one before it — which is exactly why this course was ordered the way it
+was.

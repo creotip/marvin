@@ -60,6 +60,33 @@ model trained to predict "what comes next" on internet text is just as
 likely to continue a question with more questions (that's a common pattern
 in its training data) as it is to answer it.
 
+## Decoding: turning probabilities into text
+
+At each generation step (see
+[Attention & Transformers](/docs/attention-and-transformers) on causal
+masking), the model doesn't output a single next token — it outputs a
+full probability distribution over the entire vocabulary. **Decoding** is
+the strategy for turning that distribution into an actual chosen token,
+and it has a real effect on output quality and character:
+
+- **Greedy decoding**: always pick the single highest-probability token.
+  Deterministic, but tends to produce repetitive, bland text — once a
+  slightly-suboptimal token is picked, the model has no way to reconsider.
+- **Temperature**: before sampling, rescale the probability distribution —
+  low temperature (below 1) sharpens it toward the most likely tokens
+  (closer to greedy, more focused/deterministic); high temperature (above
+  1) flattens it (more random, more varied, higher risk of incoherence).
+- **Top-k sampling**: restrict sampling to only the *k* most likely next
+  tokens, discarding the long tail of unlikely ones before sampling.
+- **Top-p (nucleus) sampling**: instead of a fixed count, keep the
+  smallest set of tokens whose cumulative probability exceeds *p* (e.g.
+  0.9) — adapts the candidate pool size to how confident the model is at
+  each step, unlike top-k's fixed cutoff.
+
+Production chat products typically combine temperature with top-p or
+top-k rather than using any one alone, tuned to balance coherence against
+repetitiveness for the specific product.
+
 ## Fine-tuning: turning a base model into an assistant
 
 **Fine-tuning** takes a pretrained base model and continues training it on
@@ -97,6 +124,45 @@ human to *judge* which of two responses is better than to *write* the
 ideal response from scratch, especially for open-ended tasks. RLHF lets
 that easier judgment signal shape the model at scale, via the reward model
 acting as a stand-in for a human rater on every training example.
+
+A newer, simpler alternative called **DPO (Direct Preference
+Optimization)** achieves a similar effect without the separate
+reward-model-training and reinforcement-learning steps — it optimizes the
+LLM directly on the preference-ranked pairs using a loss function
+derived to have the same optimum RLHF would reach. It's become popular
+because it's simpler to implement and tune while often matching RLHF's
+results, though RLHF-style pipelines are still widely used, particularly
+at the largest labs.
+
+## How big should a model be? Scaling laws
+
+[History & Landscape](/docs/history-and-landscape) mentioned that
+transformers scale predictably — this can be made precise. **Scaling
+laws** (most influentially studied in OpenAI's 2020 paper and DeepMind's
+2022 "Chinchilla" paper) empirically relate a model's final loss to three
+quantities: **parameter count**, **dataset size** (tokens trained on), and
+**compute budget**. The key practical finding from Chinchilla specifically:
+many earlier large models were *under-trained* relative to their size —
+for a fixed compute budget, a smaller model trained on more data often
+beats a larger model trained on less, contrary to the earlier assumption
+that bigger parameter counts were the main lever to pull. This directly
+shaped how labs allocate compute between "make the model bigger" and
+"train it on more data" when planning a new training run.
+
+## Why LLMs hallucinate
+
+A **hallucination** is a confidently stated, fluent output that's
+factually wrong. It's a direct consequence of what the model actually
+is: next-token prediction trained to produce *plausible-sounding* text,
+not a database lookup with a built-in notion of "I don't actually know
+this." When a model doesn't have reliable knowledge about something, the
+training objective still rewards it for producing *some* fluent
+continuation — it has no mechanism to instead output "I don't know"
+unless that behavior was specifically reinforced during fine-tuning or
+RLHF. This is precisely the problem
+[RAG](/docs/applied-and-agentic-systems) is built to reduce: grounding
+generation in retrieved, verifiable text instead of relying purely on
+what the model "remembers" from pretraining.
 
 ## Putting the pipeline together
 

@@ -33,9 +33,51 @@ decision boundaries and complex functions at all.
 A **layer** is a bunch of these neurons run in parallel on the same input.
 A **network** is layers stacked so each layer's output feeds the next
 layer's input. That's the entire architecture of a basic feedforward
-neural network — the complexity in modern AI comes from *what's connected
-to what and how* (see Computer Vision and Attention & Transformers), not
-from the neuron itself.
+neural network, also called a **multi-layer perceptron (MLP)** — the
+complexity in modern AI comes from *what's connected to what and how*
+(see Computer Vision and Attention & Transformers), not from the neuron
+itself.
+
+### Why any of this can represent complex functions
+
+A natural question: why does chaining together these simple
+weighted-sum-plus-nonlinearity units let you represent essentially
+*anything*? The **universal approximation theorem** answers this
+formally: a feedforward network with even a single hidden layer, given
+enough neurons in that layer, can approximate any continuous function to
+arbitrary precision. This is a real, proven result — not marketing
+language.
+
+The catch is that "enough neurons" can be an impractically large number
+for a single layer, and the theorem says nothing about whether such a
+network is *learnable* via gradient descent in practice. This is exactly
+why depth matters more than the theorem alone would suggest: a deeper
+network can represent the same function with far fewer total parameters,
+and turns out to be far more trainable in practice — see "Where the
+'deep' in deep learning comes from," below.
+
+### Choosing an activation function
+
+Not all nonlinearities are equal in practice, and the choice has a real
+history behind it:
+
+- **Sigmoid** (`1 / (1 + e^-z)`) and **tanh** were the original defaults —
+  smooth, bounded outputs. Their flaw: for large positive or negative
+  `z`, the function flattens out almost completely, so its derivative is
+  close to zero. Chained across many layers (see vanishing gradients,
+  below), this made deep networks with these activations extremely slow
+  or impossible to train.
+- **ReLU** (`max(0, z)`) fixed this for positive inputs — its derivative
+  is exactly 1 wherever `z > 0`, so it doesn't shrink gradients flowing
+  through active neurons. It's cheap to compute and was a major factor in
+  making deep networks trainable at all. Its own flaw: a neuron whose
+  input is always negative outputs zero forever and stops learning (the
+  "dying ReLU" problem).
+- **GELU** and other smooth ReLU variants (used in most modern
+  transformers, including the ones in
+  [Attention & Transformers](/docs/attention-and-transformers)) soften
+  ReLU's sharp corner at zero, which empirically trains slightly better
+  at the scale modern models operate at, at a small extra compute cost.
 
 ## The forward pass
 
@@ -108,18 +150,77 @@ as *one* forward pass — is what makes training networks with billions of
 parameters computationally feasible at all. Without it, gradient descent at
 LLM scale would be a non-starter.
 
+### A fully worked numeric example
+
+Concrete numbers make this stick better than symbols alone. Take the
+smallest possible case: `loss = (a * b + c)`, with `a = 2`, `b = -3`,
+`c = 10`.
+
+**Forward pass:**
+```
+d = a * b   = 2 * -3  = -6
+loss = d + c = -6 + 10 =  4
+```
+
+**Backward pass**, starting from `dL/dL = 1` (the loss's gradient with
+respect to itself) and working backward using the local rules above:
+
+```
+dL/dd = dL/dloss * 1 = 1        # loss = d + c, local grad w.r.t. d is 1
+dL/dc = dL/dloss * 1 = 1        # local grad w.r.t. c is 1
+
+dL/da = dL/dd * b = 1 * -3 = -3 # d = a*b, local grad w.r.t. a is b
+dL/db = dL/dd * a = 1 * 2  =  2 # local grad w.r.t. b is a
+```
+
+Read `dL/da = -3` as: "increasing `a` by a small amount increases the loss
+by about 3 times that amount" — so gradient descent will *decrease* `a`.
+Every gradient in a million-parameter network is computed by chaining
+exactly these two rules (multiply, add) — plus a handful of others for
+whatever operations appear in the graph — over and over, automatically.
+This is precisely what `loss.backward()` does in a real framework (see
+[Tooling & The Dev Stack](/docs/tooling-and-the-dev-stack)) — the manual
+version above *is* what autograd is doing under the hood.
+
 ## Where the "deep" in deep learning comes from
 
 "Depth" just means stacking many layers. Deeper networks can represent
 more complex functions with fewer total parameters than a single very wide
 layer — each layer builds on features the previous layer extracted, rather
 than trying to learn the whole mapping at once. Practically, depth
-introduces its own problems (vanishing/exploding gradients — the product
-of many local gradients along a long chain can shrink toward zero or blow
-up), which is precisely why techniques like better weight initialization,
-normalization layers, and residual connections (used pervasively in
-transformers) exist: they keep gradients well-behaved as they propagate
-back through dozens or hundreds of layers.
+introduces its own problems, and three specific fixes are worth knowing by
+name, since all three show up throughout this course:
+
+- **Vanishing/exploding gradients**: backprop multiplies local gradients
+  along a chain (as in the worked example above). If those local
+  gradients are consistently a bit less than 1, their product shrinks
+  toward zero across many layers — early layers get almost no gradient
+  signal and stop learning. If they're consistently a bit more than 1,
+  the product explodes instead, and training diverges. This is the
+  practical reason sigmoid/tanh fell out of favor for deep networks (see
+  activation functions, above) — their small derivatives compound badly
+  across depth.
+- **Weight initialization**: the *starting* values of the weights matter
+  more than intuition suggests — initializing too large or too small
+  makes vanishing/exploding gradients worse from step one. Schemes like
+  **Xavier/Glorot initialization** and **He initialization** set the
+  initial random weight scale based on the number of inputs/outputs of
+  each layer, specifically to keep activations and gradients at a
+  consistent scale as they pass through the network.
+- **Normalization layers** (**batch normalization**, **layer
+  normalization**): rescale a layer's outputs (mean roughly 0, variance
+  roughly 1) at each step during training, keeping values from drifting
+  too large or too small as they pass through many layers. **Layer
+  normalization** specifically is used throughout transformers (see
+  [Attention & Transformers](/docs/attention-and-transformers)).
+- **Residual (skip) connections**: instead of a layer's output being
+  purely a function of its input, add the input back to the output
+  (`output = layer(x) + x`). This gives gradients a direct path
+  backward that skips the layer's local gradient entirely, so even if a
+  particular layer's local gradient is small, the gradient signal isn't
+  lost — it can flow through the skip connection instead. This one
+  architectural trick is a major reason networks with dozens or hundreds
+  of layers (again, transformers included) are trainable at all.
 
 ## Recap
 
