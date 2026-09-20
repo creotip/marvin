@@ -1,0 +1,120 @@
+---
+title: Probability & Statistics Foundations
+description: Distributions, Bayes' theorem, and maximum likelihood estimation — the math that loss functions and uncertainty in ML are actually built on
+---
+
+[ML Fundamentals](/docs/ml-fundamentals) introduced loss functions and
+gradient descent without explaining *why* cross-entropy loss is the
+"right" choice for classification, or what a model's output probabilities
+actually mean. Both answers come from probability and statistics — not
+as background trivia, but as the actual mathematical foundation loss
+functions, uncertainty, and even regularization are built on.
+
+## Random variables and distributions
+
+A **random variable** represents a quantity whose value isn't fixed but
+follows some pattern of likelihood — a distribution. A **probability
+distribution** assigns a likelihood to each possible outcome. Three you'll
+see constantly in this course:
+
+- **Bernoulli distribution**: models a single binary outcome (spam / not
+  spam) with probability `p` of "yes." The output of a binary classifier
+  is literally the `p` of a Bernoulli distribution.
+- **Categorical distribution**: the multi-class generalization — a
+  probability for each of several discrete outcomes, summing to 1. This
+  is exactly what a language model outputs at each generation step: a
+  probability for every possible next token (see
+  [LLMs](/docs/llms)).
+- **Gaussian (normal) distribution**: the classic bell curve, defined by
+  a mean and variance, used constantly to model continuous noise and
+  uncertainty, and as the default assumption behind mean squared error
+  loss (below).
+
+## Expectation and variance
+
+The **expectation** (or expected value) of a random variable is its
+probability-weighted average — the long-run average value if you sampled
+from the distribution infinitely many times. **Variance** measures how
+spread out a distribution is around its expectation. These aren't just
+abstract definitions: a loss function *is* an expectation — cross-entropy
+loss is the expected negative log-probability the model assigns to the
+correct answer, averaged over your training examples.
+
+## Bayes' theorem
+
+**Bayes' theorem** relates two conditional probabilities — how likely a
+hypothesis is *given* evidence, versus how likely the evidence is *given*
+the hypothesis:
+
+```
+P(hypothesis | evidence) = P(evidence | hypothesis) · P(hypothesis)
+                            ────────────────────────────────────────
+                                        P(evidence)
+```
+
+In ML terms: the **prior**, `P(hypothesis)`, is what you believed before
+seeing data; the **likelihood**, `P(evidence | hypothesis)`, is how well a
+hypothesis explains the data you observed; the **posterior**,
+`P(hypothesis | evidence)`, is your updated belief after seeing it. This
+isn't just philosophy — it's the exact mechanism behind spam filters
+(is this email spam, given these words?), and the conceptual basis for
+the MAP estimation below.
+
+<Callout type="info" title="Bayesian vs. frequentist">
+These two conditional probabilities look similar but answer different
+questions, and conflating them is a classic reasoning error: "how likely
+is a positive test result, given you have the disease" is very different
+from "how likely is it you have the disease, given a positive test result"
+— especially when the disease is rare. Bayes' theorem is precisely the
+tool for converting between the two correctly.
+</Callout>
+
+## Maximum likelihood estimation: what training actually optimizes
+
+Here's the connection that ties this lesson directly back to
+[ML Fundamentals](/docs/ml-fundamentals): **maximum likelihood estimation
+(MLE)** is the principle of choosing model parameters `θ` that make the
+observed training data as probable as possible under the model.
+
+For classification, this means: choose `θ` to maximize the probability
+the model assigns to the correct label, averaged across all training
+examples. Maximizing a probability is equivalent to minimizing its
+negative logarithm (logarithm is monotonic, and working with sums of logs
+instead of products of probabilities is numerically far more stable) —
+and that negative log-probability, averaged over the data, is *exactly*
+**cross-entropy loss**.
+
+This is not a coincidence or a rough analogy: training a classifier with
+cross-entropy loss via [gradient descent](/reference/gradient-descent)
+**is** maximum likelihood estimation. Every loss function in this course
+has a probabilistic story behind it — mean squared error is the MLE
+solution under an assumption that errors are Gaussian-distributed noise.
+
+## MAP estimation: where regularization comes from
+
+**Maximum a posteriori (MAP) estimation** extends MLE by incorporating a
+prior belief about the parameters themselves, via Bayes' theorem: instead
+of only maximizing how well `θ` explains the data (the likelihood), MAP
+also weighs how plausible `θ` was *before* seeing the data (the prior).
+
+This turns out to be exactly where [weight decay](/reference/regularization)
+comes from: assuming a Gaussian prior centered at zero for the
+parameters — a belief that "smaller weights are more plausible than
+huge ones" — and combining it with the likelihood via Bayes' theorem
+produces, after the same log-probability trick as above, a training
+objective that is *precisely* the ordinary loss function plus an L2
+penalty on the weights. Regularization isn't a separate hack bolted onto
+training — it's what MLE becomes once you add a prior belief about the
+parameters.
+
+## Recap and what's next
+
+Probability distributions are the objects loss functions are built to
+measure the fit of; maximum likelihood estimation is the principle that
+justifies cross-entropy and MSE loss as "correct" rather than arbitrary
+choices; and MAP estimation shows that regularization is a special case
+of the same framework, not a separate trick. Keep this lens handy —
+whenever a later lesson introduces a loss function or a training
+objective, it has a probabilistic story like the ones here underneath it.
+The next lesson returns to the mechanics of training itself: how gradients
+are actually computed through a network, from scratch.

@@ -1,0 +1,108 @@
+---
+title: Evaluation & Benchmarks
+description: How models are actually scored — benchmark suites, leaderboards, eval methodology, and why a high benchmark score doesn't guarantee good real-world performance
+---
+
+Every lesson so far has assumed you can tell whether a model is "good."
+[ML Fundamentals](/docs/ml-fundamentals) covered basic metrics
+(accuracy, precision, recall) for simple classifiers — but evaluating a
+modern [LLM](/docs/llms), which can write code, answer trivia, reason
+through math, and hold a conversation, is a much harder and more
+contested problem. This lesson covers how it's actually done, and where
+it goes wrong.
+
+## Benchmark suites: standardized exams for models
+
+A **benchmark** is a fixed, standardized set of test questions used to
+compare models on a specific capability. A few widely cited ones:
+
+- **MMLU (Massive Multitask Language Understanding)**: multiple-choice
+  questions spanning dozens of academic subjects, used as a broad
+  knowledge-and-reasoning benchmark.
+- **HumanEval**: programming problems, scored by whether generated code
+  actually passes test cases — a benchmark for coding ability
+  specifically.
+- **GSM8K**: grade-school math word problems, testing multi-step
+  arithmetic reasoning of the kind
+  [chain-of-thought prompting](/docs/applied-and-agentic-systems) is
+  meant to help with.
+
+Model releases routinely report scores on suites like these, and
+**leaderboards** rank models by aggregate performance across many
+benchmarks at once. This gives a standardized, reproducible way to
+compare models — the same appeal standardized tests have for comparing
+students.
+
+## Why benchmark scores can mislead
+
+<Callout type="warning" title="A high score is not the same as being good at the task">
+Benchmarks measure performance on a *fixed, known* set of questions —
+which creates several specific failure modes worth naming.
+</Callout>
+
+- **Contamination**: if a benchmark's questions (or close variants)
+  appeared in a model's [pretraining](/reference/pretraining) data, the
+  model can score well by having partially memorized answers rather than
+  by genuinely reasoning — a real and hard-to-fully-rule-out risk for
+  benchmarks built from public web text.
+- **Overfitting to the leaderboard**: if a lab tunes its models
+  specifically to score well on popular public benchmarks (directly
+  analogous to [overfitting](/reference/overfitting) to a validation set
+  from [ML Fundamentals](/docs/ml-fundamentals)), benchmark performance
+  can improve without real-world capability improving to match.
+- **Narrow coverage**: a benchmark measures exactly what it tests — a
+  model that excels at multiple-choice academic questions (MMLU) isn't
+  thereby guaranteed to be good at open-ended writing, following complex
+  multi-step instructions, or knowing when it doesn't know something (see
+  [hallucination](/reference/hallucination)), since none of those are
+  what that particular benchmark measures.
+- **Saturation**: as models improve, top scores on a benchmark cluster
+  near 100%, at which point the benchmark stops usefully distinguishing
+  between models — a recurring pattern that drives the field to
+  continually design harder benchmarks.
+
+## LLM-as-judge: evaluating open-ended output
+
+Multiple-choice benchmarks are easy to score automatically, but a lot of
+what makes an LLM useful — writing quality, helpfulness, following
+nuanced instructions — has no single correct answer to check against.
+**LLM-as-judge** evaluation uses a (typically stronger) LLM to score or
+compare another model's open-ended outputs, following the same intuition
+behind [RLHF](/docs/llms): judging the quality of a response is often
+easier than defining a hard, checkable rule for it. This approach scales
+far better than paying humans to review every output, but inherits its
+own risks — a judge model's own biases and blind spots quietly become the
+evaluation criteria.
+
+## Held-out and human evaluation
+
+Beyond automated benchmarks, two other evaluation modes matter in
+practice:
+
+- **Held-out test sets**: the same [train/test split](/reference/train-val-test-split)
+  discipline from [ML Fundamentals](/docs/ml-fundamentals) applies here
+  too — a genuinely unseen, uncontaminated set of examples is the most
+  trustworthy evidence of real generalization, precisely because it can't
+  have leaked into training data if properly kept private.
+- **Human evaluation**: humans directly rate or compare model outputs —
+  the same kind of preference data
+  [RLHF](/docs/llms) trains on. It's the closest proxy to real user
+  experience, but is slow, expensive, and doesn't scale to the pace of
+  model iteration the way automated benchmarks do.
+
+In practice, serious model evaluation combines several of these — broad
+automated benchmarks for quick, cheap signal; held-out and
+contamination-checked test sets for trustworthy generalization claims;
+and human or LLM-as-judge evaluation for the open-ended qualities no
+multiple-choice benchmark can capture.
+
+## Recap and what's next
+
+No single number captures "how good" a model is. Benchmark suites give
+standardized, comparable scores but are vulnerable to contamination,
+leaderboard-chasing, and narrow coverage; LLM-as-judge and human
+evaluation cover open-ended quality that benchmarks can't, at a real cost
+in speed and scale. Treat any single reported score — including ones
+from this course's own examples — as one data point, not the whole
+picture. The final lesson looks at what gets built *on top* of a served,
+evaluated LLM: retrieval, tool use, and multi-step agentic systems.

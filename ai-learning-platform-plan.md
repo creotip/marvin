@@ -21,20 +21,24 @@ A self-built, interactive alternative to Karpathy/D2L/HF Learn: docs-style navig
 1. **History & Landscape** — symbolic AI → expert systems → statistical ML → deep learning → the LLM era
 2. **ML Fundamentals** — supervised/unsupervised learning, loss functions, gradient descent
    - *Widget: gradient descent playground* (drag a starting point on a 2D loss surface, watch it converge)
-3. **Neural Networks & Backprop** — from Karpathy's micrograd approach
+3. **Probability & Statistics Foundations** — distributions, Bayes' theorem, MLE/MAP — why loss functions look the way they do; added as part of the "broaden the course" push
+4. **Neural Networks & Backprop** — from Karpathy's micrograd approach
    - *Widget: tiny neural net you step through forward/backward pass, node by node*
-4. **Tooling & The Dev Stack** — languages, frameworks (PyTorch/JAX/TensorFlow), the Hugging Face ecosystem, distributed training, experiment tracking, hardware, deployment tooling — the practitioner layer, added after user feedback that the course had no "how models are actually built" content
-5. **Computer Vision** — convolutions, pooling, CNNs, transfer learning
+5. **Tooling & The Dev Stack** — languages, frameworks (PyTorch/JAX/TensorFlow), the Hugging Face ecosystem, distributed training, experiment tracking, hardware, deployment tooling — the practitioner layer, added after user feedback that the course had no "how models are actually built" content
+6. **Computer Vision** — convolutions, pooling, CNNs, transfer learning
    - *Widget: convolution kernel visualizer (slide a kernel over an image, see the feature map build live)*
-6. **Attention & Transformers** — the core architecture
+7. **Attention & Transformers** — the core architecture
    - *Widget: attention weight visualizer (edit a sentence, see live attention heatmap between tokens)*
-7. **LLMs** — tokenization, embeddings, pretraining vs fine-tuning, RLHF basics
+8. **Generative Models** — GANs, VAEs, diffusion models — generating new content rather than predicting/classifying
+9. **LLMs** — tokenization, embeddings, pretraining vs fine-tuning, RLHF basics
    - *Widget: tokenizer playground (type text, see it split into tokens + token IDs live)*
-8. **Inference & Serving** — batching, KV caching, quantization, latency/throughput tradeoffs
-   - *Widget: KV-cache vs no-cache latency simulator (toggle and see a simulated speed difference)*
-9. **Applied / Agentic Systems** — RAG, tool use, agents (tie-in to your own PrimeSec domain if useful)
+10. **Reinforcement Learning** — MDPs, policies, value functions, Q-learning, PPO — the actual algorithm family behind RLHF
+11. **Inference & Serving** — batching, KV caching, quantization, latency/throughput tradeoffs
+    - *Widget: KV-cache vs no-cache latency simulator (toggle and see a simulated speed difference)*
+12. **Evaluation & Benchmarks** — MMLU/HumanEval-style suites, LLM-as-judge, why benchmark scores can mislead
+13. **Applied / Agentic Systems** — RAG, tool use, agents (tie-in to your own PrimeSec domain if useful)
 
-**North star (not immediate scope):** the long-term ambition is for this to grow into a much deeper, broader "university of AI" — more rigorous math, more topics (probability/stats foundations, optimization theory, RL, generative models, MLOps, safety/alignment), possibly grouped into course-like sections instead of one flat list. Approach: deepen the existing lessons and add clearly-missing practitioner content (like this tooling lesson) incrementally, rather than a big-bang rewrite. Revisit information architecture (flat list vs. grouped sections) once there are enough lessons that a flat sidebar stops working.
+**North star (not immediate scope):** the long-term ambition is for this to grow into a much deeper, broader "university of AI" — more rigorous math, more topics (optimization theory, MLOps, safety/alignment), possibly grouped into course-like sections instead of one flat list. Approach: deepen existing lessons and add clearly-missing content (tooling, probability, RL, generative models, evaluation — all added so far) incrementally, rather than a big-bang rewrite. Revisit information architecture (flat list vs. grouped sections) once the flat sidebar (13 lessons now) stops working — worth reconsidering soon.
 
 Each topic = one lesson page (MDX route). Widgets and quizzes listed above are deferred past MVP v1 — write the lessons as strong prose (with static diagrams/code where useful) first; widgets get slotted in later without changing the content structure.
 

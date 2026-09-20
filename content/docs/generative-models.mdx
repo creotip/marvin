@@ -1,0 +1,125 @@
+---
+title: Generative Models
+description: GANs, VAEs, and diffusion models — how AI generates new images, audio, and video, as opposed to classifying or understanding existing content
+---
+
+Every model so far in this course *understands* or *predicts*: a CNN
+classifies an image, a transformer predicts the next token. This lesson
+is about models built to **generate new content** — new images, audio,
+video — that didn't exist in the training data, which turns out to need
+a genuinely different training setup than the supervised
+[loss functions](/reference/loss-function) covered so far.
+
+## The core problem: there's no single "correct" output
+
+Supervised learning (see [ML Fundamentals](/docs/ml-fundamentals)) works
+by comparing a prediction to one correct answer. Generation breaks that
+assumption: there is no single "correct" image of a cat — millions of
+valid ones exist, and a good generative model should be capable of
+producing any of them, with the right relative likelihoods. This is why
+generative models need training objectives fundamentally different from
+cross-entropy against a known label — each approach below solves this
+"no single right answer" problem differently.
+
+## GANs: two networks competing
+
+A **GAN (Generative Adversarial Network)** trains two networks against
+each other:
+
+- The **generator** takes random noise as input and tries to produce
+  realistic-looking outputs (e.g. images).
+- The **discriminator** is a classifier trained to distinguish the
+  generator's fake outputs from real training examples.
+
+The generator is trained to *fool* the discriminator; the discriminator
+is trained to *catch* the generator. As training progresses, both
+improve together — the discriminator gets better at spotting fakes,
+forcing the generator to produce increasingly realistic ones. This is a
+genuinely different training loop from anything else in this course: two
+networks with opposing objectives, updated in alternation, rather than
+one network minimizing a single fixed loss.
+
+<Callout type="warning" title="GANs are notoriously hard to train">
+The adversarial setup that makes GANs powerful also makes them unstable:
+if the discriminator gets too good too fast, the generator stops
+receiving useful gradient signal and training stalls (a failure mode
+called **mode collapse**, where the generator produces only a narrow
+range of outputs). Diffusion models, below, have largely displaced GANs
+for state-of-the-art image generation partly because their training is
+far more stable.
+</Callout>
+
+## VAEs: learning a compressed, generative latent space
+
+A **VAE (Variational Autoencoder)** takes a different approach: an
+**encoder** compresses an input into a compact **latent** representation
+(a vector of numbers, similar in spirit to the
+[embeddings](/reference/embedding) from
+[LLMs](/docs/llms)), and a **decoder** reconstructs the original input
+from that latent vector. The "variational" part is what makes it
+generative rather than just compression: instead of encoding an input to
+a single fixed point, the encoder produces a *distribution* (see
+[Probability & Statistics Foundations](/docs/probability-and-statistics-foundations))
+over the latent space, and the model is trained so that sampling
+randomly from that latent space and decoding produces plausible new
+outputs — not just reconstructions of inputs it has already seen.
+
+VAEs train more stably than GANs (a single well-defined loss function,
+no adversarial dynamics) but historically produced blurrier, less sharp
+outputs — one of the reasons diffusion models became the dominant
+approach for high-fidelity image generation.
+
+## Diffusion models: destroy, then learn to reverse it
+
+**Diffusion models** — the approach behind most current state-of-the-art
+image generators — take a strikingly different strategy: train a model
+to *reverse* a process of gradually adding random noise to an image.
+
+<Steps>
+<Step>
+**Forward process (fixed, not learned)**: take a real training image and
+progressively add small amounts of random noise over many steps, until
+it becomes indistinguishable from pure noise.
+</Step>
+<Step>
+**Train a model to reverse one step**: at each noise level, train a
+network to predict the noise that was added, so it can be subtracted
+back out — a supervised prediction target, despite the end goal being
+generation.
+</Step>
+<Step>
+**Generate by reversing from pure noise**: start from random noise and
+repeatedly apply the trained denoising step, gradually turning noise
+into a coherent image over many iterations.
+</Step>
+</Steps>
+
+This reframes "generate a realistic image" as a long sequence of much
+simpler "remove a little noise" prediction problems — each individually
+easy to train with an ordinary supervised loss, with no adversarial
+instability. The tradeoff is inference cost: generating one image
+requires running the denoising network many times in sequence (often
+dozens to hundreds of steps), making diffusion models considerably slower
+to sample from than a GAN's single forward pass — a direct analog of the
+autoregressive generation cost covered in
+[Inference & Serving](/docs/inference-and-serving), just for images
+instead of tokens.
+
+Modern diffusion models (e.g. Stable Diffusion, Midjourney's underlying
+approach) commonly run this denoising process in a compressed VAE latent
+space rather than on raw pixels directly — combining both techniques
+covered in this lesson — and increasingly use
+[transformer](/reference/transformer)-based denoising networks instead of
+pure CNNs, another instance of attention proving to be a general-purpose
+mechanism rather than a language-specific one.
+
+## Recap and what's next
+
+Generative models solve a fundamentally different problem than the
+classifiers and predictors covered earlier: producing new, plausible
+content rather than a single correct label. GANs pit two networks against
+each other; VAEs learn a compressed, sampleable latent space; diffusion
+models reframe generation as iteratively reversing noise, and currently
+dominate state-of-the-art image generation. The next lesson returns to
+text, applying the transformer architecture from the previous lesson at
+scale: large language models.

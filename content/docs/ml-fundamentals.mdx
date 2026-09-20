@@ -195,9 +195,12 @@ alone can't make for you.
 
 ## Why this matters going forward
 
-The next lesson (Neural Networks & Backprop) is entirely about *how* you
-efficiently compute `∇L(θ)` when `θ` has millions or billions of
-parameters arranged in layers — that algorithm is called
+The next lesson steps back to the probability and statistics underneath
+loss functions themselves — why cross-entropy and MSE are the "correct"
+choices, not arbitrary ones. After that,
+[Neural Networks & Backprop](/docs/neural-networks-and-backprop) covers
+*how* you efficiently compute `∇L(θ)` when `θ` has millions or billions
+of parameters arranged in layers — that algorithm is called
 **backpropagation**, and it's the single most load-bearing idea in deep
 learning. Everything after that — CNNs, transformers, LLMs — is a choice of
 *what function `f(x; θ)` looks like*. The loss-and-gradient-descent loop

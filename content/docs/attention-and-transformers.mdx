@@ -120,7 +120,7 @@ together, and different modern model families use different halves:
   self-attention exclusively, exactly as described above. This is the
   architecture behind essentially every general-purpose chat/completion
   LLM today, because it directly matches the pretraining objective
-  (predict the next token) covered in the next lesson.
+  (predict the next token) covered in [LLMs](/docs/llms).
 - **Encoder-decoder** (e.g. **T5**, the original translation-focused
   transformer): an encoder processes the full input (say, an English
   sentence) with unmasked attention, and a decoder generates the output
@@ -152,7 +152,8 @@ sequence modeling:
    predictably as you make them bigger and train them on more data (the
    "scaling laws" mentioned in
    [History & Landscape](/docs/history-and-landscape)) — a property that
-   directly justified building the huge models the next lesson covers.
+   directly justified building the huge models covered later in
+   [LLMs](/docs/llms).
 
 ## Recap
 
@@ -161,6 +162,6 @@ every position directly weigh every other position, with weights learned
 from data." Stack that mechanism into blocks with feedforward layers,
 positional encodings, and residual connections, and you get the
 transformer — the architecture underneath essentially every modern
-language model, and increasingly vision and audio models too. The next
-lesson is about what happens when you take this architecture and scale it
-up on huge amounts of text: large language models.
+language model, and increasingly vision and audio models too — including
+the image-generating diffusion models covered next, before returning to
+language and scaling this architecture up into large language models.

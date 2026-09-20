@@ -1,0 +1,121 @@
+---
+title: Reinforcement Learning
+description: MDPs, reward, policy and value functions, Q-learning — the third major ML paradigm, and the actual mechanism behind RLHF
+---
+
+[ML Fundamentals](/docs/ml-fundamentals) introduced supervised and
+unsupervised learning as the two main paradigms. **Reinforcement learning
+(RL)** is the third: instead of learning from labeled examples or finding
+structure in unlabeled data, an RL agent learns by *acting* in an
+environment and receiving feedback about how good its actions were.
+[RLHF](/docs/llms) leaned on this paradigm without explaining it — this
+lesson fills that gap properly.
+
+## The setup: agent, environment, reward
+
+RL problems share a common structure, formalized as a **Markov Decision
+Process (MDP)**:
+
+- An **agent** observes a **state** of the **environment** and chooses an
+  **action**.
+- The environment transitions to a new state and returns a **reward** — a
+  number indicating how good or bad that action was.
+- The agent's goal is to learn a **policy** — a strategy for choosing
+  actions — that maximizes its *total* reward over time, not just the
+  immediate reward from one action.
+
+That last point is what makes RL genuinely different from supervised
+learning: there's no dataset of "correct" actions to imitate. An action
+that looks bad immediately (sacrificing a chess piece) can be the right
+choice if it leads to much better rewards later (winning the game). The
+agent has to learn this from trial and error, via the reward signal alone.
+
+## Policies and value functions
+
+A **policy** (often written `π`) maps states to actions — it's the thing
+being learned, analogous to the model `f(x; θ)` from
+[ML Fundamentals](/docs/ml-fundamentals), except here the "prediction" is
+an action to take, not a label.
+
+Rather than learning a policy directly, many RL algorithms instead learn
+a **value function**: an estimate of how much total future reward to
+expect from a given state (or from taking a specific action in a state),
+if the agent behaves well from then on. The intuition: if you know how
+valuable every state is, choosing a good action is easy — just move
+toward higher-value states. This is a genuinely different structure from
+the loss functions covered so far: rather than measuring "how wrong is
+this single prediction," a value function estimates "how good is this
+situation, accounting for everything that could happen afterward."
+
+## Q-learning: learning values from experience
+
+**Q-learning** is a foundational RL algorithm that learns a **Q-function**
+— the expected total future reward of taking a specific action in a
+specific state, then acting optimally afterward. It updates its estimate
+after every action taken, using the actual reward received plus its
+current estimate of the *next* state's value:
+
+```
+Q(state, action) ← Q(state, action) + α · [reward + γ · max(Q(next_state, ·)) − Q(state, action)]
+```
+
+Where `α` is a learning rate (same role as in
+[gradient descent](/reference/gradient-descent)) and `γ` (gamma) is a
+**discount factor** — a number slightly less than 1 that makes future
+rewards count slightly less than immediate ones, so the agent doesn't
+value a reward infinitely far in the future the same as one right now.
+
+**Deep Q-Networks (DQN)** replace the lookup-table version of `Q` with a
+[neural network](/reference/neural-network) — the same substitution
+covered throughout this course, swapping a simple representation for a
+learned one that can generalize across states it hasn't seen exactly
+before. This was the approach behind early landmark results like
+learning to play Atari games directly from raw pixels.
+
+## Policy gradients: learning the policy directly
+
+An alternative family of methods, **policy gradient** methods, skip value
+functions and directly adjust a policy's parameters to make
+higher-reward actions more likely — using
+[gradient descent](/reference/gradient-descent) on an objective built from
+the rewards received, in the same spirit as (though mechanically
+different from) the loss-minimization loop from
+[ML Fundamentals](/docs/ml-fundamentals). **PPO (Proximal Policy
+Optimization)** is a widely used policy gradient method, specifically
+designed to take stable, conservative update steps — large policy updates
+in RL can catastrophically break a policy that was working, so limiting
+how much any single update is allowed to change it improves training
+stability.
+
+<Callout type="info" title="This is the algorithm behind RLHF">
+[LLMs](/docs/llms) described RLHF as "using reinforcement learning to
+optimize the LLM against a learned reward model." PPO is specifically
+the RL algorithm most commonly used for that optimization step: the
+LLM itself is the policy, generating a response is taking an action, and
+the reward model's score is the reward. Everything in this lesson — a
+policy, a reward signal, stable incremental updates — maps directly onto
+that pipeline.
+</Callout>
+
+## Exploration vs. exploitation
+
+A tension unique to RL: should the agent take the action it currently
+believes is best (**exploitation**), or try something uncertain to
+potentially discover something better (**exploration**)? An agent that
+only exploits can get stuck with a mediocre policy it never learns to
+improve on; an agent that only explores never capitalizes on what it's
+learned. Most RL algorithms build in some explicit mechanism to balance
+the two — this problem has no analog in supervised learning, where the
+training data is fixed rather than shaped by the model's own past
+decisions.
+
+## Recap and what's next
+
+Reinforcement learning learns from a reward signal generated by acting in
+an environment, rather than from labeled examples — a genuinely different
+problem structure from supervised learning, requiring policies, value
+functions, and a balance between exploration and exploitation. Its
+practical relevance to this course is direct: it's the actual algorithm
+family underneath RLHF's alignment step. The next lesson returns to
+inference — what happens when you take a trained model, RL-tuned or
+otherwise, and actually run it.

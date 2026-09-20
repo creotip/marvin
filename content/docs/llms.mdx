@@ -3,8 +3,8 @@ title: LLMs
 description: Tokenization, embeddings, pretraining vs fine-tuning, RLHF basics
 ---
 
-The transformer (previous lesson) is an architecture. A **large language
-model** is what you get by taking that architecture, scaling it up, and
+The [transformer](/docs/attention-and-transformers) is an architecture.
+A **large language model** is what you get by taking that architecture, scaling it up, and
 training it in a specific multi-stage recipe on text. This lesson walks
 through that recipe end to end.
 
@@ -208,6 +208,7 @@ share a pretrained base and diverge only at the fine-tuning stage.
 Tokenization turns text into a form transformers can process; pretraining
 on next-token prediction is where nearly all of a model's raw knowledge
 and language ability comes from; fine-tuning and RLHF shape that
-knowledge into a helpful, instruction-following assistant. The next lesson
-shifts from *how models are trained* to *what happens when you actually
-use one* — the inference and serving side of the stack.
+knowledge into a helpful, instruction-following assistant. RLHF leaned on
+reinforcement learning without fully explaining it — the next lesson
+covers that paradigm properly, before returning to
+[the inference and serving side of the stack](/docs/inference-and-serving).

@@ -175,6 +175,8 @@ job cares more about total throughput and cost).
 Inference is a different engineering problem from training: it's an
 inherently sequential loop, and the techniques covered here — KV caching,
 batching, quantization — exist specifically to make that loop fast and
-cheap enough to serve at scale. The final lesson looks at what gets built
-*on top* of a served LLM: retrieval, tool use, and multi-step agentic
-systems.
+cheap enough to serve at scale. Now that a model is trained *and* served,
+the next question is how you actually know if it's any good — the next
+lesson covers evaluation and benchmarking, before the final lesson looks
+at what gets built *on top* of a served LLM: retrieval, tool use, and
+multi-step agentic systems.
