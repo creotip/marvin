@@ -1,0 +1,18 @@
+---
+title: Tokenization
+description: Tokenization converts raw text into a sequence of integers a model can process, typically via subword schemes like byte-pair encoding (BPE).
+---
+
+**Tokenization** converts raw text into a sequence of integer **tokens**
+a [neural network](/reference/neural-network) can process. Modern
+[LLMs](/reference/llm) use **subword tokenization** (commonly
+**byte-pair encoding**, BPE): common words get a single token, rarer
+words split into smaller frequent pieces — keeping sequences short while
+still representing any string, including unseen words. Each token is
+then mapped to a learned [embedding](/reference/embedding) vector before
+entering the model.
+
+**See also:** [Embedding](/reference/embedding), [LLM](/reference/llm)
+
+**Learn more:** [LLMs](/docs/llms) ·
+[Wikipedia: Byte pair encoding](https://en.wikipedia.org/wiki/Byte_pair_encoding)

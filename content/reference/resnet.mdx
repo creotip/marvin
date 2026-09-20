@@ -1,0 +1,20 @@
+---
+title: ResNet
+description: ResNet is a deep CNN architecture that introduced residual (skip) connections, enabling networks with 50-150+ layers to train successfully.
+---
+
+**ResNet** (2015) is a [CNN](/reference/cnn) architecture that pushed
+network depth far beyond what was previously trainable (50, 101, even
+150+ layers) by introducing **residual connections**: adding a layer's
+input back to its output (`output = layer(x) + x`), giving gradients a
+direct path backward that skips the layer's local gradient. Before
+ResNet, networks much deeper than prior architectures like VGG actually
+performed *worse* — a symptom of vanishing gradients. Residual
+connections are now used pervasively, including in
+[transformers](/reference/transformer).
+
+**See also:** [CNN](/reference/cnn), [AlexNet](/reference/alexnet),
+[Backpropagation](/reference/backpropagation)
+
+**Learn more:** [Computer Vision](/docs/computer-vision) ·
+[Original paper (arXiv)](https://arxiv.org/abs/1512.03385)

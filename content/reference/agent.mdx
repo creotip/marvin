@@ -1,0 +1,18 @@
+---
+title: Agent
+description: An agent puts an LLM in a loop with tool access, letting it decide autonomously which tools to call and in what order to accomplish a multi-step goal.
+---
+
+An **agent** puts an [LLM](/reference/llm) in a loop with access to
+tools, letting it decide — autonomously, from one step to the next —
+which tools to call and in what order to accomplish a goal, rather than
+answering in a single request/response turn. Each step's tool result
+feeds back into the model's context to inform the next decision, until
+the model determines the goal is achieved. Practical agent systems add
+guardrails (step limits, confirmation before high-stakes actions) since
+errors can compound across a chain of steps.
+
+**See also:** [RAG](/reference/rag), [MCP](/reference/mcp),
+[LLM](/reference/llm)
+
+**Learn more:** [Applied & Agentic Systems](/docs/applied-and-agentic-systems)

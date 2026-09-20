@@ -1,0 +1,17 @@
+---
+title: Quantization
+description: Quantization reduces a model's numerical precision (e.g. 16-bit to 4-bit) to shrink memory footprint and speed up inference, at some cost to accuracy.
+---
+
+**Quantization** reduces a model's weight precision — commonly from
+16/32-bit floating point down to 8-bit or 4-bit integers — shrinking
+memory footprint and often speeding up computation. Neural networks are
+fairly robust to this reduced precision, though accuracy risk increases
+as bit width drops. It's central to running [LLMs](/reference/llm)
+locally (tools like llama.cpp and Ollama) and to fitting larger models
+into limited GPU memory in production.
+
+**See also:** [Inference](/reference/inference), [GPU](/reference/gpu)
+
+**Learn more:** [Inference & Serving](/docs/inference-and-serving) ·
+[Tooling & The Dev Stack](/docs/tooling-and-the-dev-stack)

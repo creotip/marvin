@@ -1,0 +1,18 @@
+---
+title: Hallucination
+description: A hallucination is a confidently stated, fluent LLM output that is factually wrong, a direct consequence of models being trained to produce plausible text rather than verified facts.
+---
+
+A **hallucination** is a confidently stated, fluent [LLM](/reference/llm)
+output that's factually wrong. It follows directly from what the model
+is: a next-token predictor trained to produce plausible-sounding text, not
+a database lookup with a built-in sense of "I don't know." When the model
+lacks reliable knowledge, the training objective still rewards *some*
+fluent continuation. [RAG](/reference/rag) reduces hallucination by
+grounding generation in retrieved, verifiable text instead of relying
+purely on what the model absorbed during [pretraining](/reference/pretraining).
+
+**See also:** [LLM](/reference/llm), [RAG](/reference/rag)
+
+**Learn more:** [LLMs](/docs/llms) ·
+[Applied & Agentic Systems](/docs/applied-and-agentic-systems)

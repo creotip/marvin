@@ -1,0 +1,21 @@
+---
+title: Gradient Descent
+description: Gradient descent is the optimization algorithm that trains models by repeatedly stepping parameters in the opposite direction of the loss function's gradient.
+---
+
+**Gradient descent** is the algorithm used to train nearly every model in
+modern AI. It repeatedly computes the gradient of the
+[loss function](/reference/loss-function) with respect to the model's
+parameters, then updates the parameters a small step in the *opposite*
+direction (since the gradient points toward increasing loss):
+`θ ← θ - η · ∇L(θ)`, where `η` is the **learning rate**.
+**Stochastic gradient descent (SGD)** estimates the gradient from a small
+random batch of data at a time rather than the full dataset; **Adam** is
+a widely used variant that adapts the effective learning rate per
+parameter.
+
+**See also:** [Loss Function](/reference/loss-function),
+[Backpropagation](/reference/backpropagation)
+
+**Learn more:** [ML Fundamentals](/docs/ml-fundamentals) ·
+[Wikipedia: Gradient descent](https://en.wikipedia.org/wiki/Gradient_descent)

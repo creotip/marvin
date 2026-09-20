@@ -1,0 +1,19 @@
+---
+title: RAG (Retrieval-Augmented Generation)
+description: RAG grounds an LLM's answers in retrieved documents at request time, letting it answer questions about private or current data without retraining.
+---
+
+**RAG (Retrieval-Augmented Generation)** gives an [LLM](/reference/llm)
+relevant information at request time instead of relying only on what it
+learned during [pretraining](/reference/pretraining). Documents are split
+into chunks, converted to [embeddings](/reference/embedding), and stored
+in a vector database; at query time, the most similar chunks are
+retrieved and inserted into the prompt so the model can generate an
+answer grounded in that text. This lets a model answer questions about
+private or current data — and reduces [hallucination](/reference/hallucination)
+— without any retraining.
+
+**See also:** [Embedding](/reference/embedding), [Agent](/reference/agent),
+[Hallucination](/reference/hallucination)
+
+**Learn more:** [Applied & Agentic Systems](/docs/applied-and-agentic-systems)

@@ -1,0 +1,18 @@
+---
+title: Pretraining
+description: Pretraining is self-supervised training of a base LLM on massive amounts of text to predict the next token, the primary source of its knowledge and language ability.
+---
+
+**Pretraining** is self-supervised training (no human-labeled data
+needed) of an [LLM](/reference/llm) on a massive text corpus: predict the
+next token at every position, using the actual next word in real text as
+the label. This is the primary source of a model's knowledge, grammar,
+and reasoning patterns. The result is a **base model** — fluent, but not
+naturally instruction-following — which is why
+[fine-tuning](/reference/fine-tuning) and [RLHF](/reference/rlhf) follow.
+
+**See also:** [LLM](/reference/llm), [Fine-tuning](/reference/fine-tuning),
+[RLHF](/reference/rlhf)
+
+**Learn more:** [LLMs](/docs/llms) ·
+[Wikipedia: Self-supervised learning](https://en.wikipedia.org/wiki/Self-supervised_learning)

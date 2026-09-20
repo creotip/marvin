@@ -1,0 +1,19 @@
+---
+title: Fine-tuning
+description: Fine-tuning continues training a pretrained model on a smaller, curated dataset to teach it a specific behavior, such as following instructions.
+---
+
+**Fine-tuning** takes a [pretrained](/reference/pretraining) base model
+and continues training it on a smaller, curated dataset shaped like the
+target behavior — e.g. `(instruction, ideal response)` pairs for
+**supervised fine-tuning (SFT)**. It's far cheaper than pretraining since
+the model already has language and knowledge; fine-tuning mostly teaches
+*behavior*, not new facts. **PEFT** methods like **LoRA** fine-tune by
+training a small number of additional parameters instead of the whole
+model, making fine-tuning practical even for very large models.
+
+**See also:** [Pretraining](/reference/pretraining), [RLHF](/reference/rlhf),
+[LLM](/reference/llm)
+
+**Learn more:** [LLMs](/docs/llms) ·
+[Tooling & The Dev Stack](/docs/tooling-and-the-dev-stack)

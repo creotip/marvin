@@ -1,0 +1,17 @@
+---
+title: KV Cache
+description: The KV cache stores each token's Key and Value attention vectors so they don't need to be recomputed at every generation step, making LLM inference tractable.
+---
+
+The **KV cache** stores each token's Key and Value vectors (from
+[attention](/reference/attention)) the first time they're computed during
+[inference](/reference/inference), reusing them for every later
+generation step instead of recomputing the whole sequence from scratch
+each time. This turns a quadratic-cost operation into a linear one, and
+is essential to making [LLM](/reference/llm) generation fast enough to
+serve. Its main cost is GPU memory, which grows with sequence length and
+batch size.
+
+**See also:** [Inference](/reference/inference), [Attention](/reference/attention)
+
+**Learn more:** [Inference & Serving](/docs/inference-and-serving)

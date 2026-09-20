@@ -1,0 +1,18 @@
+---
+title: Inference
+description: Inference is using a trained model to generate output, as opposed to training — for LLMs, an inherently sequential, token-by-token process with its own performance engineering.
+---
+
+**Inference** is using a trained model to produce output, as distinct
+from **training** (producing the weights in the first place). For
+[LLMs](/reference/llm), inference is **autoregressive**: generate one
+token at a time, feeding each output back in as input for the next step
+— which is inherently sequential and drives most of the engineering in
+this area, including [KV caching](/reference/kv-cache),
+[quantization](/reference/quantization), and request batching.
+
+**See also:** [KV Cache](/reference/kv-cache),
+[Quantization](/reference/quantization)
+
+**Learn more:** [Inference & Serving](/docs/inference-and-serving) ·
+[Wikipedia: Inference engine](https://en.wikipedia.org/wiki/Inference_engine)

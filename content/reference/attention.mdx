@@ -1,0 +1,18 @@
+---
+title: Attention (Self-Attention)
+description: Attention is a mechanism letting each position in a sequence weigh every other position via learned Query/Key/Value vectors, forming the core of the transformer.
+---
+
+**Self-attention** is the mechanism at the core of the
+[transformer](/reference/transformer): every token produces a Query, Key,
+and Value vector; attention compares each token's Query against every
+other token's Key to compute weights (via softmax), then produces an
+output as the weighted sum of every token's Value. This lets a model
+directly relate any two tokens regardless of distance, learned entirely
+from data. **Multi-head attention** runs several such computations in
+parallel, each able to specialize in a different kind of relationship.
+
+**See also:** [Transformer](/reference/transformer), [LLM](/reference/llm)
+
+**Learn more:** [Attention & Transformers](/docs/attention-and-transformers) ·
+[Original paper (arXiv)](https://arxiv.org/abs/1706.03762)

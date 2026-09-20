@@ -1,0 +1,19 @@
+---
+title: RLHF (Reinforcement Learning from Human Feedback)
+description: RLHF trains an LLM to match human preferences by learning a reward model from ranked response comparisons, then optimizing the LLM against that reward.
+---
+
+**RLHF (Reinforcement Learning from Human Feedback)** aligns an
+[LLM](/reference/llm) with human preferences beyond what
+[fine-tuning](/reference/fine-tuning) alone can teach. Steps: collect
+human rankings of multiple model responses to the same prompt, train a
+**reward model** to predict those rankings, then use reinforcement
+learning to optimize the LLM to produce responses that score highly under
+that reward model. **DPO (Direct Preference Optimization)** is a newer,
+simpler alternative that skips the separate reward model and RL loop.
+
+**See also:** [Fine-tuning](/reference/fine-tuning),
+[Hallucination](/reference/hallucination)
+
+**Learn more:** [LLMs](/docs/llms) ·
+[InstructGPT paper (arXiv)](https://arxiv.org/abs/2203.02155)

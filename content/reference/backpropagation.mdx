@@ -1,0 +1,20 @@
+---
+title: Backpropagation
+description: Backpropagation is the algorithm that computes the gradient of a neural network's loss with respect to every parameter, by applying the chain rule backward through the network.
+---
+
+**Backpropagation** ("backprop") is the algorithm that makes training
+deep [neural networks](/reference/neural-network) computationally
+feasible. It applies the chain rule from calculus, working backward from
+the loss through the network's computation graph, to compute the exact
+gradient of the loss with respect to *every* parameter in roughly the
+same amount of work as one forward pass — regardless of how many
+parameters the network has. Modern frameworks like
+[PyTorch](/reference/pytorch) implement this automatically as
+**autograd**.
+
+**See also:** [Gradient Descent](/reference/gradient-descent),
+[Neural Network](/reference/neural-network)
+
+**Learn more:** [Neural Networks & Backprop](/docs/neural-networks-and-backprop) ·
+[Wikipedia: Backpropagation](https://en.wikipedia.org/wiki/Backpropagation)

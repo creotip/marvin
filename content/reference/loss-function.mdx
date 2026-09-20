@@ -1,0 +1,18 @@
+---
+title: Loss Function
+description: A loss function is a single number measuring how wrong a model's predictions are, which gradient descent minimizes during training.
+---
+
+A **loss function** translates "how wrong was this prediction" into a
+single, differentiable number that [gradient descent](/reference/gradient-descent)
+can minimize. **Mean squared error (MSE)** is common for predicting
+continuous values; **cross-entropy loss** is standard for classification
+(including next-token prediction in [LLMs](/reference/llm)), since it
+penalizes confidently wrong predictions heavily. The choice of loss
+function directly encodes what the model is actually optimized to do.
+
+**See also:** [Gradient Descent](/reference/gradient-descent),
+[Overfitting](/reference/overfitting)
+
+**Learn more:** [ML Fundamentals](/docs/ml-fundamentals) ·
+[Wikipedia: Loss function](https://en.wikipedia.org/wiki/Loss_function)
