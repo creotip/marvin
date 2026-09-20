@@ -3,6 +3,8 @@ title: ML Fundamentals
 description: Supervised/unsupervised learning, loss functions, gradient descent
 ---
 
+import { GradientDescentPlayground } from '@/components/widgets/gradient-descent-playground';
+
 Every idea in the rest of this course — neural networks, attention, LLMs —
 is a variation on one core recipe. Learn this recipe well and the rest is
 mostly "same idea, fancier function."
@@ -84,6 +86,8 @@ and `η` (eta) is the **learning rate** — how big a step to take. This
 single update rule, applied repeatedly, is what "training" means for
 essentially every model in this course, from linear regression to GPT-4
 scale transformers.
+
+<GradientDescentPlayground />
 
 Two practical wrinkles worth knowing by name, since you'll hit both:
 

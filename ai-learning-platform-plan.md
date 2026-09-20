@@ -98,8 +98,13 @@ Only build this once localStorage-only progress proves insufficient (e.g. you wa
 - [ ] Deploy to Vercel — needs your Vercel account/login, not done here
 - [ ] **This is the MVP.** Ship it here before adding anything below.
 
-**Phase 2 — Widgets (deferred)**
-- [ ] Build interactive widgets one at a time per the live/simulated table in Section 3, starting with Gradient Descent (no data-prep needed, fastest to ship)
+**Phase 2 — Widgets (in progress)**
+- [x] Gradient descent playground — live, pure SVG/JS, no libs. Click to set a start point, adjustable learning rate, step/run/reset, detects both convergence and divergence. Embedded in [ML Fundamentals](content/docs/(foundations)/ml-fundamentals.mdx)
+- [ ] Backprop stepper (Neural Networks & Backprop)
+- [ ] Convolution kernel visualizer (Computer Vision)
+- [ ] Attention weight visualizer (Attention & Transformers) — precomputed data, see Section 3
+- [ ] Tokenizer playground (LLMs)
+- [ ] KV-cache latency simulator (Inference & Serving)
 - [ ] Slot each into its lesson's MDX as it's ready — content structure from Phase 1 doesn't need to change
 
 **Phase 3 — Progress tracking (deferred, localStorage only)**
