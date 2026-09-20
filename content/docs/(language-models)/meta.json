@@ -1,0 +1,6 @@
+{
+  "title": "Language Models",
+  "collapsible": true,
+  "defaultOpen": true,
+  "pages": ["llms", "reinforcement-learning"]
+}

@@ -2,18 +2,10 @@
   "title": "Marvin",
   "pages": [
     "index",
-    "history-and-landscape",
-    "ml-fundamentals",
-    "probability-and-statistics-foundations",
-    "neural-networks-and-backprop",
-    "tooling-and-the-dev-stack",
-    "computer-vision",
-    "attention-and-transformers",
-    "generative-models",
-    "llms",
-    "reinforcement-learning",
-    "inference-and-serving",
-    "evaluation-and-benchmarks",
+    "(foundations)",
+    "(architectures)",
+    "(language-models)",
+    "(systems)",
     "applied-and-agentic-systems"
   ]
 }

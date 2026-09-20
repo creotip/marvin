@@ -1,0 +1,12 @@
+{
+  "title": "Foundations",
+  "collapsible": true,
+  "defaultOpen": true,
+  "pages": [
+    "history-and-landscape",
+    "ml-fundamentals",
+    "probability-and-statistics-foundations",
+    "neural-networks-and-backprop",
+    "tooling-and-the-dev-stack"
+  ]
+}

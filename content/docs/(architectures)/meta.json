@@ -1,0 +1,6 @@
+{
+  "title": "Architectures",
+  "collapsible": true,
+  "defaultOpen": true,
+  "pages": ["computer-vision", "attention-and-transformers", "generative-models"]
+}
