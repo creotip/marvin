@@ -3,6 +3,8 @@ title: Computer Vision
 description: Convolutions, pooling, CNNs, transfer learning
 ---
 
+import { ConvolutionVisualizer } from '@/components/widgets/convolution-visualizer';
+
 The neural networks from the last lesson treat their input as a flat list
 of numbers. That's a bad fit for images: a photo is a grid of pixels where
 *nearby* pixels are related, and a flat feedforward layer throws that
@@ -38,6 +40,12 @@ gradient descent and backprop. What makes this powerful is what it implies:
 The output of applying a kernel across an image is called a **feature
 map** — a new grid where each value indicates how strongly that pattern
 (whatever the kernel learned to detect) appeared at that location.
+
+Slide a few classic hand-designed kernels over a test image below and
+watch the feature map build up, cell by cell, exactly as the sliding
+window described above:
+
+<ConvolutionVisualizer />
 
 A real convolutional layer learns *many* kernels in parallel (commonly
 dozens to hundreds), each producing its own feature map — one might learn
