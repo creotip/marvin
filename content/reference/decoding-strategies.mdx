@@ -1,0 +1,18 @@
+---
+title: Decoding Strategies (Temperature, Top-k, Top-p)
+description: Decoding strategies turn an LLM's next-token probability distribution into an actual chosen token, using temperature, top-k, or top-p (nucleus) sampling.
+---
+
+**Decoding** turns an [LLM](/reference/llm)'s output probability
+distribution over the vocabulary into an actual chosen token at each
+generation step. **Greedy decoding** always picks the highest-probability
+token (deterministic, often repetitive). **Temperature** rescales the
+distribution before sampling — lower is more focused, higher is more
+random. **Top-k sampling** restricts sampling to the *k* most likely
+tokens; **top-p (nucleus) sampling** keeps the smallest set of tokens
+whose cumulative probability exceeds *p*, adapting to model confidence at
+each step.
+
+**See also:** [LLM](/reference/llm), [Inference](/reference/inference)
+
+**Learn more:** [LLMs](/docs/llms)

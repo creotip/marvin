@@ -1,0 +1,18 @@
+---
+title: Scaling Laws
+description: Scaling laws are empirical relationships between a model's loss and its parameter count, dataset size, and compute budget, used to plan how large to train a new model.
+---
+
+**Scaling laws** empirically relate a language model's final loss to
+three quantities: parameter count, dataset size (tokens trained on), and
+compute budget. DeepMind's 2022 "Chinchilla" paper found that many
+earlier large models were *under-trained* relative to their size — for a
+fixed compute budget, a smaller model trained on more data often beats a
+larger model trained on less. This directly shapes how labs allocate
+compute between making a model bigger versus training it on more data.
+
+**See also:** [LLM](/reference/llm), [Pretraining](/reference/pretraining)
+
+**Learn more:** [LLMs](/docs/llms) ·
+[History & Landscape](/docs/history-and-landscape) ·
+[Chinchilla paper (arXiv)](https://arxiv.org/abs/2203.15556)

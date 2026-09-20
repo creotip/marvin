@@ -1,0 +1,17 @@
+---
+title: Batching (Continuous Batching)
+description: Batching groups multiple requests into one GPU forward pass for efficiency; continuous batching dynamically adds new requests into an in-flight batch as others finish.
+---
+
+**Batching** groups multiple users' requests into one forward pass, since
+GPUs are far more efficient processing many requests at once than one at
+a time — most of the cost of a GPU operation is fixed overhead that
+batching amortizes. Larger batches raise throughput but can raise latency
+per request. **Continuous batching** dynamically adds new requests into
+an in-flight batch as earlier ones finish, capturing most of the
+throughput benefit of large batches without forcing every request to wait
+for a whole batch to complete.
+
+**See also:** [Inference](/reference/inference), [GPU](/reference/gpu)
+
+**Learn more:** [Inference & Serving](/docs/inference-and-serving)

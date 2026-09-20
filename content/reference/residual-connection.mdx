@@ -1,0 +1,20 @@
+---
+title: Residual Connection
+description: A residual (skip) connection adds a layer's input back to its output, giving gradients a direct path backward and making very deep networks trainable.
+---
+
+A **residual connection** (or "skip connection") adds a layer's input
+back to its output — `output = layer(x) + x` — instead of the output
+being purely a function of the input. This gives gradients a direct path
+backward during [backpropagation](/reference/backpropagation) that
+bypasses the layer's own local gradient, preventing the signal from being
+lost even when that gradient is small. Introduced prominently in
+[ResNet](/reference/resnet), residual connections are what make networks
+with dozens or hundreds of layers — including
+[transformers](/reference/transformer) — trainable at all.
+
+**See also:** [ResNet](/reference/resnet),
+[Vanishing/Exploding Gradients](/reference/vanishing-gradients)
+
+**Learn more:** [Neural Networks & Backprop](/docs/neural-networks-and-backprop) ·
+[Computer Vision](/docs/computer-vision)

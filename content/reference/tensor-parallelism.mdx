@@ -1,0 +1,18 @@
+---
+title: Tensor Parallelism
+description: Tensor parallelism splits individual weight matrices across multiple GPUs so a model too large for one GPU's memory can still be trained or served.
+---
+
+**Tensor parallelism** splits individual weight matrices across multiple
+GPUs, each computing a portion of every matrix multiplication and
+exchanging partial results — used both to train and to serve models too
+large to fit on a single [GPU](/reference/gpu)'s memory even after
+[quantization](/reference/quantization). It adds inter-GPU communication
+overhead on the critical path of every forward pass, which is why serving
+very large models efficiently depends heavily on fast GPU-to-GPU
+interconnects, not just raw GPU count.
+
+**See also:** [GPU](/reference/gpu), [Inference](/reference/inference)
+
+**Learn more:** [Inference & Serving](/docs/inference-and-serving) ·
+[Tooling & The Dev Stack](/docs/tooling-and-the-dev-stack)

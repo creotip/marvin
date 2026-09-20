@@ -1,0 +1,18 @@
+---
+title: RoPE (Rotary Positional Embedding)
+description: RoPE encodes token position by rotating Query/Key attention vectors by an amount depending on position, and is used in most current LLMs.
+---
+
+**RoPE (Rotary Positional Embedding)** is a
+[positional encoding](/reference/positional-encoding) scheme used in most
+current [LLMs](/reference/llm). Instead of adding a positional vector to
+each token's embedding, it encodes position by *rotating* the Query and
+Key vectors used in [attention](/reference/attention) by an amount
+depending on their position in the sequence. It tends to generalize
+better to sequence lengths longer than what the model was trained on,
+which matters for long-context models.
+
+**See also:** [Positional Encoding](/reference/positional-encoding),
+[Attention](/reference/attention)
+
+**Learn more:** [Attention & Transformers](/docs/attention-and-transformers)

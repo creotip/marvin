@@ -1,0 +1,18 @@
+---
+title: Weight Initialization
+description: Weight initialization sets a neural network's starting parameter values, using schemes like Xavier/He initialization to keep gradients well-scaled from the first training step.
+---
+
+**Weight initialization** is the choice of starting values for a
+[neural network](/reference/neural-network)'s parameters before training
+begins. Poor initialization (too large or too small) worsens
+[vanishing/exploding gradients](/reference/vanishing-gradients) from step
+one. **Xavier/Glorot** and **He initialization** are schemes that set the
+initial random weight scale based on a layer's number of inputs/outputs,
+specifically to keep activations and gradients at a consistent scale as
+they pass through the network.
+
+**See also:** [Vanishing/Exploding Gradients](/reference/vanishing-gradients),
+[Neural Network](/reference/neural-network)
+
+**Learn more:** [Neural Networks & Backprop](/docs/neural-networks-and-backprop)

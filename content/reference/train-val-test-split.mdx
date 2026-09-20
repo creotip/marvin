@@ -1,0 +1,18 @@
+---
+title: Train/Validation/Test Split
+description: Splitting data into training, validation, and test sets lets you measure a model's ability to generalize to new data instead of just memorizing what it trained on.
+---
+
+The **train/validation/test split** divides data into three disjoint
+sets: the **training set** a model actually learns from; the
+**validation set**, held out to compare architectures and tune
+hyperparameters during development; and the **test set**, touched exactly
+once at the end to report final, unbiased performance. This structure
+exists specifically to detect [overfitting](/reference/overfitting) —
+performance on data the model has never seen is the only honest measure
+of whether it actually generalizes.
+
+**See also:** [Overfitting](/reference/overfitting),
+[Bias-Variance Tradeoff](/reference/bias-variance-tradeoff)
+
+**Learn more:** [ML Fundamentals](/docs/ml-fundamentals)

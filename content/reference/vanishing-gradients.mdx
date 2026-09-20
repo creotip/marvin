@@ -1,0 +1,20 @@
+---
+title: Vanishing/Exploding Gradients
+description: Vanishing/exploding gradients occur when the product of many local gradients across deep layers shrinks toward zero or grows unboundedly, breaking training.
+---
+
+**Vanishing/exploding gradients** are a failure mode of training deep
+[neural networks](/reference/neural-network). Since
+[backpropagation](/reference/backpropagation) multiplies local gradients
+along a chain of layers, if those local gradients are consistently below
+1, their product shrinks toward zero across depth (vanishing) and early
+layers stop learning; if consistently above 1, the product explodes and
+training diverges. Fixes include better [activation functions](/reference/activation-function),
+[weight initialization](/reference/weight-initialization),
+[batch/layer normalization](/reference/batch-normalization), and
+**residual connections**.
+
+**See also:** [Backpropagation](/reference/backpropagation),
+[Activation Function](/reference/activation-function)
+
+**Learn more:** [Neural Networks & Backprop](/docs/neural-networks-and-backprop)

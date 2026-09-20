@@ -1,0 +1,18 @@
+---
+title: Batch/Layer Normalization
+description: Batch and layer normalization rescale a layer's outputs during training to keep values well-behaved as they pass through many stacked layers.
+---
+
+**Batch normalization** and **layer normalization** rescale a layer's
+outputs (to roughly mean 0, variance 1) during training, preventing
+values from drifting too large or small as they pass through many
+stacked layers — a direct countermeasure to
+[vanishing/exploding gradients](/reference/vanishing-gradients). Batch
+normalization normalizes across a batch of examples; **layer
+normalization** normalizes across a single example's features instead,
+and is the variant used throughout [transformers](/reference/transformer).
+
+**See also:** [Vanishing/Exploding Gradients](/reference/vanishing-gradients),
+[Transformer](/reference/transformer)
+
+**Learn more:** [Neural Networks & Backprop](/docs/neural-networks-and-backprop)

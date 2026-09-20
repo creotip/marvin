@@ -1,0 +1,20 @@
+---
+title: LoRA (Low-Rank Adaptation)
+description: LoRA is a parameter-efficient fine-tuning method that trains a small number of additional low-rank parameters instead of updating an entire model's weights.
+---
+
+**LoRA (Low-Rank Adaptation)** is a **PEFT** (parameter-efficient
+fine-tuning) method: instead of updating all of a pretrained model's
+weights during [fine-tuning](/reference/fine-tuning), it freezes the
+original weights and trains a small number of additional low-rank
+parameters injected alongside them. This makes fine-tuning large
+[LLMs](/reference/llm) practical on modest hardware, and is why most
+fine-tuning today doesn't require updating billions of parameters
+directly.
+
+**See also:** [Fine-tuning](/reference/fine-tuning),
+[Hugging Face](/reference/hugging-face)
+
+**Learn more:** [LLMs](/docs/llms) ·
+[Tooling & The Dev Stack](/docs/tooling-and-the-dev-stack) ·
+[Original paper (arXiv)](https://arxiv.org/abs/2106.09685)

@@ -1,0 +1,17 @@
+---
+title: Speculative Decoding
+description: Speculative decoding uses a small draft model to guess several tokens ahead, then verifies them all in one parallel pass with the full model, speeding up generation.
+---
+
+**Speculative decoding** speeds up [LLM](/reference/llm)
+[inference](/reference/inference) by exploiting spare GPU compute during
+the memory-bandwidth-bound decode phase: a small, fast "draft" model
+generates several candidate next tokens ahead of time, and the full model
+verifies all of them in a single parallel forward pass. Matching guesses
+are accepted together — several tokens for roughly the cost of one decode
+step; a wrong guess falls back to the full model's actual choice. Output
+is mathematically identical to normal decoding, just faster.
+
+**See also:** [Inference](/reference/inference), [KV Cache](/reference/kv-cache)
+
+**Learn more:** [Inference & Serving](/docs/inference-and-serving)

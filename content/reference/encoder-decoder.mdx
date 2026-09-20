@@ -1,0 +1,19 @@
+---
+title: Encoder-Decoder Architecture
+description: Encoder-only, decoder-only, and encoder-decoder describe which half of the original transformer a model uses, determining whether it's built for understanding, generation, or both.
+---
+
+The original [transformer](/reference/transformer) paper describes two
+halves, and different model families use different combinations:
+**encoder-only** (e.g. BERT) uses unmasked attention and is good at
+understanding fixed text; **decoder-only** (e.g. GPT, most current
+[LLMs](/reference/llm)) uses [causal masking](/reference/causal-masking)
+exclusively and is built for generation; **encoder-decoder** (e.g. T5)
+pairs an unmasked encoder over the input with a causal decoder that also
+attends back to the encoder's output — common for translation and
+summarization.
+
+**See also:** [Transformer](/reference/transformer),
+[Causal Masking](/reference/causal-masking)
+
+**Learn more:** [Attention & Transformers](/docs/attention-and-transformers)

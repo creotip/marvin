@@ -1,0 +1,19 @@
+---
+title: ViT (Vision Transformer)
+description: ViT applies the transformer's self-attention mechanism directly to images, splitting them into patches treated like sequence tokens, without CNN-style locality assumptions.
+---
+
+The **Vision Transformer (ViT)**, introduced in 2020, applies
+[self-attention](/reference/attention) directly to images — splitting an
+image into fixed-size patches and treating each like a token in a
+sequence — instead of using [CNN](/reference/cnn)-style convolutions.
+Given enough training data, ViT matches or beats CNNs despite having no
+locality assumption built in; the model learns spatial relationships
+purely from data. It's evidence that attention is a genuinely
+general-purpose mechanism, not a language-specific trick.
+
+**See also:** [Attention](/reference/attention), [CNN](/reference/cnn),
+[Transformer](/reference/transformer)
+
+**Learn more:** [Computer Vision](/docs/computer-vision) ·
+[Original paper (arXiv)](https://arxiv.org/abs/2010.11929)

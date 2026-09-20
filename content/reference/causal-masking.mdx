@@ -1,0 +1,17 @@
+---
+title: Causal Masking
+description: Causal masking restricts self-attention so each token can only attend to earlier positions, not future ones — required for training and running autoregressive generation.
+---
+
+**Causal (masked) self-attention** restricts
+[attention](/reference/attention) so a token can only attend to positions
+at or before itself, never later ones — by zeroing out attention scores
+to future positions before the softmax. This is what makes autoregressive
+[inference](/reference/inference) trainable: the model is trained on
+exactly the task it performs at generation time, predicting each next
+token from only what came before it. Decoder-only [LLMs](/reference/llm)
+(GPT-style) use causal masking throughout.
+
+**See also:** [Attention](/reference/attention), [Inference](/reference/inference)
+
+**Learn more:** [Attention & Transformers](/docs/attention-and-transformers)

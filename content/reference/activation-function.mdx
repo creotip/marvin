@@ -1,0 +1,18 @@
+---
+title: Activation Function
+description: An activation function is the nonlinearity applied after a neuron's weighted sum, without which stacked layers would collapse into one linear function.
+---
+
+An **activation function** is the nonlinear function applied after a
+[neural network](/reference/neural-network) neuron's weighted sum —
+without it, stacking layers would collapse into one large linear function,
+no more expressive than a single layer. **ReLU** (`max(0, z)`) is the
+standard modern default: cheap, and its derivative doesn't shrink for
+positive inputs, avoiding much of the [vanishing gradient](/reference/vanishing-gradients)
+problem that plagued older choices like **sigmoid** and **tanh**. **GELU**,
+a smoother ReLU variant, is used in most modern transformers.
+
+**See also:** [Neural Network](/reference/neural-network),
+[Vanishing Gradients](/reference/vanishing-gradients)
+
+**Learn more:** [Neural Networks & Backprop](/docs/neural-networks-and-backprop)

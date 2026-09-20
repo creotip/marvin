@@ -1,0 +1,17 @@
+---
+title: DPO (Direct Preference Optimization)
+description: DPO aligns an LLM to human preferences directly from ranked response pairs, without the separate reward model and reinforcement learning loop RLHF requires.
+---
+
+**DPO (Direct Preference Optimization)** is a simpler alternative to
+[RLHF](/reference/rlhf) for aligning an [LLM](/reference/llm) with human
+preferences. Instead of training a separate reward model and then running
+reinforcement learning against it, DPO optimizes the LLM directly on
+preference-ranked response pairs, using a loss function derived to reach
+the same optimum RLHF would. It's become popular for being simpler to
+implement and tune while often matching RLHF's results.
+
+**See also:** [RLHF](/reference/rlhf), [Fine-tuning](/reference/fine-tuning)
+
+**Learn more:** [LLMs](/docs/llms) ·
+[Original paper (arXiv)](https://arxiv.org/abs/2305.18290)

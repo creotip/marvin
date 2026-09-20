@@ -1,0 +1,17 @@
+---
+title: Positional Encoding
+description: Positional encoding injects word-order information into a transformer, since self-attention alone treats a sequence's tokens as an unordered set.
+---
+
+**Positional encoding** injects order information into a
+[transformer](/reference/transformer), since
+[self-attention](/reference/attention) alone has no notion of sequence
+order — swap two tokens and attention treats it identically. The original
+transformer used a fixed **sinusoidal encoding**; many models learn
+positional embeddings directly from data instead. Most current
+[LLMs](/reference/llm) use **[RoPE](/reference/rope)**, a newer scheme
+that tends to generalize better to sequence lengths longer than training.
+
+**See also:** [RoPE](/reference/rope), [Transformer](/reference/transformer)
+
+**Learn more:** [Attention & Transformers](/docs/attention-and-transformers)
