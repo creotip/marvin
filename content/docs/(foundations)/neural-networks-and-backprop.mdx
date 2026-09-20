@@ -3,6 +3,8 @@ title: Neural Networks & Backprop
 description: From Karpathy's micrograd approach — building a tiny neural net and stepping through forward/backward passes
 ---
 
+import { BackpropStepper } from '@/components/widgets/backprop-stepper';
+
 [ML Fundamentals](/docs/ml-fundamentals) established the loop: compute a
 loss, compute its gradient with respect to the parameters, step against
 the gradient. This lesson is about the one piece left unexplained — how
@@ -176,6 +178,12 @@ dL/db = dL/dd * a = 1 * 2  =  2 # local grad w.r.t. b is a
 
 Read `dL/da = -3` as: "increasing `a` by a small amount increases the loss
 by about 3 times that amount" — so gradient descent will *decrease* `a`.
+
+Step through this exact example node by node, forward then backward —
+try changing `a`, `b`, or `c` and re-running it:
+
+<BackpropStepper />
+
 Every gradient in a million-parameter network is computed by chaining
 exactly these two rules (multiply, add) — plus a handful of others for
 whatever operations appear in the graph — over and over, automatically.

@@ -100,7 +100,7 @@ Only build this once localStorage-only progress proves insufficient (e.g. you wa
 
 **Phase 2 — Widgets (in progress)**
 - [x] Gradient descent playground — live, pure SVG/JS, no libs. Click to set a start point, adjustable learning rate, step/run/reset, detects both convergence and divergence. Embedded in [ML Fundamentals](content/docs/(foundations)/ml-fundamentals.mdx)
-- [ ] Backprop stepper (Neural Networks & Backprop)
+- [x] Backprop stepper (Neural Networks & Backprop) — SVG computation graph for the lesson's exact `loss = a*b + c` example, step through forward then backward, editable a/b/c
 - [ ] Convolution kernel visualizer (Computer Vision)
 - [ ] Attention weight visualizer (Attention & Transformers) — precomputed data, see Section 3
 - [ ] Tokenizer playground (LLMs)
