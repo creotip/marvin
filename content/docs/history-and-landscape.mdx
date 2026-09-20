@@ -1,0 +1,196 @@
+---
+title: History & Landscape
+description: Symbolic AI to expert systems to statistical ML to deep learning to the LLM era
+---
+
+"AI" has meant different things at different times. Understanding the
+sequence of ideas — and why each one hit a wall — makes the current moment
+(large language models) look less like magic and more like the next step
+in a long argument about what "intelligence" even is, computationally.
+
+## Before "AI" had a name: 1940s–1950s origins
+
+Two threads that the rest of this history keeps returning to both start
+before the field had a name. In 1943, Warren McCulloch and Walter Pitts
+described a simplified mathematical model of a neuron — binary inputs,
+weighted, thresholded — that could compute logical functions. It's the
+direct conceptual ancestor of the neurons in
+[Neural Networks & Backprop](/docs/neural-networks-and-backprop), though
+nobody yet had a way to *train* one, only to hand-construct it.
+
+In 1950, Alan Turing published "Computing Machinery and Intelligence,"
+proposing what's now called the **Turing Test**: rather than define
+"thinking" philosophically, judge a machine by whether its conversation
+is indistinguishable from a human's. It's a pragmatic sidestep that still
+shapes how the field talks about capability today.
+
+The field got its name and founding moment in **1956**, at the **Dartmouth
+Summer Research Project**, organized by John McCarthy (who coined the term
+"artificial intelligence"), Marvin Minsky, Nathaniel Rochester, and Claude
+Shannon. The proposal's premise — that "every aspect of learning or any
+other feature of intelligence can in principle be so precisely described
+that a machine can be made to simulate it" — is the optimistic bet the
+entire field has been testing ever since.
+
+## 1950s–1960s: Symbolic AI and the first connectionist wave
+
+Two competing bets on how to build that machine emerged almost
+immediately, and the tension between them recurs throughout this history.
+
+**Symbolic AI** bet that intelligence is **symbol manipulation**: if you
+can represent knowledge as symbols and rules, and manipulate those symbols
+with logic, you get reasoning. Early programs proved geometry theorems and
+played checkers this way — hand-written rules operating on hand-written
+representations of the world. This approach is often called **GOFAI**
+(Good Old-Fashioned AI), and it worked surprisingly well for narrow,
+well-defined problems (chess endgames, symbolic algebra).
+
+**Connectionism** bet the opposite: that intelligence emerges from simple
+units (like McCulloch-Pitts neurons) connected together and adjusted by
+experience, rather than programmed with explicit rules. Frank Rosenblatt's
+**Perceptron** (1958) was the first such system that could actually
+*learn* its weights from labeled examples — a direct, if primitive,
+ancestor of the gradient-descent training loop in
+[ML Fundamentals](/docs/ml-fundamentals).
+
+The Perceptron's momentum stalled hard in 1969, when Marvin Minsky and
+Seymour Papert published *Perceptrons*, a rigorous analysis proving that a
+single-layer perceptron **cannot** learn certain simple functions (the
+canonical example is XOR — output true if exactly one of two inputs is
+true). The book didn't claim multi-layer networks were hopeless, but it
+was widely read as a case against neural networks generally, and
+connectionist research funding collapsed for over a decade — the field's
+center of gravity swung firmly back to symbolic AI.
+
+The irony worth sitting with: the fix (stacking multiple layers, trained
+via backpropagation) existed in principle within another couple of
+decades, and this same connectionist thread — not symbolic AI — is what
+underlies every architecture covered later in this course.
+
+## 1970s–1980s: Expert Systems
+
+The response to GOFAI's limits wasn't to abandon rules, but to scale them
+up: **expert systems** encoded a human expert's domain knowledge as a large
+base of `if-then` rules, plus an inference engine to chain them together.
+Systems like MYCIN (medical diagnosis) and XCON (configuring computer
+orders) were commercially deployed and genuinely useful.
+
+They also revealed the core problem with hand-coded knowledge: it doesn't
+generalize and it doesn't scale. Every new domain needed a new expert to
+interview and a new rule base to hand-write and maintain. This bottleneck —
+plus overpromising relative to what the systems could deliver — led to
+funding pullbacks now called the **AI winters** (mid-1970s, late 1980s–90s;
+the *Perceptrons* fallout above was effectively the first one, for
+connectionism specifically).
+
+Connectionism itself got a working fix during this same period, even
+though it took years to gain traction: a 1986 paper by David Rumelhart,
+Geoffrey Hinton, and Ronald Williams popularized **backpropagation** (the
+algorithm covered in depth in
+[Neural Networks & Backprop](/docs/neural-networks-and-backprop)) as a
+practical way to train *multi-layer* networks — directly answering the
+single-layer limitation Minsky and Papert had proven. It would still take
+another two and a half decades, and the arrival of large datasets and GPU
+compute, for multi-layer networks to decisively outperform other
+approaches in practice.
+
+## 1990s–2000s: Statistical Machine Learning
+
+The field's center of gravity shifted from "encode what a human expert
+knows" to "learn patterns from data." Instead of writing rules, you write an
+algorithm that finds structure in examples: spam filters that learn word
+frequencies from labeled email, systems that learn to rank search results
+from click data.
+
+This era produced ideas still in daily use — decision trees, support
+vector machines, random forests, logistic regression — and, critically, a
+mindset shift: **a model is a function fit to data, not a set of rules
+written by a person.** That mindset is the direct ancestor of everything
+that follows in this course.
+
+The catch: these methods mostly needed **hand-engineered features**. To
+classify images, someone had to first decide what numbers to extract from
+pixels (edges, corners, color histograms) before a statistical model could
+use them. Feature engineering was itself a specialized skill, and it capped
+how well these systems could do on messy, high-dimensional data like raw
+pixels or raw text.
+
+## 2010s: Deep Learning
+
+Deep learning removed the feature-engineering bottleneck: instead of a
+person deciding what features matter, a **neural network learns its own
+features directly from raw data**, layer by layer. This wasn't a new
+mathematical idea — the core building blocks trace back to the 1980s and
+earlier (see [Neural Networks & Backprop](/docs/neural-networks-and-backprop))
+— it became practical once three things arrived at once:
+
+- **Data**: internet-scale labeled datasets (ImageNet, for images)
+- **Compute**: GPUs, originally built for rendering graphics, turned out to
+  be extremely good at the matrix multiplications neural networks need
+- **Algorithms**: refinements to training (better initialization,
+  activation functions, regularization) that made deep networks actually
+  trainable instead of stalling out
+
+The **data** piece has its own named milestone: **ImageNet**, a dataset of
+over a million labeled images across a thousand categories, assembled by
+Fei-Fei Li's group starting in 2009 specifically because existing datasets
+were too small to reveal what large-scale learning could do. The annual
+ImageNet competition became deep learning's proving ground.
+
+The turning point most historians point to is **2012**: **AlexNet**
+(Alex Krizhevsky, Ilya Sutskever, and Geoffrey Hinton), a deep
+convolutional network trained on GPUs, beat the previous best
+image-classification approaches on ImageNet by a wide margin — roughly
+halving the error rate of the next-best entry in one year. Over the next
+few years, deep learning took over computer vision, then speech
+recognition, then — via a 2013 technique called **word2vec** that learned
+dense vector representations of words from raw text (a direct precursor
+to the embeddings covered in [LLMs](/docs/llms)) — increasingly language,
+setting the stage for transformers.
+
+## 2017–present: Attention, Transformers, and the LLM Era
+
+A 2017 paper, ["Attention Is All You Need,"](https://arxiv.org/abs/1706.03762)
+introduced the **transformer**, an architecture built entirely around a
+mechanism called self-attention (covered in depth in
+[Attention & Transformers](/docs/attention-and-transformers)). Transformers
+turned out to scale unusually well: bigger models, trained on more text,
+kept getting better in fairly predictable ways — an observation formalized
+as **scaling laws**.
+
+That predictability is what justified training ever-larger language
+models, culminating in the systems now called **LLMs** (large language
+models) — GPT, Claude, Gemini, Llama, and others. The recipe that
+distinguishes this era from everything before it:
+
+1. **Pretrain** a large transformer on a huge, mostly unlabeled text corpus
+   to predict the next token
+2. **Fine-tune** it to follow instructions and match human preferences
+   (often via RLHF — reinforcement learning from human feedback)
+3. **Deploy** it as a general-purpose system usable for translation,
+   coding, summarization, reasoning, and more — without task-specific
+   training for each one
+
+That last point is the real break from everything earlier in this history:
+prior eras built one system per task. The LLM era builds one system and
+prompts it into many tasks.
+
+The public inflection point was **ChatGPT's release in November 2022** —
+not a new architecture or a research breakthrough over what preceded it
+(GPT-3 had existed since 2020), but the moment this capability became a
+free-form conversational product anyone could use, which is what made
+"LLM" a household concept rather than a research term. The GPT-1 → GPT-2
+→ GPT-3 progression that led up to it is itself a case study in the
+scaling-laws bet: each generation was substantially larger and trained on
+more data than the last, with capability increasing in tandem more
+reliably than most researchers expected going in.
+
+## Where this leaves us
+
+Each era didn't so much get "replaced" as get **subsumed**: statistical ML
+still runs most fraud-detection and recommendation systems in production;
+expert-system-style rule engines still gate business logic; deep learning
+underlies vision and speech; transformers now dominate language and
+increasingly other modalities too. The rest of this course follows that
+stack bottom-up — starting with the statistical-learning foundations
+everything else builds on.

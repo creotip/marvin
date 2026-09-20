@@ -1,0 +1,209 @@
+---
+title: Tooling & The Dev Stack
+description: Languages, frameworks, and where they fit — what you'd actually touch to build and ship a model
+---
+
+The last two lessons covered *what* a neural network is and *how* it's
+trained, in math. This lesson is the translation layer: what does that
+look like in actual code, on an actual machine, and which tools do you
+reach for at each stage? If you're a working developer who's used AI
+products for years but never built one, this is the map you're missing.
+
+## The language layer: (almost always) Python
+
+Nearly all model development happens in **Python** — not because Python is
+fast (it isn't), but because of what sits underneath it: libraries like
+NumPy, PyTorch, and TensorFlow expose a Python API while doing the actual
+number-crunching in compiled **C/C++/CUDA** code. You write high-level
+Python that describes *what* computation to run; the framework dispatches
+that computation to fast, low-level kernels. You get Python's ergonomics
+without paying Python's speed penalty for the parts that matter.
+
+A few other languages show up at specific layers:
+
+- **C++/CUDA**: the actual matrix-multiplication and attention kernels
+  that run on the GPU are written here, not Python. You'd touch this layer
+  directly only if you're writing custom high-performance kernels — most
+  developers never do.
+- **Rust**: an emerging alternative for inference specifically — projects
+  like `candle` (Hugging Face) and `burn` let you run models with no
+  Python runtime dependency, useful for edge/embedded deployment. Not
+  used for training at scale.
+- **Julia**: popular in some scientific-computing and research circles for
+  its speed-without-C-extensions design, but has nowhere near Python's
+  ecosystem gravity for ML.
+
+**Bottom line**: learn Python for anything model-development-related. You
+don't need C++/CUDA unless you're doing performance engineering
+specifically.
+
+## The framework layer: what defines a model in code
+
+A **deep learning framework** gives you two core things: a way to define a
+computation graph of tensor operations (the forward pass), and
+**automatic differentiation** (autograd) — it computes the backward pass
+(backprop, from the previous lesson) for you, automatically, from the
+forward pass you wrote. You never hand-derive gradients in practice; the
+framework does it.
+
+- **PyTorch** — the dominant framework today, in both research and most
+  production training. Defines computation "eagerly" (operations run
+  immediately, like normal Python), which makes debugging and
+  experimentation fast. A minimal training step looks like this:
+
+  ```python
+  import torch
+
+  pred = model(x)              # forward pass
+  loss = loss_fn(pred, y)
+  loss.backward()              # backprop — autograd computes all gradients
+  optimizer.step()             # gradient descent update
+  optimizer.zero_grad()
+  ```
+
+  Notice how directly this maps to the "model, loss, gradient descent"
+  loop from [ML Fundamentals](/docs/ml-fundamentals) — `loss.backward()`
+  *is* backpropagation, done for you.
+
+- **JAX** — Google-associated, built around function transformations
+  (`grad`, `jit`, `vmap`) rather than an object-oriented model API. Popular
+  in research and for some of the largest-scale training runs, because its
+  functional style composes unusually well with distributed hardware. Has
+  a steeper learning curve than PyTorch.
+
+- **TensorFlow/Keras** — dominant in the mid-2010s, still widely used in
+  existing production systems and in some mobile/edge deployment paths
+  (via TensorFlow Lite), but has lost most of the research and new-project
+  share to PyTorch over the last several years.
+
+- **Newer/niche**: **MLX** (Apple, optimized for Apple Silicon, mainly for
+  local experimentation), **Candle**/**Burn** (Rust, inference-focused, no
+  Python runtime needed).
+
+**Bottom line**: default to PyTorch unless you have a specific reason not
+to. It's what most tutorials, pretrained models, and job postings assume.
+
+## The ecosystem layer: you rarely start from scratch
+
+Almost nobody trains a model architecture entirely from raw PyTorch
+tensors anymore. A layer of libraries sits on top of the framework and
+handles the repetitive parts:
+
+- **Hugging Face `transformers`**: thousands of pretrained model
+  architectures (the transformer from the previous lessons, and many
+  variants) with a consistent API to load, fine-tune, and run them. For
+  most practical work, this is where you start — not by writing a
+  transformer block from scratch.
+- **Hugging Face `datasets`** and the **Hugging Face Hub**: standardized
+  access to public datasets and pretrained model weights, so you're not
+  hunting down and reformatting data yourself.
+- **`accelerate` / `PEFT`**: `accelerate` handles distributing training
+  across multiple GPUs with minimal code changes; `PEFT` implements
+  parameter-efficient fine-tuning methods (like LoRA — fine-tuning by
+  training a small number of additional parameters instead of the whole
+  model), which is how most fine-tuning is actually done today given how
+  large models have gotten.
+- **NumPy / pandas**: the general-purpose numerical and tabular-data
+  libraries underneath almost everything else in the Python data/ML
+  ecosystem, including parts of PyTorch itself.
+
+## Training at scale: distributed training frameworks
+
+A model that fits on one GPU trains the way the code snippet above shows.
+Training something LLM-sized requires spreading the model and data across
+many GPUs (sometimes thousands), which introduces its own tooling layer:
+
+- **PyTorch FSDP** (Fully Sharded Data Parallel) and **DeepSpeed**
+  (Microsoft): split a model's parameters, gradients, and optimizer state
+  across multiple GPUs, so a model too large to fit on one GPU's memory
+  can still be trained.
+- **Megatron-LM** (NVIDIA): specifically built for training very large
+  transformer models efficiently across many GPUs, combining several
+  parallelism strategies at once.
+- **Ray**: general-purpose distributed-computing framework, commonly used
+  to orchestrate large training and data-processing jobs across a cluster,
+  not ML-specific.
+
+You won't touch these directly for small projects — they matter once
+you're training something too large for a single machine, which for most
+developers experimenting or fine-tuning is not the common case.
+
+## Keeping track of what you're doing: experiment tooling
+
+Training runs take hours to weeks, and you'll run many variations (different
+learning rates, architectures, data). Two categories of tooling exist
+specifically to keep that manageable:
+
+- **Experiment tracking**: **Weights & Biases** and **MLflow** log metrics,
+  hyperparameters, and outputs across runs so you can compare them later
+  instead of relying on memory or scattered notebooks.
+- **Notebooks vs. scripts**: Jupyter notebooks are common for exploration
+  and visualization; actual training jobs (especially anything
+  long-running or distributed) are almost always run as plain Python
+  scripts, since notebooks don't handle multi-hour, multi-GPU,
+  restart-safe jobs well.
+
+## The hardware layer
+
+None of the above runs without hardware underneath it:
+
+- **NVIDIA GPUs + CUDA**: the dominant combination by a wide margin.
+  **CUDA** is NVIDIA's programming platform that lets frameworks like
+  PyTorch dispatch computation to the GPU; **cuDNN** provides optimized
+  implementations of common deep learning operations on top of it.
+- **TPUs** (Tensor Processing Units, Google): custom hardware built
+  specifically for the matrix operations deep learning needs; used
+  heavily inside Google and paired closely with JAX.
+- **AMD (ROCm)**: NVIDIA's real alternative on the hardware side, with a
+  growing but still much smaller software ecosystem in comparison.
+
+## After training: the deployment/inference layer
+
+Once you have trained weights, running them efficiently in production
+uses a different set of tools than training did (see
+[Inference & Serving](/docs/inference-and-serving) for the concepts these
+implement):
+
+- **vLLM**: a widely used open-source LLM serving engine, built around
+  efficient KV-cache management and continuous batching.
+- **TensorRT-LLM** (NVIDIA) and **Triton Inference Server**: NVIDIA's
+  optimized inference stack, commonly used in enterprise deployments.
+- **ONNX Runtime**: runs models exported to the ONNX format (a
+  framework-independent representation), useful for deploying a model
+  outside the framework it was trained in.
+- **llama.cpp / GGUF, Ollama**: the path for running models locally on a
+  laptop or edge device with no GPU cluster required — quantization
+  (previous lesson) is central to making this practical.
+
+## A concrete starting stack
+
+If you're a developer who wants to actually build something rather than
+just survey the landscape, a reasonable default stack today:
+
+```
+Language:        Python
+Framework:       PyTorch
+Pretrained models/data: Hugging Face (transformers, datasets, Hub)
+Fine-tuning:     PEFT (LoRA) + accelerate, on a single or few GPUs
+Experiment tracking: Weights & Biases
+Local inference: Ollama or llama.cpp, for trying things without a GPU cluster
+Production inference: vLLM, once you're serving real traffic
+```
+
+This isn't the only valid stack — JAX is a legitimate alternative at the
+framework layer, especially for research; TensorFlow still runs plenty of
+production systems — but it's the one with the largest community, the
+most tutorials, and the most pretrained models available out of the box,
+which makes it the highest-leverage starting point.
+
+## Recap
+
+Python is the language you write; PyTorch (usually) is the framework that
+gives you autograd and GPU dispatch; Hugging Face is the ecosystem layer
+that means you rarely start from a blank file; distributed-training and
+experiment-tracking tools exist for when a project outgrows a single GPU
+or a single run; and a separate deployment stack (vLLM and friends) takes
+over once you're serving trained weights instead of producing them. The
+next lesson returns to architecture — how CNNs apply everything from
+[Neural Networks & Backprop](/docs/neural-networks-and-backprop) to images
+specifically.

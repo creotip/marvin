@@ -1,0 +1,114 @@
+---
+title: Attention & Transformers
+description: The core architecture behind modern AI
+---
+
+CNNs (previous lesson) encode an assumption that works great for images:
+nearby things are related. Language breaks that assumption constantly — in
+"the trophy didn't fit in the suitcase because **it** was too big," what
+"it" refers to depends on a word far earlier in the sentence, and that
+distance varies sentence to sentence. Before 2017, sequence models
+(RNNs, LSTMs) processed text one token at a time, left to right, which made
+long-range relationships hard to learn and impossible to parallelize
+during training. The **transformer** architecture solved both problems
+with one mechanism: **self-attention**.
+
+## The core idea: attention as weighted lookup
+
+Self-attention lets every position in a sequence directly look at every
+other position and decide how much to "pay attention" to it, regardless of
+distance. For the sentence above, when processing the word "it," attention
+lets the model directly weigh "trophy" and "suitcase" against each other
+and learn — from data, via training — that "it" should attend strongly to
+"trophy" in this context.
+
+Mechanically, every token produces three vectors, each obtained by
+multiplying the token's embedding by a learned weight matrix:
+
+- **Query (Q)**: "what am I looking for?" — from this token's perspective
+- **Key (K)**: "what do I contain?" — advertised by every other token
+- **Value (V)**: "what information do I actually offer if attended to?"
+
+Attention for a given token compares its Query against every token's Key
+(via a dot product — a similarity score), turns those scores into weights
+that sum to 1 (via softmax), and produces an output as the weighted sum of
+every token's Value:
+
+```
+Attention(Q, K, V) = softmax(Q · Kᵀ / √d_k) · V
+```
+
+The `√d_k` term just rescales the dot products to keep training stable;
+the important part is `softmax(Q · Kᵀ)`: a matrix of "how much should
+token *i* attend to token *j*" for every pair of tokens, learned entirely
+from data, not hand-specified.
+
+## Why "self"-attention, and why "multi-head"
+
+It's called **self**-attention because Q, K, and V all come from the same
+sequence — every token attends to (potentially) every other token in the
+same input, including itself.
+
+In practice, transformers use **multi-head attention**: run several
+attention computations in parallel, each with its own learned Q/K/V
+projection matrices, then combine the results. Each "head" can specialize
+in a different kind of relationship — one head might learn to track
+subject-verb agreement, another might track coreference (like "it" →
+"trophy"), another might track adjacent-word syntax. No one designs these
+specializations; they emerge from training, similar to how CNN layers
+learn their own feature hierarchy.
+
+## The rest of the transformer block
+
+Self-attention alone is just weighted averaging — it needs to be paired
+with a few other components to form a working architecture:
+
+- **Positional information**: attention itself has no notion of word
+  *order* — swap two tokens and, by itself, attention treats it
+  identically. Transformers inject order via **positional encodings**
+  added to each token's embedding before attention, so the model can tell
+  "dog bites man" from "man bites dog."
+- **Feedforward layer**: after attention mixes information *across*
+  tokens, a regular feedforward network (same idea as
+  [Neural Networks & Backprop](/docs/neural-networks-and-backprop)) is
+  applied independently *to* each token, adding representational capacity.
+- **Residual connections and normalization**: each sub-layer's output is
+  added back to its input (a "skip connection") and normalized. This is
+  the same fix mentioned in the previous lesson for keeping gradients
+  well-behaved across many stacked layers — transformers are typically
+  dozens of layers deep, and residuals are what make that trainable at
+  all.
+
+A full transformer stacks many of these blocks (attention → feedforward,
+repeated), with the final layer producing a prediction — in a language
+model, a probability distribution over the next token.
+
+## Why this architecture won
+
+Three properties made transformers displace RNNs almost entirely for
+sequence modeling:
+
+1. **Parallelizable training**: an RNN must process token 1, then token 2,
+   then token 3, sequentially — attention computes relationships between
+   all token pairs simultaneously, which maps extremely well onto GPU
+   hardware built for large parallel matrix operations.
+2. **Long-range dependencies**: any two tokens are directly connected
+   through one attention computation, regardless of how far apart they
+   are — no information has to be relayed step-by-step across dozens of
+   intermediate tokens and risk degrading along the way.
+3. **Scaling behavior**: transformers turned out to keep improving
+   predictably as you make them bigger and train them on more data (the
+   "scaling laws" mentioned in
+   [History & Landscape](/docs/history-and-landscape)) — a property that
+   directly justified building the huge models the next lesson covers.
+
+## Recap
+
+Self-attention replaces "process the sequence step by step" with "let
+every position directly weigh every other position, with weights learned
+from data." Stack that mechanism into blocks with feedforward layers,
+positional encodings, and residual connections, and you get the
+transformer — the architecture underneath essentially every modern
+language model, and increasingly vision and audio models too. The next
+lesson is about what happens when you take this architecture and scale it
+up on huge amounts of text: large language models.

@@ -1,0 +1,126 @@
+---
+title: LLMs
+description: Tokenization, embeddings, pretraining vs fine-tuning, RLHF basics
+---
+
+The transformer (previous lesson) is an architecture. A **large language
+model** is what you get by taking that architecture, scaling it up, and
+training it in a specific multi-stage recipe on text. This lesson walks
+through that recipe end to end.
+
+## Tokenization: turning text into numbers
+
+Neural networks operate on numbers, not characters. **Tokenization** is
+the step that converts raw text into a sequence of integers the model can
+consume. The simplest options are flawed:
+
+- **Word-level**: one token per word — but "run," "runs," "running," and
+  "runner" all become unrelated tokens, and any word not seen during
+  training (a typo, a new product name) has no representation at all.
+- **Character-level**: no unknown-word problem, but sequences get very
+  long (a sentence becomes dozens of tokens instead of a handful), which
+  is expensive since attention's cost grows with sequence length.
+
+Modern LLMs use **subword tokenization** (commonly **byte-pair encoding**,
+BPE) as a middle ground: common words get their own single token ("the,"
+"is"), while rarer or unfamiliar words get split into smaller frequent
+pieces ("tokenization" might become "token" + "ization"). This keeps
+sequences reasonably short while still being able to represent *any*
+string, including words never seen during training, by falling back to
+smaller and smaller pieces.
+
+Each token ID is then converted into an **embedding** — a learned vector
+of numbers (typically hundreds to thousands of dimensions) that represents
+that token's meaning in a way the network can compute with. Tokens used in
+similar contexts during training end up with similar embedding vectors —
+this is learned entirely from data, not hand-specified, and is the raw
+input that the transformer's attention layers then operate on.
+
+## Pretraining: next-token prediction at scale
+
+**Pretraining** is self-supervised learning (see
+[ML Fundamentals](/docs/ml-fundamentals)) applied to a massive corpus of
+text: feed the model a sequence, hide the next token, have it predict a
+probability distribution over the entire vocabulary for what comes next,
+and use cross-entropy loss against the actual next token. Repeat this
+across trillions of tokens of text (web pages, books, code, and more).
+
+Nobody labels this data by hand — the "label" at every position is simply
+whatever word actually comes next in real text. This is why pretraining
+can use practically the whole internet as training data, and it's the
+single largest source of everything an LLM "knows": grammar, facts,
+reasoning patterns, coding conventions, style — all absorbed purely from
+learning to predict what word comes next, extremely well, across a huge
+and varied corpus.
+
+The result of pretraining alone is called a **base model**: genuinely
+capable of producing fluent, often accurate text, but not naturally
+inclined to *follow instructions* or hold a helpful conversation — a base
+model trained to predict "what comes next" on internet text is just as
+likely to continue a question with more questions (that's a common pattern
+in its training data) as it is to answer it.
+
+## Fine-tuning: turning a base model into an assistant
+
+**Fine-tuning** takes a pretrained base model and continues training it on
+a smaller, curated dataset shaped like the behavior you actually want. The
+most common form for LLMs is **supervised fine-tuning (SFT)**: train on
+examples of `(instruction, ideal response)` pairs, written or curated by
+humans, so the model learns the *pattern* of being a helpful assistant
+rather than merely continuing text.
+
+This is dramatically cheaper than pretraining — you need thousands to
+low-millions of high-quality examples, not trillions of tokens — because
+the model already learned language and world knowledge during pretraining;
+fine-tuning mostly teaches it a new *behavior*, not new *knowledge*.
+
+## RLHF: aligning with human preference, not just imitation
+
+SFT alone has a ceiling: it only teaches a model to imitate the specific
+example responses it was shown, and writing an "ideal" response for every
+possible situation doesn't scale. **RLHF (reinforcement learning from
+human feedback)** addresses this differently:
+
+1. **Collect preference data**: show human raters multiple model
+   responses to the same prompt, and have them rank which is better.
+2. **Train a reward model**: a separate model learns to predict, from
+   those rankings, a numeric score for "how good is this response,"
+   generalizing beyond the exact examples raters saw.
+3. **Optimize the LLM against that reward**: using reinforcement learning,
+   adjust the LLM's parameters to produce responses that score highly
+   according to the reward model — in effect, using human preferences
+   (via the learned reward model as a proxy) as the training signal,
+   instead of a single "correct" answer.
+
+The intuition for why this helps beyond SFT: it's often much easier for a
+human to *judge* which of two responses is better than to *write* the
+ideal response from scratch, especially for open-ended tasks. RLHF lets
+that easier judgment signal shape the model at scale, via the reward model
+acting as a stand-in for a human rater on every training example.
+
+## Putting the pipeline together
+
+```
+huge raw text corpus
+        ↓ tokenize
+        ↓ pretrain (predict next token, self-supervised)
+   base model  →  fluent, knowledgeable, not instruction-following
+        ↓ supervised fine-tuning (curated instruction/response pairs)
+        ↓ RLHF (optimize against a learned human-preference reward model)
+ instruction-tuned / "chat" model  →  what you interact with as a product
+```
+
+Each stage is training the *same* underlying transformer — nothing about
+the architecture changes between stages, only the data and objective. This
+is also why the same base model can be fine-tuned differently for
+different products: a coding assistant and a general chat assistant can
+share a pretrained base and diverge only at the fine-tuning stage.
+
+## Recap and what's next
+
+Tokenization turns text into a form transformers can process; pretraining
+on next-token prediction is where nearly all of a model's raw knowledge
+and language ability comes from; fine-tuning and RLHF shape that
+knowledge into a helpful, instruction-following assistant. The next lesson
+shifts from *how models are trained* to *what happens when you actually
+use one* — the inference and serving side of the stack.

@@ -1,0 +1,124 @@
+---
+title: Inference & Serving
+description: Batching, KV caching, quantization, latency/throughput tradeoffs
+---
+
+Everything so far has been about **training** — producing a model's
+weights. **Inference** is using a trained model to generate output, and it
+turns out to be its own deep engineering problem: the naive way to run a
+transformer is far too slow and expensive to serve to real users at scale.
+This lesson covers the main techniques that make LLM serving practical.
+
+## Autoregressive generation is inherently sequential
+
+An LLM generates text one token at a time: predict a distribution over the
+next token, sample one, append it to the sequence, and repeat — using its
+own previous output as input to produce the next token. This is called
+**autoregressive generation**, and it has an unavoidable consequence: you
+cannot generate token 50 before you've generated token 49, because token
+50's prediction depends on it. Unlike training (where the whole target
+sequence is known upfront and attention can be computed in parallel across
+all positions), inference is fundamentally a sequential loop.
+
+This sequential nature is the root cause of most of the engineering
+problems in this lesson.
+
+## KV caching: don't recompute what hasn't changed
+
+Recall from [Attention & Transformers](/docs/attention-and-transformers)
+that every token produces a Key and Value vector used by attention. Naively,
+generating each new token would mean re-running the *entire* sequence
+so far back through every layer, recomputing Keys and Values for every
+previous token all over again — wasteful, since those earlier tokens
+haven't changed.
+
+The **KV cache** fixes this: store each token's Key and Value vectors the
+first time they're computed, and reuse them for every subsequent
+generation step. Generating a new token then only requires computing that
+one new token's Query, Key, and Value, and attending against the *cached*
+Keys/Values of everything before it — turning an operation whose cost grows
+with the *square* of the sequence length (recompute everything, every
+step) into one that grows *linearly* with it.
+
+The tradeoff: the KV cache consumes GPU memory proportional to sequence
+length and batch size, and at long context lengths or high concurrent
+request counts, KV cache memory — not raw compute — is often the binding
+constraint on how many requests a server can handle at once.
+
+## Batching: trading latency for throughput
+
+GPUs are dramatically more efficient processing many requests
+simultaneously (as one batched matrix operation) than one at a time — most
+of the cost of a GPU operation is fixed overhead, so batching amortizes it
+across many requests. A server therefore usually **batches** multiple
+users' requests together into one forward pass rather than running each
+in full isolation.
+
+This creates a real tradeoff:
+
+- **Larger batches** → higher **throughput** (more total tokens generated
+  per second across all users) → but individual requests may wait longer
+  before being included in a batch, increasing **latency** (time to first
+  token / time per token, for one specific user).
+- **Smaller batches** (or no batching) → lower latency per request, but
+  the GPU spends more time on fixed overhead relative to useful work,
+  lowering total throughput.
+
+Production LLM servers use techniques like **continuous batching**
+(dynamically adding new requests into an in-flight batch as earlier ones
+finish, rather than waiting for a whole batch to complete together) to get
+much of the throughput benefit of large batches without forcing every
+request to wait for the slowest one in a fixed batch.
+
+## Quantization: trading precision for speed and memory
+
+Model weights are normally stored as 16-bit or 32-bit floating point
+numbers. **Quantization** reduces that precision — commonly to 8-bit or
+even 4-bit integers — which shrinks the model's memory footprint (fewer
+bits per weight) and can speed up computation (many GPUs execute low-bit
+integer math faster than full floating point).
+
+The obvious question is why this doesn't just break the model: neural
+networks turn out to be fairly **robust to reduced numerical precision** —
+small rounding errors on individual weights tend not to meaningfully
+change the model's overall output, especially with quantization schemes
+designed to preserve the *range* and *distribution* of the original
+weights rather than naively rounding. There's a real accuracy cost as bit
+width drops (4-bit is noticeably riskier than 8-bit), which is why
+quantization level is itself a tuned tradeoff — lower precision saves
+memory and cost, but can measurably degrade output quality if pushed too
+far for a given model and use case.
+
+## Putting it together: the tradeoffs that define an LLM API
+
+When you send a request to an LLM API, several of these mechanisms are
+working simultaneously: your request is likely batched with others
+(continuous batching), each generation step reuses a KV cache built up
+token by token, and the model itself may be running at reduced precision
+(quantized) to fit more capacity per GPU. The metrics that fall out of
+this stack, and that serving systems are explicitly tuned against:
+
+- **Time to first token (TTFT)**: latency before generation starts —
+  dominated by how long a request waits to be batched and the cost of
+  processing the input prompt.
+- **Tokens per second (throughput)**: how fast tokens stream out once
+  generation starts — dominated by batch size, KV cache efficiency, and
+  quantization.
+- **Cost per token**: a direct function of how efficiently GPU compute and
+  memory are being used — which is exactly what batching, KV caching, and
+  quantization are all optimizing.
+
+There is no free lunch here: better throughput/cost usually costs some
+latency or some accuracy, and serving systems are built around choosing a
+deliberate point on that tradeoff curve for a given product's needs (a
+chat assistant cares more about per-token latency; a batch summarization
+job cares more about total throughput and cost).
+
+## Recap and what's next
+
+Inference is a different engineering problem from training: it's an
+inherently sequential loop, and the techniques covered here — KV caching,
+batching, quantization — exist specifically to make that loop fast and
+cheap enough to serve at scale. The final lesson looks at what gets built
+*on top* of a served LLM: retrieval, tool use, and multi-step agentic
+systems.

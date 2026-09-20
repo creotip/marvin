@@ -1,0 +1,112 @@
+---
+title: Computer Vision
+description: Convolutions, pooling, CNNs, transfer learning
+---
+
+The neural networks from the last lesson treat their input as a flat list
+of numbers. That's a bad fit for images: a photo is a grid of pixels where
+*nearby* pixels are related, and a flat feedforward layer throws that
+spatial structure away — it would need a separate weight for every pixel
+position, with no way to recognize "this is an edge" regardless of where
+in the image the edge appears. **Convolutional neural networks (CNNs)**
+fix this by building spatial structure into the architecture itself.
+
+## The convolution operation
+
+A convolution slides a small grid of learnable numbers — a **kernel** (or
+**filter**), often 3×3 or 5×5 — across the image, and at each position
+computes a weighted sum of the pixels it currently overlaps:
+
+```
+output[i, j] = sum over (di, dj) of kernel[di, dj] * image[i + di, j + dj]
+```
+
+The kernel's weights are learned, exactly like any other parameter, via
+gradient descent and backprop. What makes this powerful is what it implies:
+
+- **Local connectivity**: each output value depends only on a small
+  neighborhood of the input, not the whole image — matching the intuition
+  that whether a pixel is part of an edge depends on its immediate
+  neighbors, not on a pixel in the opposite corner.
+- **Parameter sharing**: the *same* kernel is applied at every position in
+  the image. A kernel that learns to detect vertical edges detects them
+  wherever they appear — top-left or bottom-right — using one small set of
+  weights instead of one per pixel. This is what lets CNNs generalize
+  across position and train with vastly fewer parameters than a fully
+  connected layer would need for the same input size.
+
+The output of applying a kernel across an image is called a **feature
+map** — a new grid where each value indicates how strongly that pattern
+(whatever the kernel learned to detect) appeared at that location.
+
+## Pooling
+
+After a convolution, networks typically apply **pooling** — most commonly
+**max pooling**: divide the feature map into small regions (e.g. 2×2) and
+keep only the maximum value from each. This does two things:
+
+1. **Downsamples**: shrinks the spatial size of the data as it moves
+   deeper into the network, keeping compute manageable.
+2. **Adds translation tolerance**: if a detected feature shifts by a pixel
+   or two, max pooling is likely to still pick it up, since it only cares
+   about the strongest activation in a neighborhood, not its exact
+   position.
+
+## Stacking into a CNN
+
+A typical CNN alternates convolution and pooling layers, then finishes
+with one or more regular (fully connected) layers to produce a final
+prediction:
+
+```
+image → [conv → activation → pool] × N → flatten → fully-connected → output
+```
+
+The key architectural idea is *hierarchical feature learning*: early
+layers (closest to the raw pixels) learn simple, generic features — edges,
+color blobs, simple textures. Each successive layer combines the previous
+layer's features into more complex ones — corners and simple shapes in the
+middle layers, then object parts (eyes, wheels, fur texture) in later
+layers, and finally whole-object representations right before the output.
+Nobody hand-designs this hierarchy — it emerges from training, which is
+exactly the feature-engineering bottleneck from
+[History & Landscape](/docs/history-and-landscape) being solved
+automatically.
+
+## Transfer learning
+
+Training a large CNN from scratch needs a huge labeled dataset (ImageNet
+has over a million labeled images) and significant compute. **Transfer
+learning** sidesteps this: take a network already trained on a large
+general dataset, and reuse it for a new, related task.
+
+The intuition: the early and middle layers of a trained CNN have already
+learned generic visual features (edges, textures, shapes) that are useful
+for almost *any* vision task, not just the one the network was originally
+trained on. Two common strategies:
+
+- **Feature extraction**: freeze the pretrained network's weights entirely,
+  and train only a new final layer (or few layers) on your smaller,
+  task-specific dataset. Fast, and works well when your data is limited.
+- **Fine-tuning**: start from the pretrained weights, but continue training
+  some or all of the network (usually with a smaller learning rate) on
+  your new data — lets the model adapt its features more specifically to
+  the new task, at the cost of needing more data and compute than pure
+  feature extraction.
+
+Transfer learning is why a team with a few thousand labeled photos of, say,
+manufacturing defects can still get a strong classifier: they aren't
+learning "what an edge looks like" from scratch, only reusing that from a
+network pretrained on a much larger, unrelated dataset and adapting the
+last stage to their specific categories.
+
+## Recap and what's next
+
+CNNs solve vision by hard-coding two structural assumptions into the
+architecture — locality and translation invariance — that turn out to
+match how images are actually structured. That's a general pattern worth
+remembering: **good architectures encode assumptions about the data's
+structure**, so the network doesn't have to learn those assumptions from
+scratch. The next lesson looks at a different structural problem —
+sequences, where order and long-range relationships matter — and the
+architecture (attention) built to handle it.

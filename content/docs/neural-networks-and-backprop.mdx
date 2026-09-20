@@ -1,0 +1,136 @@
+---
+title: Neural Networks & Backprop
+description: From Karpathy's micrograd approach — building a tiny neural net and stepping through forward/backward passes
+---
+
+The previous lesson established the loop: compute a loss, compute its
+gradient with respect to the parameters, step against the gradient. This
+lesson is about the one piece left unexplained — how you actually compute
+that gradient when your model is a neural network with millions of
+parameters chained through dozens of layers. The answer is an algorithm
+called **backpropagation**, and understanding it from scratch (the
+[micrograd](https://github.com/karpathy/micrograd) approach) demystifies
+everything that follows.
+
+## What a neuron actually is
+
+A single artificial neuron is almost embarrassingly simple: it takes some
+inputs, multiplies each by a weight, adds them up with a bias term, and
+passes the result through a nonlinear function:
+
+```
+z = w1*x1 + w2*x2 + ... + wn*xn + b
+a = activation(z)
+```
+
+The **weights** (`w1...wn`) and **bias** (`b`) are the learnable parameters.
+The **activation function** (commonly `ReLU(z) = max(0, z)`, or historically
+`tanh` / sigmoid) introduces nonlinearity — without it, stacking layers of
+neurons would collapse into one big linear function, no more expressive
+than a single layer. Nonlinearity is what lets networks represent curved
+decision boundaries and complex functions at all.
+
+A **layer** is a bunch of these neurons run in parallel on the same input.
+A **network** is layers stacked so each layer's output feeds the next
+layer's input. That's the entire architecture of a basic feedforward
+neural network — the complexity in modern AI comes from *what's connected
+to what and how* (see Computer Vision and Attention & Transformers), not
+from the neuron itself.
+
+## The forward pass
+
+Running an input through the network to produce an output is called the
+**forward pass**. Concretely, for a tiny 2-layer network computing a
+prediction `y_pred` from an input `x`:
+
+```
+h  = ReLU(W1 · x + b1)      # hidden layer
+y_pred = W2 · h + b2        # output layer
+loss = (y_pred - y_true)^2  # e.g. squared error against the true label
+```
+
+Every one of those operations — multiply, add, ReLU, subtract, square — is
+a simple, differentiable function. That fact is the entire key to what
+comes next.
+
+## The chain rule, and why it scales
+
+To do gradient descent we need `∂loss/∂W1`, `∂loss/∂b1`, `∂loss/∂W2`,
+`∂loss/∂b2` — how the loss changes with respect to *every* parameter,
+even ones buried several operations deep. Computing each of these from
+scratch, independently, would be enormously wasteful — many of them share
+intermediate work.
+
+Backpropagation is just the **chain rule from calculus**, applied
+systematically: if `loss` depends on `y_pred` which depends on `h` which
+depends on `W1`, then
+
+```
+∂loss/∂W1 = (∂loss/∂y_pred) · (∂y_pred/∂h) · (∂h/∂W1)
+```
+
+The trick is *order of computation*: work backward from the loss,
+computing each local derivative once and reusing it for everything
+upstream. That's why it's called **back**propagation — you build a
+computation graph forward, then walk it backward, accumulating gradients.
+
+## Stepping through it, node by node
+
+This is the exercise worth actually doing once (as Karpathy's micrograd
+does): build a tiny scalar "autograd" engine where every number remembers
+(a) the operation that produced it and (b) its inputs. Two operations,
+concretely:
+
+```
+# forward: c = a * b
+# backward, given dL/dc (gradient flowing in from later in the graph):
+#   dL/da = dL/dc * b
+#   dL/db = dL/dc * a
+
+# forward: c = a + b
+# backward, given dL/dc:
+#   dL/da = dL/dc * 1
+#   dL/db = dL/dc * 1
+```
+
+Every operation you'll ever use (multiply, add, ReLU, exp, division, matrix
+multiply for real networks) has a similarly simple **local gradient rule**.
+Backprop is just: run the forward pass while recording the graph, then
+walk it in reverse, multiplying local gradients along each path and
+summing where paths merge (a value used twice contributes to the gradient
+twice). At the end, every parameter in the network has an exact gradient
+of the loss with respect to it — computed in roughly the same amount of
+work as the forward pass itself, regardless of how many parameters there
+are.
+
+That last property — the gradient of *all* parameters costs about the same
+as *one* forward pass — is what makes training networks with billions of
+parameters computationally feasible at all. Without it, gradient descent at
+LLM scale would be a non-starter.
+
+## Where the "deep" in deep learning comes from
+
+"Depth" just means stacking many layers. Deeper networks can represent
+more complex functions with fewer total parameters than a single very wide
+layer — each layer builds on features the previous layer extracted, rather
+than trying to learn the whole mapping at once. Practically, depth
+introduces its own problems (vanishing/exploding gradients — the product
+of many local gradients along a long chain can shrink toward zero or blow
+up), which is precisely why techniques like better weight initialization,
+normalization layers, and residual connections (used pervasively in
+transformers) exist: they keep gradients well-behaved as they propagate
+back through dozens or hundreds of layers.
+
+## Recap
+
+- A neuron: weighted sum + bias, then a nonlinearity.
+- Forward pass: chain these operations to produce a prediction and a loss.
+- Backward pass (backprop): apply the chain rule in reverse through the
+  computation graph to get the exact gradient of the loss with respect to
+  every parameter, in one efficient pass.
+- Gradient descent (previous lesson) then uses those gradients to update
+  every parameter.
+
+Every architecture in the rest of this course — CNNs, transformers — is
+still trained by exactly this mechanism. What changes is only the shape of
+the computation graph.

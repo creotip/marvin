@@ -1,0 +1,127 @@
+---
+title: Applied & Agentic Systems
+description: RAG, tool use, and agents — what's built on top of a served LLM
+---
+
+Every previous lesson built toward one artifact: a trained, servable LLM
+that can take text in and produce text out. This final lesson covers how
+real applications turn that single capability — text in, text out — into
+systems that can answer questions about private data, take actions in the
+world, and complete multi-step tasks.
+
+## The core limitation: a frozen, closed-book model
+
+A deployed LLM has two structural limits worth naming explicitly:
+
+- **Its knowledge is frozen at training time.** It knows nothing about
+  events after its training data was collected, and nothing at all about
+  private data it was never trained on (your company's internal docs, a
+  user's account details).
+- **It can only produce text.** On its own, it cannot look anything up,
+  run code, query a database, or send an email — whatever "actions" it
+  appears to take in an application are actually the *application* acting
+  on the model's text output, not the model doing anything itself.
+
+Everything in this lesson is a pattern for working around one or both of
+these limits.
+
+## RAG: retrieval-augmented generation
+
+**RAG** addresses the frozen-knowledge problem by giving the model
+relevant information *at request time*, rather than trying to bake
+everything into its weights via training. The pattern:
+
+1. **Index**: split your documents (docs, PDFs, support tickets, whatever
+   the knowledge source is) into chunks, and convert each chunk into an
+   embedding vector — conceptually the same kind of embedding from
+   [LLMs](/docs/llms), but here used to represent a whole passage of text
+   rather than a single token. Store these in a **vector database**.
+2. **Retrieve**: when a user asks a question, embed the question the same
+   way, and find the stored chunks whose embeddings are most similar
+   (nearest neighbors in vector space) — the intuition being that
+   semantically related text ends up with similar embedding vectors, so
+   this retrieves passages relevant to the question even if they don't
+   share exact keywords with it.
+3. **Generate**: insert the retrieved chunks into the prompt, along with
+   the user's question, and let the LLM generate an answer *grounded in*
+   that retrieved text.
+
+RAG's appeal: it lets a model answer questions about private, current, or
+otherwise-untrained-on data without any retraining — you update the
+answers by updating the indexed documents, not by fine-tuning the model.
+Its main failure modes are retrieval quality (if the wrong chunks are
+retrieved, the model confidently answers from irrelevant context) and
+context limits (a model can only be given so much retrieved text before a
+prompt gets too long or too noisy to reason over well).
+
+## Tool use: letting the model take (indirect) actions
+
+**Tool use** (also called function calling) addresses the
+can't-do-anything limitation. The model is given a description of
+available tools — a web search function, a calculator, an internal API —
+each with a name, a description, and a schema for its inputs. Instead of
+directly answering, the model can output a *structured request* to call a
+specific tool with specific arguments; the surrounding application
+actually executes that call, and feeds the result back into the model's
+context so it can use it to continue answering.
+
+Crucially, the model itself never runs code or hits an API — it only ever
+produces text (here, a structured tool call). The actual execution,
+authentication, and side effects are entirely the responsibility of the
+application wrapped around the model. This is the same "frozen, closed-box
+model" from the top of this lesson — tool use just gives the surrounding
+system a clean protocol for extending what the model can effectively
+accomplish, without changing what the model fundamentally is.
+
+## Agents: chaining tool use over multiple steps
+
+An **agent** is what you get when you put an LLM in a loop with tool use
+and let it decide, autonomously, which tools to call and in what order to
+accomplish a goal — rather than a single request/response with at most
+one tool call. A typical agent loop:
+
+```
+1. Given a goal and the current context, the model decides:
+   respond directly, OR call a tool
+2. If it calls a tool, the application executes it and appends
+   the result to the context
+3. Repeat from step 1, until the model decides the goal is achieved
+   and produces a final response
+```
+
+This is a genuinely different mode from a single Q&A exchange: an agent
+might search the web, read a file, run a calculation, and check its own
+intermediate result against the original goal — several LLM calls chained
+together, each one building on tool results from the previous step, all
+directed at one overall task rather than one prompt.
+
+The tradeoffs are real: more steps means more opportunities for the model
+to make a wrong call, and errors can compound across a chain rather than
+being isolated to one response — which is why practical agent systems
+usually add guardrails (limits on how many steps to take, confirmation
+before high-stakes actions, structured output validation at each step)
+rather than letting a model loop entirely unsupervised.
+
+## How these patterns combine
+
+RAG and tool use aren't mutually exclusive — a well-built agent commonly
+has *retrieval* as one of its available tools ("search internal docs")
+alongside other tools (web search, code execution, sending a message),
+and decides which to invoke, and in what sequence, based on the specific
+request. The pattern underlying all of it is the same one from the start
+of this lesson: the LLM itself stays a frozen, text-in-text-out model; RAG
+and tool use are both ways of enriching what goes *into* that model and
+acting on what comes *out* of it.
+
+## Course recap
+
+Across these eight lessons: learning as loss minimization via gradient
+descent, backpropagation as the mechanism that makes that tractable at
+scale, CNNs and transformers as two different architectural answers to
+"what structural assumptions should the network encode," the multi-stage
+recipe (pretrain → fine-tune → RLHF) that turns a transformer into an
+LLM, the engineering (KV caching, batching, quantization) that makes
+serving one practical, and finally RAG/tool use/agents as the patterns
+that turn a single trained model into real, capable applications. Each
+layer builds directly on the one before it — which is exactly why this
+course was ordered the way it was.

@@ -1,0 +1,15 @@
+{
+  "title": "Marvin",
+  "pages": [
+    "index",
+    "history-and-landscape",
+    "ml-fundamentals",
+    "neural-networks-and-backprop",
+    "tooling-and-the-dev-stack",
+    "computer-vision",
+    "attention-and-transformers",
+    "llms",
+    "inference-and-serving",
+    "applied-and-agentic-systems"
+  ]
+}
