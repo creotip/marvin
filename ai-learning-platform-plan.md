@@ -103,7 +103,7 @@ Only build this once localStorage-only progress proves insufficient (e.g. you wa
 - [x] Backprop stepper (Neural Networks & Backprop) — SVG computation graph for the lesson's exact `loss = a*b + c` example, step through forward then backward, editable a/b/c
 - [x] Convolution kernel visualizer (Computer Vision) — 4 selectable kernels (vertical/horizontal edge, blur, sharpen) sliding over a hollow-square test image, feature map builds live, cell by cell
 - [x] Attention weight visualizer (Attention & Transformers) — 3 hand-crafted example sentences (the lesson's own trophy/suitcase coreference example, a second coreference example, and a subject-verb agreement long-range example), click a token to see its full attention row as a bar chart
-- [ ] Tokenizer playground (LLMs)
+- [x] Tokenizer playground (LLMs) — live, real BPE tokenizer via the `gpt-tokenizer` package (cl100k_base), fully client-side, editable text input
 - [ ] KV-cache latency simulator (Inference & Serving)
 - [ ] Slot each into its lesson's MDX as it's ready — content structure from Phase 1 doesn't need to change
 

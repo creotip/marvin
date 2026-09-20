@@ -3,6 +3,8 @@ title: LLMs
 description: Tokenization, embeddings, pretraining vs fine-tuning, RLHF basics
 ---
 
+import { TokenizerPlayground } from '@/components/widgets/tokenizer-playground';
+
 The [transformer](/docs/attention-and-transformers) is an architecture.
 A **large language model** is what you get by taking that architecture, scaling it up, and
 training it in a specific multi-stage recipe on text. This lesson walks
@@ -28,6 +30,11 @@ pieces ("tokenization" might become "token" + "ization"). This keeps
 sequences reasonably short while still being able to represent *any*
 string, including words never seen during training, by falling back to
 smaller and smaller pieces.
+
+Try it on real text below — this runs an actual BPE tokenizer (the same
+encoding used by GPT-3.5/4) live in your browser, no server involved:
+
+<TokenizerPlayground />
 
 Each token ID is then converted into an **embedding** — a learned vector
 of numbers (typically hundreds to thousands of dimensions) that represents
