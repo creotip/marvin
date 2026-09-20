@@ -1,0 +1,20 @@
+---
+title: Vector Database
+description: A vector database stores embedding vectors and answers nearest-neighbor queries fast, using approximate nearest neighbor (ANN) indexes like HNSW — the backbone of RAG retrieval.
+---
+
+A **vector database** is built to answer one kind of query fast: "which
+stored [embedding](/reference/embedding) vectors are closest to this
+query vector?" — a different problem from the exact-match and range
+queries a normal database indexes for. Closeness is measured with
+**cosine similarity** or dot product; since semantically similar text
+produces similar embeddings, nearest-neighbor search doubles as
+"find text with a similar meaning." Comparing a query against every
+stored vector doesn't scale, so vector databases use **approximate
+nearest neighbor (ANN)** indexes — most commonly **HNSW** — trading a
+little accuracy for large speedups. Common tools: Pinecone, Weaviate,
+Milvus, Qdrant, Chroma, and the pgvector extension for Postgres.
+
+**See also:** [Embedding](/reference/embedding), [RAG](/reference/rag)
+
+**Learn more:** [Applied & Agentic Systems](/docs/applied-and-agentic-systems)

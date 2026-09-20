@@ -10,6 +10,7 @@
     "tensor-parallelism",
     "batching",
     "rag",
+    "vector-database",
     "prompt-engineering",
     "agent",
     "mcp"

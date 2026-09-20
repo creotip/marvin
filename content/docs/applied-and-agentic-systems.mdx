@@ -90,6 +90,44 @@ retrieved, the model confidently answers from irrelevant context) and
 context limits (a model can only be given so much retrieved text before a
 prompt gets too long or too noisy to reason over well).
 
+### Vector databases and similarity search
+
+A **vector database** is a database built specifically to store
+embedding vectors and answer one kind of query fast: "which stored
+vectors are closest to this query vector?" That's a different problem
+from what a normal database indexes for — exact matches and ranges on
+structured fields — which is why RAG systems reach for a purpose-built
+one rather than bolting vector search onto a regular table.
+
+**"Closest" is measured** with a similarity metric, most commonly
+**cosine similarity** (the angle between two vectors, ignoring their
+magnitude) or plain dot product. Two embeddings from
+[LLMs](/docs/llms) that represent semantically similar text end up
+pointing in similar directions in that high-dimensional space, which is
+exactly what makes nearest-neighbor search double as "find text with a
+similar meaning."
+
+Naively, finding the true nearest neighbors means comparing the query
+against *every* stored vector — fine for thousands of chunks, far too
+slow once you're indexing millions. Vector databases solve this with
+**approximate nearest neighbor (ANN)** indexes — **HNSW** (Hierarchical
+Navigable Small World) is the most common — that organize vectors into a
+searchable graph structure ahead of time, trading a small amount of
+recall accuracy for orders-of-magnitude faster lookups. This tradeoff
+(exact vs. approximate, accuracy vs. speed) is a recurring theme in
+systems that need to operate at scale, the same way
+[quantization](/docs/inference-and-serving) trades numerical precision
+for speed at inference time.
+
+In practice, "vector database" covers a range of tools: dedicated
+managed services (**Pinecone**), open-source databases built
+vector-first (**Weaviate**, **Milvus**, **Qdrant**), a lightweight
+option for local/small-scale use (**Chroma**), and vector-search
+*extensions* added to databases you might already run (**pgvector** for
+Postgres). Which one to reach for mostly comes down to scale, whether you
+want a separate system to operate versus extending an existing database,
+and how much of the ANN tuning you want to manage yourself.
+
 ## Tool use: letting the model take (indirect) actions
 
 **Tool use** (also called function calling) addresses the
