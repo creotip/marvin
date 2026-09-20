@@ -159,22 +159,43 @@ this." When a model doesn't have reliable knowledge about something, the
 training objective still rewards it for producing *some* fluent
 continuation — it has no mechanism to instead output "I don't know"
 unless that behavior was specifically reinforced during fine-tuning or
-RLHF. This is precisely the problem
+RLHF.
+
+<Callout type="warning" title="This isn't a bug that gets patched">
+Hallucination isn't a glitch to be fixed in the next model version — it's
+a structural consequence of the training objective (predict plausible
+next tokens). Better fine-tuning and RLHF can reduce *how often* it
+happens, but the only reliable fix for a specific factual question is
+grounding the answer in retrieved, verifiable text — see RAG, next.
+</Callout>
+
+This is precisely the problem
 [RAG](/docs/applied-and-agentic-systems) is built to reduce: grounding
 generation in retrieved, verifiable text instead of relying purely on
 what the model "remembers" from pretraining.
 
 ## Putting the pipeline together
 
-```
-huge raw text corpus
-        ↓ tokenize
-        ↓ pretrain (predict next token, self-supervised)
-   base model  →  fluent, knowledgeable, not instruction-following
-        ↓ supervised fine-tuning (curated instruction/response pairs)
-        ↓ RLHF (optimize against a learned human-preference reward model)
- instruction-tuned / "chat" model  →  what you interact with as a product
-```
+<Steps>
+<Step>
+**Tokenize** the training corpus — raw text becomes integer token
+sequences.
+</Step>
+<Step>
+**Pretrain** on next-token prediction, self-supervised, across trillions
+of tokens. Output: a **base model** — fluent and knowledgeable, but not
+naturally instruction-following.
+</Step>
+<Step>
+**Supervised fine-tune (SFT)** on curated `(instruction, ideal response)`
+pairs, teaching the pattern of being a helpful assistant.
+</Step>
+<Step>
+**RLHF (or DPO)**: optimize against a learned human-preference signal.
+Output: an instruction-tuned "chat" model — what you actually interact
+with as a product.
+</Step>
+</Steps>
 
 Each stage is training the *same* underlying transformer — nothing about
 the architecture changes between stages, only the data and objective. This

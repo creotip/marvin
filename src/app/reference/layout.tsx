@@ -1,11 +1,11 @@
 import { referenceSource } from '@/lib/reference-source';
-import { DocsLayout } from 'fumadocs-ui/layouts/docs';
+import { GlassLayout } from 'fumadocs-ui/layouts/glass';
 import { baseOptions } from '@/lib/layout.shared';
 
 export default function Layout({ children }: LayoutProps<'/reference'>) {
   return (
-    <DocsLayout tree={referenceSource.getPageTree()} {...baseOptions()}>
+    <GlassLayout tree={referenceSource.getPageTree()} {...baseOptions()}>
       {children}
-    </DocsLayout>
+    </GlassLayout>
   );
 }

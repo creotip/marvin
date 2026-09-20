@@ -124,14 +124,20 @@ and let it decide, autonomously, which tools to call and in what order to
 accomplish a goal — rather than a single request/response with at most
 one tool call. A typical agent loop:
 
-```
-1. Given a goal and the current context, the model decides:
-   respond directly, OR call a tool
-2. If it calls a tool, the application executes it and appends
-   the result to the context
-3. Repeat from step 1, until the model decides the goal is achieved
-   and produces a final response
-```
+<Steps>
+<Step>
+Given a goal and the current context, the model decides: respond
+directly, or call a tool.
+</Step>
+<Step>
+If it calls a tool, the application executes it and appends the result
+to the context.
+</Step>
+<Step>
+Repeat from step 1, until the model decides the goal is achieved and
+produces a final response.
+</Step>
+</Steps>
 
 This is a genuinely different mode from a single Q&A exchange: an agent
 might search the web, read a file, run a calculation, and check its own
