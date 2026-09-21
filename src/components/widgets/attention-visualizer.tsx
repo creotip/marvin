@@ -114,8 +114,11 @@ export function AttentionVisualizer() {
       {focus !== null && weights ? (
         <div className="mt-4">
           <p className="mb-2 text-xs text-fd-muted-foreground">
-            Attention weights from <span className="font-mono text-fd-primary">"{example.tokens[focus]}"</span> to
-            every token (this is one row of the softmax(Q·Kᵀ) matrix):
+            Attention weights from{' '}
+            <span className="font-mono text-fd-primary">
+              &quot;{example.tokens[focus]}&quot;
+            </span>{' '}
+            to every token (this is one row of the softmax(Q·Kᵀ) matrix):
           </p>
           <div className="flex flex-col gap-1">
             {example.tokens.map((tok, i) => (

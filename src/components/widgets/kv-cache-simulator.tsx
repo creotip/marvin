@@ -16,6 +16,28 @@ function cachedStepCost(step: number) {
   return BASE_COST + step * CACHE_READ_COST_PER_TOKEN;
 }
 
+function Bars({
+  costs,
+  color,
+  maxCost,
+}: {
+  costs: number[];
+  color: string;
+  maxCost: number;
+}) {
+  return (
+    <div className="flex h-24 items-end gap-px overflow-hidden rounded-md border bg-fd-background p-1">
+      {costs.map((c, i) => (
+        <div
+          key={i}
+          style={{ height: `${Math.min(100, (c / maxCost) * 100)}%`, backgroundColor: color, width: 4 }}
+          className="shrink-0 rounded-t-sm"
+        />
+      ))}
+    </div>
+  );
+}
+
 export function KVCacheSimulator() {
   const [totalTokens, setTotalTokens] = useState(30);
   const [generated, setGenerated] = useState(0);
@@ -77,18 +99,6 @@ export function KVCacheSimulator() {
   const speedup = cachedTotal > 0 ? noCacheTotal / cachedTotal : 1;
   const done = generated >= totalTokens;
 
-  const Bars = ({ costs, color }: { costs: number[]; color: string }) => (
-    <div className="flex h-24 items-end gap-px overflow-hidden rounded-md border bg-fd-background p-1">
-      {costs.map((c, i) => (
-        <div
-          key={i}
-          style={{ height: `${Math.min(100, (c / maxCost) * 100)}%`, backgroundColor: color, width: 4 }}
-          className="shrink-0 rounded-t-sm"
-        />
-      ))}
-    </div>
-  );
-
   return (
     <div className="not-prose my-6 rounded-xl border bg-fd-card p-4">
       <label className="mb-3 flex flex-col gap-1 text-sm">
@@ -113,14 +123,14 @@ export function KVCacheSimulator() {
             <span>Without KV cache (recompute every step)</span>
             <span className="font-mono text-red-500">{noCacheTotal.toFixed(0)} ms</span>
           </p>
-          <Bars costs={noCacheCosts} color="var(--color-red-500)" />
+          <Bars costs={noCacheCosts} color="var(--color-red-500)" maxCost={maxCost} />
         </div>
         <div>
           <p className="mb-1 flex justify-between text-xs text-fd-muted-foreground">
             <span>With KV cache</span>
             <span className="font-mono text-fd-primary">{cachedTotal.toFixed(0)} ms</span>
           </p>
-          <Bars costs={cachedCosts} color="var(--color-fd-primary)" />
+          <Bars costs={cachedCosts} color="var(--color-fd-primary)" maxCost={maxCost} />
         </div>
       </div>
 
