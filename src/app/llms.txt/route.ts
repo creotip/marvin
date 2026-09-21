@@ -1,7 +1,11 @@
-import { docsLlms } from '@/lib/source';
+import { collections } from '@/lib/content';
 
 export const revalidate = false;
 
 export async function GET() {
-  return new Response(await docsLlms.index());
+  const sections = await Promise.all(
+    collections.map((collection) => collection.llms.index()),
+  );
+
+  return new Response(sections.join('\n\n'));
 }

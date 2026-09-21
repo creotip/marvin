@@ -1,28 +1,16 @@
-import { createGetUrl } from 'fumadocs-core/source';
-
 export const appName = 'Marvin';
-export const docsRoute = '/docs';
-export const docsImageRoute = '/og/docs';
-export const docsContentRoute = '/llms.mdx/docs';
+export const appDescription =
+  'A from-scratch tour of AI: symbolic AI to LLMs, gradient descent to attention, training to inference.';
+
+export const siteUrl = new URL(
+  process.env.NEXT_PUBLIC_SITE_URL ??
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : 'http://localhost:3000'),
+);
 
 export const gitConfig = {
-  user: 'ruslanelishaev',
-  repo: 'ai-learning-platform',
+  user: 'creotip',
+  repo: 'marvin',
   branch: 'main',
 };
-
-const getContentUrl = createGetUrl(docsContentRoute);
-
-export function getPageMarkdownUrl(page: { slugs: string[]; locale?: string }) {
-  const segments = [...page.slugs, 'content.md'];
-
-  return { segments, url: getContentUrl(segments, page.locale) };
-}
-
-const getImageUrl = createGetUrl(docsImageRoute);
-
-export function getPageImageUrl(page: { slugs: string[]; locale?: string }) {
-  const segments = [...page.slugs, 'image.png'];
-
-  return { segments, url: getImageUrl(segments, page.locale) };
-}
