@@ -1,0 +1,48 @@
+---
+title: Red Teaming
+description: Red teaming is the practice of deliberately probing a deployed model for harmful, unsafe, or exploitable behavior before and after release.
+---
+
+**Red teaming** is adversarial testing borrowed directly from security
+practice: a team (internal, external, or both) deliberately tries to
+break a model — eliciting harmful content, finding
+[jailbreaks](/reference/jailbreak), constructing
+[prompt injections](/reference/prompt-injection) — before those failures
+reach real users or get found by an actual attacker.
+
+## How it works
+
+Red teaming happens at multiple stages: before release, to catch
+failures while there's still time to fix them, and continuously after
+release, since new techniques keep appearing against already-deployed
+models. Findings feed back into the system in two ways: retraining
+(adding refusal examples for newly discovered attack patterns to
+[RLHF](/reference/rlhf) data) and deployment-side mitigations
+(classifiers that catch known attack patterns, rate limits, tool
+permission changes) that don't require a new training run.
+
+Manual red teaming doesn't scale to the space of possible attacks, so
+labs increasingly automate part of it: using one model to generate large
+volumes of candidate attacks against another, then having humans review
+and triage what the automated pass finds — trading coverage for the
+judgment a person still brings to deciding what actually counts as a
+failure.
+
+## When it breaks
+
+- **Coverage is inherently incomplete.** Red teaming finds the failures
+  someone thought to look for; it cannot prove the absence of failures
+  no one has tried yet.
+- **It's a point-in-time signal on a moving target.** A model, its
+  system prompt, and its available tools can all change after a red
+  team's findings were reported, silently invalidating the results.
+- **Automated red teaming inherits its generator's blind spots.** An
+  LLM generating attacks is unlikely to discover an entire category of
+  failure that its own training never exposed it to.
+
+**See also:** [Jailbreak](/reference/jailbreak),
+[Prompt Injection](/reference/prompt-injection),
+[Adversarial Example](/reference/adversarial-example)
+
+**Learn more:** [AI Security](/docs/ai-security) ·
+[Evaluation & Benchmarks](/docs/evaluation-and-benchmarks)

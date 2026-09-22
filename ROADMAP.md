@@ -46,14 +46,14 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 ## Recently shipped
 
 - **People content collection** — third `Collection` (alongside `docs`/`reference`), 22 profiles grouped by era (founding theory, connectionist revival, modern deep learning/transformers, current labs). Auto-links from lesson/glossary prose, "Mentioned in" backlinks. ([PR #11](https://github.com/creotip/marvin/pull/11))
-- **History & Landscape timeline** — the "Five eras" overview now uses a custom `<Timeline>`/`<TimelineItem>` component (`src/components/timeline.tsx`, registered in MDX) instead of a `<Mermaid>` flowchart. Reusable for a future People profile career timeline or an in-lesson mini-timeline (e.g. GPT-1→2→3→ChatGPT in LLMs).
+- **History & Landscape timeline** — the "Five eras" overview now uses a custom `<Timeline>`/`<TimelineItem>` component (`src/components/timeline.tsx`, registered in MDX) instead of a `<Mermaid>` flowchart. Reusable for a future People profile career timeline or an in-lesson mini-timeline (e.g. GPT-1→2→3→ChatGPT in LLMs). ([PR #12](https://github.com/creotip/marvin/pull/12))
+- **AI Security** lesson (17th lesson, new `(safety)` sidebar section) — prompt injection (direct/indirect), jailbreaks, data exfiltration via tool use, adversarial examples, red-teaming, framed against AI safety/alignment as a distinct problem. New "Safety & Security" reference glossary group with 4 terms (Prompt Injection, Jailbreak, Adversarial Example, Red Teaming), cross-linked from `rag`/`mcp`/`prompt-engineering` reference pages and from Ian Goodfellow's People profile.
 
 ## Flagged content — not yet built
 
-- **AI Safety & Alignment** lesson — model objectives/alignment, a real gap for "university of AI" scope
-- **AI Security** lesson — prompt injection, jailbreaks, adversarial examples, data exfiltration via tool use, red-teaming. Distinct from Safety & Alignment (deployed-system misuse vs. model objectives). Prioritize alongside Safety & Alignment, not after — relevant to the site owner's security background.
+- **AI Safety & Alignment** lesson — model objectives/alignment, distinct from AI Security (deployed-system misuse vs. the model's own objectives) — a real gap for "university of AI" scope
 - **Multimodal Models** lesson — vision-language and audio models; course currently only covers single-modality
-- **"Safety & Security" glossary group** — Prompt Injection, Jailbreak, Adversarial Example, Red Teaming, AI Safety, Alignment (RLHF already exists, cross-links from Alignment)
+- **Two more "Safety & Security" glossary terms** — AI Safety, Alignment (RLHF already exists and is the natural cross-link) — hold until the Safety & Alignment lesson above is written
 
 ---
 
