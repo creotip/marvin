@@ -8,6 +8,8 @@
     "start": "next start",
     "types:check": "next typegen && tsc --noEmit",
     "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
@@ -40,7 +42,8 @@
     "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4.3.3",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
-    "unified": "^11.0.5"
+    "unified": "^11.0.5",
+    "vitest": "^5.0.1"
   },
   "packageManager": "pnpm@10.8.0"
 }
