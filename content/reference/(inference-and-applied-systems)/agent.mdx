@@ -12,6 +12,36 @@ the model determines the goal is achieved. Practical agent systems add
 guardrails (step limits, confirmation before high-stakes actions) since
 errors can compound across a chain of steps.
 
+## How it works
+
+The loop is mechanically simple. The application sends the model a
+system prompt, the conversation so far, and a list of tool schemas —
+name, description, and a JSON Schema for the arguments. The model
+replies either with ordinary text or with a structured tool call. The
+application executes that call itself, appends the result to the
+message list as a `tool` role message, and calls the model again. The
+model never runs anything; it only emits requests. Everything the agent
+"knows" at step *n* is whatever is in that growing message list, so
+the loop is really an exercise in context management: what to append
+verbatim, what to summarise, and what to drop. Stopping is a policy
+decision — a final text answer, a `done` tool, or a hard step cap.
+
+## When it breaks
+
+- **Error compounding.** Each step conditions on the last, so one bad
+  tool result or misread output steers every later decision. A 95%
+  per-step success rate is about 60% over ten steps.
+- **Context exhaustion.** Raw tool output — file dumps, HTML, long
+  logs — fills the window fast, and truncating it silently drops the
+  evidence the model needs, which invites
+  [hallucination](/reference/hallucination).
+- **Loops and thrash.** Agents retry a failing call with cosmetic
+  variations instead of changing approach. Step caps and repeated-call
+  detection are load-bearing, not optional.
+- **Cost and latency scale with steps.** Every step is a full
+  [inference](/reference/inference) pass over a longer prompt, so cost
+  grows worse than linearly.
+
 **See also:** [RAG](/reference/rag), [MCP](/reference/mcp),
 [LLM](/reference/llm)
 

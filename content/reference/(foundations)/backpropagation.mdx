@@ -13,6 +13,40 @@ parameters the network has. Modern frameworks like
 [PyTorch](/reference/pytorch) implement this automatically as
 **autograd**.
 
+## How it works
+
+The forward pass records every operation into a directed graph and keeps
+the intermediate activations. The backward pass then walks that graph in
+reverse, starting from `dL/dL = 1`, and at each node multiplies the
+incoming gradient by that operation's local derivative — reverse-mode
+automatic differentiation.
+
+For a linear layer `y = Wx + b` with incoming gradient `g = dL/dy`:
+
+- `dL/dW = g xᵀ`
+- `dL/db = g`
+- `dL/dx = Wᵀ g`, which is passed further back
+
+Because `dL/dx` is computed once per node and reused by all its inputs,
+the whole gradient costs roughly one extra forward pass, not one pass per
+parameter. The resulting gradients are then consumed by
+[gradient descent](/reference/gradient-descent).
+
+## When it breaks
+
+- **Memory, not compute, is the limit.** Every stored activation is held
+  until its backward pass runs, so memory scales with depth times batch
+  size. Gradient checkpointing trades recomputation for memory.
+- **Long chains degrade.** Multiplying many local derivatives produces
+  [vanishing or exploding gradients](/reference/vanishing-gradients);
+  [residual connections](/reference/residual-connection) and
+  normalization exist mainly to counter this.
+- **Silent graph breaks.** Detaching a tensor, converting to NumPy, or
+  doing an in-place edit severs the graph, and the affected parameters
+  simply stop updating with no error raised.
+- **Stale gradients.** Gradients accumulate by default; forgetting
+  `optimizer.zero_grad()` sums this step's gradient onto the last one.
+
 **See also:** [Gradient Descent](/reference/gradient-descent),
 [Neural Network](/reference/neural-network)
 

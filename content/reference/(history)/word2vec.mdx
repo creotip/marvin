@@ -11,6 +11,37 @@ into language processing, and a direct precursor to the token
 [embeddings](/reference/embedding) used throughout modern
 [LLMs](/reference/llm).
 
+## How it works
+
+word2vec trains a shallow two-matrix model over a sliding context
+window. The **skip-gram** variant takes a center word and learns to
+predict the words around it; **CBOW** reverses that, predicting the
+center word from its context. Scoring the full vocabulary on every step
+is far too expensive, so training uses *negative sampling*: raise the
+dot product of a true (center, context) pair and lower it for a handful
+of randomly drawn pairs. Very frequent words are subsampled so `the`
+and `of` don't dominate the gradient. When training finishes the model
+is discarded and its input matrix is kept as a lookup table — one dense
+vector per word. Similarity is read off as cosine distance, and the
+famous analogy arithmetic (`king - man + woman` landing near `queen`)
+falls out of that geometry.
+
+## When it breaks
+
+- **One vector per word, regardless of context.** *bank* gets a single
+  representation averaging the river and financial senses — the
+  limitation that contextual models built on
+  [transformers](/reference/transformer) removed by producing a
+  different vector per occurrence.
+- Out-of-vocabulary words have no vector at all, a gap subword
+  [tokenization](/reference/tokenization) later closed.
+- Cosine proximity conflates relations. *good* and *bad* sit close
+  together because they occur in near-identical contexts, which breaks
+  naive sentiment applications.
+- It still earns its place where cheap static vectors are enough —
+  retrieval candidate generation, and embedding non-text items like
+  products or songs from co-occurrence sequences.
+
 **See also:** [Embedding](/reference/embedding), [LLM](/reference/llm)
 
 **Learn more:** [History & Landscape](/docs/history-and-landscape) ·

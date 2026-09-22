@@ -10,6 +10,38 @@ most of the research and new-project share to [PyTorch](/reference/pytorch)
 over the last several years. **Keras** is TensorFlow's high-level model
 API.
 
+## How it works
+
+TensorFlow's original design was *define-then-run*: you built a static
+dataflow graph of operations, then executed it inside a `Session`. TF 2
+flipped the default to eager execution, with `@tf.function` opting a
+Python function back into a traced graph that the runtime can optimize,
+fuse, and place across devices. That graph is also the artifact that
+makes deployment portable — a `SavedModel` bundles the graph and weights
+so the same model can run under TensorFlow Serving, in a browser via
+TensorFlow.js, or converted to a TFLite flatbuffer for phones and
+microcontrollers, usually with [quantization](/reference/quantization)
+applied.
+
+Keras layers sit on top: `model.fit` wraps the training loop,
+`tf.data` builds input pipelines that prefetch and shard, and gradients
+come from `tf.GradientTape`.
+
+## When it breaks
+
+- **Tracing surprises.** Code inside `@tf.function` runs once at trace
+  time. Python counters, prints, and list appends do not behave as they
+  read, and changing input shapes retraces the function.
+- **Version churn.** The 1.x to 2.x transition and repeated Keras API
+  shuffles mean older tutorials and checkpoints frequently fail to run
+  unmodified against a current install.
+- **Conversion gaps.** TFLite supports a subset of ops, so an otherwise
+  working model — especially one with dynamic shapes or custom layers —
+  can fail at convert time rather than at training time.
+- **Ecosystem drift.** New research code and pretrained weights largely
+  target other frameworks, so reproducing a recent paper often means
+  porting it before you can run [inference](/reference/inference) at all.
+
 **See also:** [PyTorch](/reference/pytorch), [JAX](/reference/jax)
 
 **Learn more:** [Tooling & The Dev Stack](/docs/tooling-and-the-dev-stack) ·

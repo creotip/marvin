@@ -11,6 +11,39 @@ data. Token embeddings are the raw input to a [transformer](/reference/transform
 document/passage embeddings power similarity search in
 [RAG](/reference/rag) systems via [vector databases](/reference/vector-database).
 
+## How it works
+
+An embedding table is a learned matrix of shape
+`(vocab_size, d_model)`; looking up token id `i` returns row `i`. The
+rows start random and are updated by the same gradients that train the
+rest of the network, so the geometry emerges from the training
+objective rather than being designed. Static methods such as
+[word2vec](/reference/word2vec) give one fixed vector per word; inside
+a transformer the vector at each layer is *contextual*, because
+[attention](/reference/attention) mixes in surrounding tokens, so the
+same word gets different representations in different sentences.
+
+Passage embeddings for search are produced by pooling a model's final
+hidden states into a single vector, then comparing vectors by cosine
+similarity or dot product. Such models are typically trained with a
+contrastive objective on paired text.
+
+## When it breaks
+
+- **Dimensions mean nothing individually.** Only relative distances
+  carry signal; inspecting component 47 is not interpretation.
+- **Similarity is not relevance.** Contrastive training optimizes for
+  the pairs it saw, so negations and antonyms often land close
+  together — "flight to Paris" and "flight from Paris" are nearly
+  identical vectors.
+- **Normalization mismatches.** Cosine similarity assumes unit-norm
+  vectors; mixing normalized and unnormalized vectors, or using
+  different pooling at index time and query time, quietly destroys
+  recall.
+- **Version lock-in.** Vectors from two different models are not
+  comparable, so changing the embedding model means reindexing the
+  entire corpus.
+
 **See also:** [Tokenization](/reference/tokenization), [RAG](/reference/rag),
 [Vector Database](/reference/vector-database)
 

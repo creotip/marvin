@@ -13,6 +13,40 @@ model can generate an answer grounded in that text. This lets a model
 answer questions about private or current data — and reduces
 [hallucination](/reference/hallucination) — without any retraining.
 
+## How it works
+
+RAG has two pipelines. The **indexing** pipeline runs offline: parse
+documents, split them into chunks sized to survive retrieval intact,
+embed each chunk with an encoder model, and write the vectors plus the
+original text and metadata to the index. The **query** pipeline runs per
+request: embed the user's question with the *same* encoder, retrieve the
+top `k` nearest chunks, and paste them into the prompt above the
+question with an instruction to answer only from the provided context.
+
+Production systems usually add two stages. **Hybrid search** combines
+dense vector similarity with keyword scoring such as BM25, since
+embeddings are weak at exact identifiers. **Reranking** then scores a
+wider candidate set with a cross-encoder and keeps only the best few,
+which costs more per query but sharply improves what reaches the model.
+
+## When it breaks
+
+- **Chunking decides the ceiling.** Split too small and a fact loses the
+  context that makes it interpretable; too large and the real answer is
+  diluted by irrelevant text. No prompt fixes a bad split.
+- **Retrieval failures are silent.** If the right chunk is not in the
+  top `k`, the model answers confidently from parametric memory
+  anyway — grounding reduces hallucination, it does not prevent it.
+- **Embedding mismatch.** Questions and documents are worded
+  differently, so semantic similarity misses paraphrases and, worse,
+  exact codes and part numbers.
+- **Stale or conflicting sources.** The index happily returns two
+  contradictory documents, and the model picks one with no signal about
+  which is current.
+- **Retrieved text is untrusted input.** A poisoned document can carry
+  instructions the model follows; see
+  [prompt engineering](/reference/prompt-engineering).
+
 **See also:** [Embedding](/reference/embedding),
 [Vector Database](/reference/vector-database), [Agent](/reference/agent),
 [Hallucination](/reference/hallucination)

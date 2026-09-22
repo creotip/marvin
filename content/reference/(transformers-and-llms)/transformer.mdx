@@ -12,6 +12,39 @@ dependencies directly, and scales predictably with size and data. It
 underlies essentially every modern [LLM](/reference/llm), and
 increasingly vision and audio models too.
 
+## How it works
+
+A decoder-only transformer stacks `N` identical blocks. Each block has
+two sublayers: multi-head self-attention and a position-wise
+feed-forward network that typically expands `d_model` to `4 * d_model`
+and back. Both sublayers sit inside a
+[residual connection](/reference/residual-connection) with layer
+normalization, which is what makes depths of dozens of layers
+trainable.
+
+The path through the model is: token ids →
+[embedding](/reference/embedding) lookup →
+[positional encoding](/reference/positional-encoding) → blocks → a
+final linear projection to vocabulary-sized logits. Shapes stay
+`(batch, seq, d_model)` from the embedding to the last block. Because
+every position is processed at once rather than step by step, an entire
+training sequence fits in a single parallel forward pass.
+
+## When it breaks
+
+- **Context is a hard wall.** Attention cost grows quadratically with
+  sequence length, so the context window is a deliberate budget —
+  exceeding it truncates rather than degrading gracefully.
+- **Pre-norm vs post-norm matters.** The original post-norm layout
+  needs learning-rate warmup to train stably at depth, which is why
+  most modern implementations moved normalization inside the residual
+  branch.
+- **Training parallelism doesn't carry to generation.** Decoding is
+  still one token at a time, so a [KV cache](/reference/kv-cache) is
+  mandatory for usable [inference](/reference/inference) latency.
+- **Data hunger.** With no convolutional or recurrent inductive bias,
+  transformers underperform on small datasets unless pretrained.
+
 **See also:** [Attention](/reference/attention), [LLM](/reference/llm),
 [RNN](/reference/rnn)
 

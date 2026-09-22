@@ -12,6 +12,43 @@ positive inputs, avoiding much of the [vanishing gradient](/reference/vanishing-
 problem that plagued older choices like **sigmoid** and **tanh**. **GELU**,
 a smoother ReLU variant, is used in most modern transformers.
 
+## How it works
+
+A neuron computes `z = w · x + b`, then emits `a = f(z)`. The choice of
+`f` decides what gradient flows back through that unit during
+[backpropagation](/reference/backpropagation), because the chain rule
+multiplies by `f'(z)` at every layer.
+
+- **Sigmoid** squashes to `(0, 1)`; its derivative peaks at `0.25` and
+  decays toward zero for large `|z|`.
+- **Tanh** squashes to `(-1, 1)`, zero-centered, derivative peaks at `1`.
+- **ReLU** passes `z` through unchanged when positive, so `f'(z) = 1`
+  there and `0` otherwise — no shrinkage, and a cheap comparison
+  instead of an exponential.
+- **GELU** and **SiLU/Swish** are smooth approximations of ReLU with
+  nonzero gradient for small negative `z`.
+
+Without any nonlinearity, composing `W₂(W₁x)` is just `(W₂W₁)x`, a
+single linear map.
+
+## When it breaks
+
+- **Dead ReLUs.** A unit whose pre-activation is negative for every
+  input has zero gradient forever and never recovers. Usually caused by
+  a large learning rate or a badly scaled
+  [initialization](/reference/weight-initialization). `LeakyReLU` or
+  `GELU` avoids this by keeping a small negative-side slope.
+- **Saturation.** Sigmoid and tanh flatten for large `|z|`, so deep
+  stacks of them stall — the historical reason sigmoid networks were
+  hard to train past a few layers.
+- **Mismatched output activation.** Applying softmax or sigmoid yourself
+  and *also* passing logits to a loss that applies it internally (e.g.
+  `CrossEntropyLoss` in PyTorch) double-applies the nonlinearity and
+  quietly degrades training.
+- **Non-zero-centered outputs.** ReLU emits only non-negative values,
+  which biases gradient directions; normalization layers usually absorb
+  this.
+
 **See also:** [Neural Network](/reference/neural-network),
 [Vanishing Gradients](/reference/vanishing-gradients)
 

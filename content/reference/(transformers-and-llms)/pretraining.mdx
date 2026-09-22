@@ -11,6 +11,37 @@ and reasoning patterns. The result is a **base model** — fluent, but not
 naturally instruction-following — which is why
 [fine-tuning](/reference/fine-tuning) and [RLHF](/reference/rlhf) follow.
 
+## How it works
+
+The corpus is [tokenized](/reference/tokenization) once and packed into
+fixed-length sequences. Each step runs a batch through the model,
+computes cross-entropy [loss](/reference/loss-function) between the
+predicted distribution and the actual next token at *every* position,
+and updates the weights — so one sequence of length 4096 supplies 4096
+supervised predictions. The labels are just the inputs shifted by one;
+no annotation is involved anywhere.
+
+Runs last weeks across thousands of accelerators, which requires
+[distributed training](/reference/distributed-training) to split the
+model and the batch across devices. The learning rate warms up and then
+decays on a schedule fixed in advance, and the split between model size
+and token count is what [scaling laws](/reference/scaling-laws)
+estimate.
+
+## When it breaks
+
+- **Data quality dominates.** Deduplication and filtering move final
+  quality more than most architecture choices; duplicated documents get
+  memorized and inflate held-out scores.
+- **Benchmark contamination.** Evaluation sets leak into web crawls, so
+  a model can look like it is reasoning when it is reciting.
+- **Loss spikes.** Large runs hit sudden divergence from a bad batch or
+  numerical instability; standard practice is to roll back to a
+  checkpoint and skip the offending data.
+- **One shot at the schedule.** Learning-rate decay assumes a fixed
+  token budget, so you cannot cleanly "train it a bit longer"
+  afterward.
+
 **See also:** [LLM](/reference/llm), [Fine-tuning](/reference/fine-tuning),
 [RLHF](/reference/rlhf)
 

@@ -11,6 +11,39 @@ built once be reused across different LLM-powered applications and
 [agents](/reference/agent) — similar to how a USB standard means a
 peripheral doesn't need custom wiring for every computer.
 
+## How it works
+
+MCP is a client–server protocol built on JSON-RPC 2.0. The *host*
+application (an editor, a chat client, an agent
+runtime) runs an MCP client for each server it connects to; servers run
+either as a local subprocess over stdio or as a remote HTTP endpoint.
+
+On connection the two sides exchange capabilities, then the client calls
+`tools/list`, `resources/list`, and `prompts/list` to discover what the
+server offers. Tools are functions with JSON Schema inputs that the
+model can invoke via `tools/call`; resources are
+read-only context the host can attach; prompts are reusable templates a
+user can select. The model itself never speaks MCP — the host
+translates discovered tool schemas into whatever tool-calling format its
+model API expects, and translates the model's chosen call back into an
+MCP request.
+
+## When it breaks
+
+- **Tool descriptions are prompt surface.** Every listed tool's name and
+  description is injected into context, so a server exposing dozens of
+  tools burns tokens and degrades selection accuracy. Curation beats
+  coverage.
+- **A server is code you are trusting.** It runs with the host's
+  privileges and its descriptions reach the model directly, which makes
+  a malicious or compromised server a
+  [prompt injection](/reference/prompt-engineering) vector.
+- **Schemas do not guarantee behaviour.** Models still emit arguments
+  that validate but are semantically wrong — a plausible file path, an
+  invented ID — so servers need their own validation.
+- **Protocol churn.** The spec and transports have moved quickly; client
+  and server versions drift and fail in confusing ways.
+
 **See also:** [Agent](/reference/agent), [LLM](/reference/llm)
 
 **Learn more:** [Applied & Agentic Systems](/docs/applied-and-agentic-systems) ·

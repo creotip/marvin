@@ -12,6 +12,41 @@ learning to optimize the LLM to produce responses that score highly under
 that reward model. **DPO (Direct Preference Optimization)** is a newer,
 simpler alternative that skips the separate reward model and RL loop.
 
+## How it works
+
+Three stages, each producing an artifact:
+
+- **Preference collection.** Sample several responses to the same
+  prompt and have annotators rank them. The data is pairwise, not
+  scored, because relative judgments are far more consistent between
+  raters.
+- **Reward model.** Take a copy of the
+  [pretrained](/reference/pretraining) model, attach a scalar head, and
+  train it with a ranking [loss](/reference/loss-function) so chosen
+  responses score above rejected ones. It maps a `(prompt, response)`
+  pair to one number.
+- **Policy optimization.** Run PPO: sample responses from the current
+  policy, score them with the reward model, and take gradient steps
+  that raise expected reward. A KL penalty against the starting model
+  keeps the policy from drifting into text that scores well and reads
+  badly.
+
+[DPO](/reference/dpo) collapses the last two stages into a single loss.
+
+## When it breaks
+
+- **Reward hacking.** The policy finds regions where the reward model
+  is wrong — hedging, padding, flattery — and exploits them. Measured
+  reward rises while actual quality falls.
+- **The KL penalty is a tightrope.** Too weak and the policy
+  degenerates; too strong and preferences never take hold.
+- **Rater habits become model behavior.** Annotators favor long,
+  confident answers, so the model learns verbosity and overconfidence
+  alongside helpfulness.
+- **Heavy machinery.** PPO keeps policy, reference, reward model, and
+  value model in play at once, making runs expensive and far less
+  stable than supervised training.
+
 **See also:** [Fine-tuning](/reference/fine-tuning),
 [Hallucination](/reference/hallucination)
 

@@ -11,6 +11,39 @@ preference-ranked response pairs, using a loss function derived to reach
 the same optimum RLHF would. It's become popular for being simpler to
 implement and tune while often matching RLHF's results.
 
+## How it works
+
+DPO starts from a supervised-fine-tuned model plus a frozen copy of it
+used as the *reference policy*. Training data is triples of
+`(prompt, chosen, rejected)`. For each triple it computes the
+log-probability the policy and the reference assign to both responses,
+then minimizes a logistic [loss](/reference/loss-function) that pushes
+the chosen response's policy-to-reference ratio above the rejected
+one's. A `beta` hyperparameter controls how far the policy may drift
+from the reference.
+
+The derivation shows that under the Bradley-Terry preference model the
+optimal policy can be written in closed form in terms of the reference,
+so no explicit reward model and no sampling loop are needed. Each
+update is an ordinary [gradient descent](/reference/gradient-descent)
+step on a supervised objective.
+
+## When it breaks
+
+- **Two models in memory.** Policy and reference are loaded together,
+  so a naive setup roughly doubles memory versus plain supervised
+  training.
+- **`beta` is the whole ballgame.** Too low and the policy collapses
+  toward short, degenerate answers; too high and preferences barely
+  move the model at all.
+- **It can lower the chosen response's probability.** The loss
+  constrains only the *margin*, so training logs commonly show both
+  chosen and rejected log-probs falling — a real effect that is easy to
+  misread as a bug.
+- **Off-policy data ages badly.** Preference pairs sampled from an
+  older checkpoint no longer reflect what the current model produces,
+  and gains flatten or reverse.
+
 **See also:** [RLHF](/reference/rlhf), [Fine-tuning](/reference/fine-tuning)
 
 **Learn more:** [LLMs](/docs/llms) ·

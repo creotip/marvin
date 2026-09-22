@@ -12,6 +12,37 @@ is essential to making [LLM](/reference/llm) generation fast enough to
 serve. Its main cost is GPU memory, which grows with sequence length and
 batch size.
 
+## How it works
+
+In a decoder-only [transformer](/reference/transformer), the query for
+the newest token attends over the Keys and Values of every preceding
+token. Because [causal masking](/reference/causal-masking) means earlier
+positions never see later ones, their K and V vectors are fixed once
+computed. The cache stores them per layer and per head, so each decode
+step computes K and V for exactly one new position, appends them, and
+attends over the stored tensors.
+
+Size is predictable: roughly `2 * layers * kv_heads * head_dim *
+seq_len * batch * bytes_per_element`, where the leading `2` covers Keys
+and Values. Grouped-query attention shrinks `kv_heads` below the number
+of query heads specifically to cut this term, and the cache is often
+kept in `fp8` or `int8` for the same reason.
+
+## When it breaks
+
+- **It is the real memory ceiling.** Weights are fixed, but cache grows
+  with every concurrent request and every token generated, so long
+  contexts starve [batching](/reference/batching) capacity.
+- **Fragmentation wastes capacity.** Reserving a contiguous block for
+  each request's maximum length leaves most of it unused; paged
+  allocation schemes exist to reclaim that waste.
+- **Any prefix edit invalidates it.** Inserting a system prompt,
+  trimming old turns, or reordering retrieved context changes every
+  downstream Key and Value, forcing a full prefill again.
+- **Cache quantization is not free.** Dropping to very low precision
+  degrades long-range recall well before it degrades short prompts, so
+  it often passes quick tests and fails in production.
+
 **See also:** [Inference](/reference/inference), [Attention](/reference/attention)
 
 **Learn more:** [Inference & Serving](/docs/inference-and-serving)

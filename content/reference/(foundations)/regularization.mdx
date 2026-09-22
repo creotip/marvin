@@ -11,6 +11,41 @@ neuron outputs during training), and **early stopping** (halting training
 once validation loss stops improving). More (varied) training data has
 the same effect without being a training-time technique per se.
 
+## How it works
+
+Each technique constrains the space of solutions
+[gradient descent](/reference/gradient-descent) can settle into:
+
+- **Weight decay** adds a penalty on `||w||**2` to the objective, which
+  shrinks every weight slightly on each step and biases the model toward
+  smaller, smoother functions. In modern optimizers use `AdamW`, where
+  the decay is applied to the weights directly rather than folded into
+  the gradient.
+- **Dropout** zeroes each unit's output with probability `p` during
+  training and rescales the survivors, so no single unit can be relied
+  on. It is disabled at [inference](/reference/inference) time.
+- **Early stopping** simply keeps the checkpoint with the best
+  validation loss.
+- **[Data augmentation](/reference/data-augmentation)** expands the
+  effective dataset with label-preserving transforms.
+
+All of them raise training loss on purpose; the payoff is lower
+validation loss.
+
+## When it breaks
+
+- **Regularizing an underfit model.** If training and validation loss
+  are both high, adding dropout or decay makes both worse. Diagnose the
+  [bias-variance](/reference/bias-variance-tradeoff) side first.
+- **Dropout left on at eval.** Forgetting `model.eval()` injects noise
+  into predictions and makes evaluation runs non-reproducible.
+- **Decaying the wrong parameters.** Applying weight decay to biases and
+  normalization `γ`/`β` terms is standard-but-wrong; most reference
+  training scripts exclude them.
+- **Stacking too much.** Heavy dropout plus strong decay plus aggressive
+  augmentation can jointly prevent the model from fitting at all — tune
+  one at a time.
+
 **See also:** [Overfitting](/reference/overfitting),
 [Neural Network](/reference/neural-network)
 

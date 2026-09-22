@@ -11,6 +11,36 @@ moment that proved deep learning could dramatically outperform
 hand-engineered feature pipelines, kicking off the deep learning boom of
 the 2010s.
 
+## How it works
+
+AlexNet stacks five convolutional layers followed by three
+fully-connected layers, ending in a 1000-way softmax over ImageNet
+classes — roughly 60 million parameters. Three choices mattered more
+than the raw depth:
+
+- **ReLU** [activations](/reference/activation-function) in place of
+  `tanh` or sigmoid, which trained substantially faster and didn't
+  saturate.
+- **GPU training.** The network was split across two GTX 580 cards
+  because 3 GB of memory couldn't hold it — an early, practical case of
+  splitting a model across [GPUs](/reference/gpu).
+- **Dropout** in the fully-connected layers plus heavy
+  [augmentation](/reference/data-augmentation): random `224x224` crops
+  from `256x256` images, horizontal flips, and PCA-based color jitter,
+  all aimed at [overfitting](/reference/overfitting).
+
+## When it breaks
+
+- The large early kernels (`11x11`, stride 4) and 4096-unit dense
+  layers are enormously parameter-heavy; later architectures replaced
+  them with stacks of `3x3` convolutions and global pooling.
+- Local response normalization, one of the paper's contributions, was
+  later shown to contribute little and is effectively dead — batch
+  normalization superseded it.
+- Depth stops paying off at this scale. Naively stacking more layers in
+  the AlexNet style makes accuracy *worse*, the problem residual
+  connections were introduced to solve.
+
 **See also:** [CNN](/reference/cnn), [ResNet](/reference/resnet)
 
 **Learn more:** [History & Landscape](/docs/history-and-landscape) ·

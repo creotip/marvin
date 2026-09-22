@@ -12,6 +12,37 @@ Python), which makes debugging and experimentation fast, and provides
 requires hand-deriving gradients. It's the default starting point
 recommended for most model development work today.
 
+## How it works
+
+Every tensor carries a device and a dtype, and operations run
+immediately on that device. When a tensor has `requires_grad=True`,
+PyTorch records each operation into a dynamic graph as it executes;
+calling `.backward()` on a scalar [loss](/reference/loss-function) walks
+that graph in reverse, accumulating gradients into each leaf tensor's
+`.grad`. The optimizer then applies them, and `optimizer.zero_grad()`
+clears the accumulation for the next step.
+
+Models subclass `nn.Module`, which tracks parameters and submodules so
+`.to("cuda")` moves the whole tree onto a [GPU](/reference/gpu) at once.
+For speed, `torch.compile` traces the module and hands it to a backend
+that fuses kernels ahead of time, and `torch.no_grad()` skips graph
+construction entirely during [inference](/reference/inference).
+
+## When it breaks
+
+- **Gradients accumulate by default.** Forgetting `zero_grad()` sums
+  gradients across steps. Training still runs; it just converges to
+  something wrong.
+- **Device mismatches.** A model on the GPU and a batch left on the CPU
+  raises at the first op. The reverse case — a stray `.cpu()` inside the
+  loop — raises nothing and quietly halves throughput.
+- **Holding on to the graph.** Appending a live loss tensor to a list
+  keeps its whole autograd graph alive, so memory grows each step until
+  OOM. Use `.detach()` or `.item()` for logging.
+- **Graph breaks and recompiles.** `torch.compile` falls back to eager
+  on unsupported Python, and changing input shapes forces a recompile,
+  so the speedup can silently disappear.
+
 **See also:** [TensorFlow](/reference/tensorflow), [JAX](/reference/jax),
 [Hugging Face](/reference/hugging-face)
 

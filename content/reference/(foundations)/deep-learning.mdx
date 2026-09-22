@@ -11,6 +11,39 @@ text) instead of requiring a person to hand-engineer them first. It became
 practical around 2012 once large datasets, GPU compute, and training
 refinements arrived together.
 
+## How it works
+
+Depth buys a hierarchy of representations. Early layers of a
+[CNN](/reference/cnn) respond to edges and colour blobs, middle layers to
+textures and parts, later layers to whole objects — none of which was
+specified by hand. The same idea holds for text, where lower layers of a
+[transformer](/reference/transformer) track surface syntax and higher
+layers carry more abstract structure.
+
+The training loop is unchanged from classical ML: forward pass, compute
+a [loss](/reference/loss-function),
+[backpropagate](/reference/backpropagation), step the optimizer. What
+makes depth *work* in practice is a set of enabling techniques —
+[residual connections](/reference/residual-connection), normalization
+layers, careful [initialization](/reference/weight-initialization), and
+ReLU-family activations — plus [GPUs](/reference/gpu) to make the matrix
+multiplications fast enough to iterate.
+
+## When it breaks
+
+- **Data hunger.** Deep models need far more labelled examples than
+  classical methods. On a few thousand rows of tabular data, gradient
+  boosted trees usually win outright.
+- **It fails silently.** A bug in preprocessing, a mislabelled class, or
+  a too-high learning rate produces a model that trains without error
+  and simply performs worse — there is no stack trace.
+- **Shortcut learning.** Networks latch onto whatever correlates with
+  the label in *your* data (watermarks, backgrounds, hospital scanner
+  IDs) and collapse on deployment data that lacks the shortcut.
+- **Cost and reproducibility.** Nondeterministic GPU kernels, seed
+  sensitivity, and long training runs make results hard to reproduce
+  exactly.
+
 **See also:** [Neural Network](/reference/neural-network),
 [Backpropagation](/reference/backpropagation), [CNN](/reference/cnn),
 [Transformer](/reference/transformer)

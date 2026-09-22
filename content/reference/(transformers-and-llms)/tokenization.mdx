@@ -12,6 +12,39 @@ still representing any string, including unseen words. Each token is
 then mapped to a learned [embedding](/reference/embedding) vector before
 entering the model.
 
+## How it works
+
+BPE is trained, not designed. Starting from raw bytes, it repeatedly
+counts adjacent symbol pairs across a [pretraining](/reference/pretraining)
+corpus, merges the most frequent pair into a new symbol, and records
+the merge. After `N` merges you have a vocabulary of `N` entries plus
+the base bytes — typically 32k to 200k in total — and an ordered merge
+list. Encoding replays those merges greedily over the input; decoding
+is a table lookup and concatenation.
+
+Leading whitespace is usually part of the token, so `"cat"` and
+`" cat"` are different ids. Because the base alphabet is bytes, every
+input encodes — there is no out-of-vocabulary failure, only worse
+compression. Special tokens for turn boundaries and end-of-sequence are
+appended to the vocabulary rather than produced by merging.
+
+## When it breaks
+
+- **Character-level tasks.** Counting letters, reversing strings, and
+  rhyming are hard because the model never sees characters, only opaque
+  ids.
+- **Arithmetic and rare names.** Digit grouping varies by tokenizer, so
+  `1234` may be one token or three, which makes numeric reasoning
+  brittle in ways that shift between models.
+- **Cost is not uniform.** Non-English text and code often need several
+  times more tokens per character, inflating
+  [inference](/reference/inference) latency and price for the same
+  content.
+- **Mismatch is silent.** Serving weights with a different tokenizer or
+  chat template than training used produces fluent nonsense rather than
+  an error — verify them together after any
+  [fine-tune](/reference/fine-tuning).
+
 **See also:** [Embedding](/reference/embedding), [LLM](/reference/llm)
 
 **Learn more:** [LLMs](/docs/llms) ·

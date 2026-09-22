@@ -12,6 +12,38 @@ Claude, Gemini, and Llama. Unlike earlier AI systems built one-per-task,
 a single LLM can be prompted into translation, coding, summarization, and
 many other tasks without task-specific training.
 
+## How it works
+
+At [inference](/reference/inference) an LLM runs a loop. The prompt is
+tokenized and pushed through the whole stack once — the **prefill**
+pass, which is compute-bound and fully parallel. Generation then
+proceeds one token at a time: the model emits logits over the
+vocabulary, a [decoding strategy](/reference/decoding-strategies)
+selects a token, and that token is appended and fed back in. Every step
+reuses the cached keys and values of all previous positions via the
+[KV cache](/reference/kv-cache), so per-step cost stays roughly
+constant instead of re-reading the entire context.
+
+The model holds no state between requests. Conversation history,
+retrieved documents, and system instructions are all simply tokens
+prepended to the context on every call.
+
+## When it breaks
+
+- **Context limits are hard.** Past the trained window, output degrades
+  or the request is rejected. Long contexts also show "lost in the
+  middle" behavior, where facts placed mid-prompt are used less
+  reliably than those at either edge.
+- **Decoding is memory-bandwidth-bound.** Throughput is limited by
+  streaming weights and cache out of [GPU](/reference/gpu) memory, not
+  by arithmetic — which is why larger batches raise tokens per second
+  per dollar but not per request.
+- **Confident errors.** Fluent output carries no calibration, so
+  [hallucination](/reference/hallucination) is the default failure mode
+  rather than an error message.
+- **Nondeterminism.** Identical prompts can produce different text
+  across batch sizes even at temperature zero.
+
 **See also:** [Transformer](/reference/transformer),
 [Pretraining](/reference/pretraining), [Tokenization](/reference/tokenization),
 [Fine-tuning](/reference/fine-tuning)

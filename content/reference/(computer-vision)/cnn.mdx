@@ -12,6 +12,36 @@ learn hierarchical visual features (edges → shapes → object parts)
 directly from pixels. Landmark CNNs include [AlexNet](/reference/alexnet)
 and [ResNet](/reference/resnet).
 
+## How it works
+
+A convolution layer holds a bank of kernels, each a small tensor of
+shape `(C_in, k, k)`. Every kernel slides across the input feature map
+and produces one output channel, so a layer with `C_out` kernels maps
+`(C_in, H, W)` to `(C_out, H', W')`. Weights are shared across all
+spatial positions: a filter that detects a vertical edge detects it
+anywhere in the frame, which is what makes CNNs far more
+parameter-efficient than a dense layer over the same pixels. Stacking
+layers widens the *receptive field* — each unit sees a larger patch of
+the original image. Stride and pooling shrink the spatial dimensions as
+channel count grows, with
+[batch normalization](/reference/batch-normalization) and a
+non-linearity between convolutions. Training is ordinary
+[backpropagation](/reference/backpropagation).
+
+## When it breaks
+
+- Translation invariance is only approximate. Pooling and stride buy
+  some tolerance, but rotation, scale, and viewpoint changes are not
+  handled — which is why augmentation is effectively mandatory.
+- The inductive bias that helps on modest datasets becomes a ceiling on
+  very large ones, where [ViT](/reference/vit) catches up and passes
+  CNNs.
+- Receptive fields grow slowly with depth, so relationships spanning
+  opposite corners of an image need many layers, dilated convolutions,
+  or attention to capture.
+- Convolution assumes a regular grid, so it doesn't transfer to graphs,
+  sets, or irregular point clouds without reformulation.
+
 **See also:** [AlexNet](/reference/alexnet), [ResNet](/reference/resnet),
 [OpenCV](/reference/opencv)
 

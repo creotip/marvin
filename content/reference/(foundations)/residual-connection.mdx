@@ -13,6 +13,40 @@ lost even when that gradient is small. Introduced prominently in
 with dozens or hundreds of layers — including
 [transformers](/reference/transformer) — trainable at all.
 
+## How it works
+
+Because the derivative of `x` with respect to `x` is `1`, the gradient
+arriving at a residual block splits: part flows through `layer(x)`, and
+part passes straight through unchanged. Across `N` stacked blocks the
+gradient reaching the first layer is a *sum* of paths rather than a
+single long product, so it cannot decay geometrically with depth.
+
+A second framing: the block only has to learn the *residual*
+`layer(x) = target - x`. If the identity is already a good answer, the
+block can learn to output near-zero, so adding layers never has to make
+the network worse.
+
+In practice the block is paired with normalization. Transformers use the
+**pre-norm** arrangement `x + sublayer(norm(x))`, which keeps the skip
+path free of any normalization and trains more stably than the original
+post-norm form.
+
+## When it breaks
+
+- **Shape mismatch on the skip.** When a block changes channel count or
+  spatial resolution, `x` cannot be added directly; a `1x1` convolution
+  or linear projection on the shortcut is required, as in
+  [ResNet](/reference/resnet)'s downsampling blocks.
+- **Activation growth.** Repeated addition makes the residual stream's
+  magnitude grow with depth. Without normalization or scaled
+  [initialization](/reference/weight-initialization), very deep stacks
+  drift into numerical trouble, especially in `float16`.
+- **Post-norm instability.** Placing normalization after the addition
+  puts it on the skip path and typically requires a learning-rate
+  warmup to train at all.
+- **Not a substitute for capacity.** Skips fix optimization, not
+  underfitting; a too-narrow network stays too narrow.
+
 **See also:** [ResNet](/reference/resnet),
 [Vanishing/Exploding Gradients](/reference/vanishing-gradients)
 

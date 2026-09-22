@@ -12,6 +12,39 @@ learning practical starting around 2012. NVIDIA GPUs paired with
 and [inference](/reference/inference); **TPUs** (Google) and AMD's ROCm
 are the main alternatives.
 
+## How it works
+
+A CPU devotes most of its die to control logic and cache to make a few
+sequential threads fast. A GPU inverts that: thousands of simple cores
+run the same instruction across many data elements at once, which maps
+directly onto the dense matrix multiplies inside a
+[neural network](/reference/neural-network). Modern accelerators also
+carry dedicated matrix units (NVIDIA calls them Tensor Cores) that
+multiply small tiles in reduced precision and accumulate in higher
+precision.
+
+Two numbers govern performance: arithmetic throughput and memory
+bandwidth. Training large models is usually compute-bound, while
+autoregressive decoding in an [LLM](/reference/llm) is memory-bound —
+every generated token re-reads the weights, so [batching](/reference/batching)
+requests is what recovers utilization.
+
+## When it breaks
+
+- **Memory capacity is the hard ceiling.** Training needs room for
+  weights, activations, gradients, and optimizer state — typically
+  several times the parameter count in bytes. This is what forces
+  sharding long before compute becomes the limit.
+- **Small or irregular workloads waste the device.** Tiny batches,
+  many small kernel launches, or heavy Python-side logic leave the GPU
+  idle while it waits on the host.
+- **Bandwidth, not FLOPs, is often the bottleneck.** A kernel that
+  reads more bytes than it does arithmetic will hit nowhere near peak
+  throughput no matter how the code is tuned.
+- **Portability is not free.** Code tuned for one vendor's stack rarely
+  transfers cleanly; custom kernels and [quantization](/reference/quantization)
+  formats are commonly tied to a specific hardware generation.
+
 **See also:** [CUDA](/reference/cuda), [Inference](/reference/inference)
 
 **Learn more:** [History & Landscape](/docs/history-and-landscape) ·

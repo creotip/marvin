@@ -12,6 +12,35 @@ exactly the task it performs at generation time, predicting each next
 token from only what came before it. Decoder-only [LLMs](/reference/llm)
 (GPT-style) use causal masking throughout.
 
+## How it works
+
+An additive mask is applied to the raw score matrix before the softmax:
+entry `(i, j)` is set to `-inf` — in practice a large negative constant
+— whenever `j > i`. Softmax maps those entries to zero probability, so
+position `i`'s output is a weighted sum over positions `0..i` only. The
+mask is a fixed upper-triangular pattern, built once with something
+like `torch.triu(..., diagonal=1)`, and has no learned parameters.
+
+This is what lets one training forward pass supply `seq` supervised
+examples at once: every position predicts its own next token without
+ever seeing it. The same constraint holds by construction at generation
+time, which is also what makes a [KV cache](/reference/kv-cache) valid
+— past keys and values can never change.
+
+## When it breaks
+
+- **Off-by-one in the mask.** Masking the diagonal stops a token from
+  attending to itself and wrecks training; using `>=` instead of `>`
+  leaks the target. Both surface as an implausibly low or flat loss
+  rather than a crash.
+- **Padding interacts with it.** Batched inputs need the causal mask
+  *and* a padding mask combined; forgetting the second lets real tokens
+  attend to pad embeddings.
+- **Bidirectional tasks suffer.** Classification and retrieval usually
+  want full context, which is why
+  [encoder-decoder](/reference/encoder-decoder) and encoder-only models
+  drop the mask on the input side.
+
 **See also:** [Attention](/reference/attention), [Inference](/reference/inference)
 
 **Learn more:** [Attention & Transformers](/docs/attention-and-transformers)

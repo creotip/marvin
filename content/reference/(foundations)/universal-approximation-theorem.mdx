@@ -12,6 +12,40 @@ all — though it says nothing about whether such a network is practically
 *learnable* via [gradient descent](/reference/gradient-descent), which is
 why depth (not just width) matters in practice.
 
+## How it works
+
+The classic result (Cybenko 1989, Hornik 1991) is an *existence* proof.
+For any continuous function `f` on a closed, bounded input region and any
+tolerance `ε > 0`, there exist weights for a one-hidden-layer network
+such that the network stays within `ε` of `f` everywhere on that region.
+
+The intuition: each hidden unit contributes a shifted, scaled copy of the
+[activation function](/reference/activation-function), and a weighted sum
+of enough such bumps can trace any continuous curve — much like a
+piecewise-constant approximation, but smooth. Hornik's version shows the
+property comes from having *any* non-polynomial activation, not from
+sigmoid specifically.
+
+Later work proves a dual form: networks of bounded *width* but unbounded
+*depth* are also universal.
+
+## When it breaks
+
+- **It says nothing about how many neurons.** The required width can
+  grow exponentially with input dimension, so "one layer suffices" is
+  not an architectural recommendation.
+- **Existence ≠ trainability.** The theorem guarantees a weight setting
+  exists; it gives no reason to believe
+  [backpropagation](/reference/backpropagation) will find it from a
+  random start.
+- **No generalization claim.** Approximation is on the region you
+  approximate over. Outside it, behaviour is unconstrained, and
+  approximating the *training* points is exactly
+  [overfitting](/reference/overfitting).
+- **Misused as an argument against depth.** Deep networks win because
+  they express compositional structure with far fewer parameters, which
+  the theorem does not address.
+
 **See also:** [Neural Network](/reference/neural-network),
 [Activation Function](/reference/activation-function)
 

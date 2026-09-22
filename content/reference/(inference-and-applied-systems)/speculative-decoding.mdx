@@ -12,6 +12,40 @@ are accepted together — several tokens for roughly the cost of one decode
 step; a wrong guess falls back to the full model's actual choice. Output
 is mathematically identical to normal decoding, just faster.
 
+## How it works
+
+Each round has two halves. The draft model generates `k` candidate
+tokens autoregressively — cheap, because it is small. The target model
+then scores all `k` positions in one forward pass, exactly as it would
+score a prompt during prefill, producing a distribution for every
+candidate at once.
+
+The candidates are accepted left to right by a rejection-sampling rule
+that compares the target and draft probabilities for each token. At the
+first rejection, that token is resampled from a corrected distribution
+and the remaining drafts are discarded. Because the acceptance rule is
+constructed to preserve the target model's distribution, the output
+matches ordinary sampling. Variants drop the separate draft model
+entirely and predict candidates with extra heads on the target model
+itself.
+
+## When it breaks
+
+- **Acceptance rate is everything.** If the draft disagrees often, you
+  pay for drafting plus a near-normal decode step and end up slower
+  than baseline. Draft and target must share a
+  [tokenizer](/reference/tokenization) and ideally training data.
+- **It only helps when compute is spare.** The gain comes from unused
+  FLOPs during memory-bound decode; under heavy
+  [batching](/reference/batching) the server is already compute-bound
+  and speculation competes with real work.
+- **Extra memory.** Draft weights and their own
+  KV cache sit alongside the target model's,
+  reducing the cache budget available for concurrency.
+- **Tuning `k` is workload-specific.** Long drafts win on predictable
+  text and waste work on high-entropy output, and high sampling
+  temperature lowers acceptance.
+
 **See also:** [Inference](/reference/inference), [KV Cache](/reference/kv-cache)
 
 **Learn more:** [Inference & Serving](/docs/inference-and-serving)

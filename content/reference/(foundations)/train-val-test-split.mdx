@@ -12,6 +12,41 @@ exists specifically to detect [overfitting](/reference/overfitting) —
 performance on data the model has never seen is the only honest measure
 of whether it actually generalizes.
 
+## How it works
+
+A common starting point is roughly `80/10/10`, though the right ratio
+depends on dataset size — with millions of rows, a few thousand held-out
+examples already estimate error tightly, while small datasets often call
+for **k-fold cross-validation** instead, which rotates the validation
+fold `k` times and averages.
+
+The split must happen *before* any fitting step. Scalers, vocabularies,
+imputation statistics, and feature selection are all fit on the training
+split only and then applied to the others; fitting them on the full
+dataset leaks test information into training.
+
+How you split matters as much as the ratio:
+
+- **Time series**: split chronologically, never randomly.
+- **Grouped data** (multiple rows per user, patient, or document): split
+  by group.
+- **Imbalanced classes**: stratify so each split has the same class mix.
+
+## When it breaks
+
+- **Near-duplicates across splits.** Augmented copies, re-uploaded
+  images, or boilerplate text appearing in both train and test turn the
+  test score into a memorization score. This is the same contamination
+  problem that affects [LLM](/reference/llm) benchmarks.
+- **Test-set creep.** Every decision made after looking at test results
+  leaks it into the process; after enough iterations it is just a second
+  validation set.
+- **Random splits on dependent data.** Consecutive time steps or
+  multiple rows from the same user land on both sides and inflate the
+  score dramatically.
+- **A validation set that is not the deployment distribution.** It will
+  confidently endorse a model that fails in production.
+
 **See also:** [Overfitting](/reference/overfitting),
 [Bias-Variance Tradeoff](/reference/bias-variance-tradeoff)
 

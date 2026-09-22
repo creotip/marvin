@@ -12,6 +12,37 @@ the model already has language and knowledge; fine-tuning mostly teaches
 training a small number of additional parameters instead of the whole
 model, making fine-tuning practical even for very large models.
 
+## How it works
+
+Supervised fine-tuning is ordinary next-token training on a new corpus,
+with two differences. First, examples are formatted into a chat
+template with role markers, and the loss is usually masked so only the
+assistant's tokens contribute — the model is graded on its answers, not
+on reproducing the prompt. Second, the learning rate is one to two
+orders of magnitude lower, since the goal is to nudge existing
+representations rather than build them.
+
+Typical runs are a few epochs over thousands to tens of thousands of
+examples. Full fine-tuning updates every weight and carries optimizer
+state for each; [LoRA](/reference/lora) and other PEFT methods train a
+small adapter and keep the base weights frozen.
+
+## When it breaks
+
+- **Catastrophic forgetting.** Training hard on a narrow domain
+  degrades unrelated abilities the base model had. Mixing in general
+  data or lowering the learning rate mitigates it.
+- **Small datasets overfit fast.** With a few thousand examples the
+  model memorizes phrasing within an epoch or two — hold out a real
+  [validation split](/reference/train-val-test-split) and watch it
+  rather than training for a fixed step count.
+- **It teaches style, not facts.** Fine-tuning on documents rarely
+  makes a model recall them reliably, and can raise
+  [hallucination](/reference/hallucination) by training it to answer
+  confidently about things it doesn't know.
+- **Template drift.** Serving with a chat template different from the
+  training one quietly costs much of the gain.
+
 **See also:** [Pretraining](/reference/pretraining), [RLHF](/reference/rlhf),
 [LLM](/reference/llm)
 

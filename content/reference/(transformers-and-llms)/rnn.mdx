@@ -13,6 +13,38 @@ parallelism across time steps) and prone to losing long-range
 information — the exact problems the [transformer](/reference/transformer)
 was designed to solve.
 
+## How it works
+
+At each step the network takes the current input and the previous
+hidden state and produces a new one, roughly
+`h_t = tanh(W_h h_prev + W_x x_t + b)`. The same weights are reused at
+every step, so parameter count is independent of sequence length.
+Training uses **backpropagation through time**: the loop is unrolled
+into a deep feed-forward graph and gradients flow backward through
+every step, so compute and memory scale with sequence length.
+
+An LSTM adds a separate cell state plus input, forget, and output gates
+that learn what to keep and what to discard. The gated path lets the
+cell state cross many steps with multiplicative factors near one, which
+is what makes long dependencies learnable at all.
+
+## When it breaks
+
+- **[Vanishing gradients](/reference/vanishing-gradients).** Repeated
+  multiplication by the same Jacobian shrinks or explodes gradients
+  across many steps. Clipping handles the explosion;
+  [backpropagation](/reference/backpropagation) through a gated path
+  only partly handles the vanishing.
+- **No parallelism over time.** Step `t` needs `h_{t-1}`, so a
+  [GPU](/reference/gpu) sits mostly idle during training — the
+  practical reason transformers won.
+- **Bottlenecked state.** The entire prefix is compressed into one
+  fixed-size vector, so early information is squeezed out as the
+  sequence grows.
+- **Truncation artifacts.** Backpropagation through time is usually
+  truncated to fit memory, silently capping the dependency length the
+  model can learn.
+
 **See also:** [Transformer](/reference/transformer),
 [Attention](/reference/attention)
 

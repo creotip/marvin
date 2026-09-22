@@ -13,6 +13,36 @@ performed *worse* — a symptom of vanishing gradients. Residual
 connections are now used pervasively, including in
 [transformers](/reference/transformer).
 
+## How it works
+
+A residual block computes `y = F(x) + x`, where `F` is two or three
+convolutions with normalization and a non-linearity between them. The
+addition is the whole trick: the identity path has gradient exactly 1,
+so whatever gradient reaches a block's output also reaches its input
+undiminished, however many blocks sit above it. Signal stops shrinking
+multiplicatively with depth, which is what defeats
+[vanishing gradients](/reference/vanishing-gradients). It also changes
+what the layers are asked to learn: `F` only has to model the
+*difference* from the identity, so an unhelpful block can settle near
+zero instead of learning identity from scratch. Deeper variants use a
+bottleneck block — `1x1` reduce, `3x3`, `1x1` expand — with
+[batch normalization](/reference/batch-normalization) after each
+convolution.
+
+## When it breaks
+
+- When a block changes channel count or spatial size the shapes stop
+  matching and the shortcut needs a projection (`1x1` convolution with
+  stride). Getting this wrong is the single most common implementation
+  bug.
+- Depth still has diminishing returns — 1000-layer variants gain little
+  over ResNet-152 and overfit smaller datasets.
+- Ordering matters: placing normalization and activation before the
+  convolutions (pre-activation) trains very deep stacks more reliably
+  than the original post-activation arrangement.
+- Skip connections raise activation memory during training, since each
+  block's input must stay live until the addition.
+
 **See also:** [CNN](/reference/cnn), [AlexNet](/reference/alexnet),
 [Backpropagation](/reference/backpropagation)
 

@@ -12,6 +12,40 @@ initial random weight scale based on a layer's number of inputs/outputs,
 specifically to keep activations and gradients at a consistent scale as
 they pass through the network.
 
+## How it works
+
+Both schemes pick a variance that keeps the signal's scale roughly
+constant across a layer. For a layer with `fan_in` inputs and `fan_out`
+outputs:
+
+- **Xavier/Glorot** uses variance `2 / (fan_in + fan_out)`, derived
+  assuming a symmetric, roughly linear activation — the right match for
+  `tanh`.
+- **He** uses `2 / fan_in`, doubling the variance to compensate for ReLU
+  discarding half its inputs. This is the default for ReLU-family
+  networks (`kaiming_normal_` in PyTorch).
+
+Biases start at zero. Symmetry matters too: initializing all weights to
+the same value makes every neuron in a layer compute the same thing and
+receive the same gradient forever, so they never differentiate — which
+is why the values must be random, not merely small.
+
+## When it breaks
+
+- **All-zeros or all-equal weights.** The network trains but the layer
+  behaves as if it had one neuron. Symmetry is never broken by gradient
+  descent alone.
+- **Wrong scheme for the activation.** Using Xavier with ReLU halves the
+  signal variance per layer, so deep stacks fade toward zero — exactly
+  the [vanishing gradient](/reference/vanishing-gradients) pattern, from
+  step zero.
+- **Framework defaults are not always right.** PyTorch's default for
+  `nn.Linear` is a uniform bound based on `fan_in`, not He; deep
+  ReLU models often want an explicit re-init.
+- **Pretrained weights overwritten.** Calling a custom init function
+  across the whole model after loading a checkpoint silently destroys
+  the [pretraining](/reference/pretraining) you were trying to reuse.
+
 **See also:** [Vanishing/Exploding Gradients](/reference/vanishing-gradients),
 [Neural Network](/reference/neural-network)
 

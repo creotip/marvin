@@ -12,6 +12,41 @@ an umbrella term — [machine learning](/reference/machine-learning),
 synonyms for it. Symbolic, rule-based systems (expert systems) are also
 AI, even though they contain no learning at all.
 
+## How it works
+
+There is no single AI algorithm — the term names a *goal*, and the field
+has pursued it through several distinct paradigms:
+
+- **Symbolic AI**: explicit rules and logical inference over
+  human-written knowledge bases, as in an
+  [expert system](/reference/expert-system). Behaviour is inspectable
+  but every rule must be authored.
+- **Statistical learning**: fit parameters to data with a loss and an
+  optimizer — the [machine learning](/reference/machine-learning)
+  recipe.
+- **Representation learning**: let a deep
+  [neural network](/reference/neural-network) discover its own features
+  from raw pixels or text rather than hand-engineered ones.
+- **Search and planning**: enumerate future states and score them, as in
+  game-playing systems.
+
+Modern systems mix these. An [agent](/reference/agent) built on an LLM
+still uses search-like loops and external tools around a learned model.
+
+## When it breaks
+
+- **Terminology drift.** "AI" in a product claim can mean anything from
+  a regex to a frontier model. Ask what the system actually does before
+  evaluating it.
+- **Benchmark ≠ capability.** A system can top a benchmark and fail on
+  slightly shifted inputs, because it matched dataset artifacts rather
+  than the underlying task.
+- **Anthropomorphizing.** Treating outputs as "understanding" or
+  "intent" leads to misplaced trust; fluent text is not a claim of
+  correctness.
+- **Assuming progress transfers.** Gains in one modality or paradigm
+  rarely carry over automatically to another.
+
 **See also:** [Machine Learning](/reference/machine-learning),
 [Deep Learning](/reference/deep-learning), [LLM](/reference/llm)
 

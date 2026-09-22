@@ -12,6 +12,40 @@ normalization normalizes across a batch of examples; **layer
 normalization** normalizes across a single example's features instead,
 and is the variant used throughout [transformers](/reference/transformer).
 
+## How it works
+
+Both compute `y = γ · (x - μ) / sqrt(σ² + ε) + β`. What differs is the
+axis the statistics are taken over.
+
+- **BatchNorm** averages over the batch dimension, so for activations of
+  shape `(N, C, H, W)` it produces one `μ` and `σ²` per channel `C`. It
+  also maintains a running mean and variance, used at
+  [inference](/reference/inference) time when there is no batch to
+  average over — which is why the layer behaves differently in `train()`
+  and `eval()` mode.
+- **LayerNorm** averages over the feature dimension of a *single*
+  example, so it has no batch dependence and no running statistics, and
+  behaves identically in training and inference.
+
+`γ` and `β` are learned, letting the network undo the normalization when
+that is useful.
+
+## When it breaks
+
+- **Small or uneven batches.** BatchNorm statistics get noisy below
+  roughly 8–16 examples per device, and a batch size of 1 is
+  degenerate. This is why detection and segmentation models often switch
+  to GroupNorm.
+- **Forgetting `model.eval()`.** BatchNorm keeps using batch statistics
+  and keeps updating its running averages, so evaluation results shift
+  depending on what else is in the batch.
+- **Train/inference skew.** If the deployment data distribution differs
+  from training, the frozen running statistics are simply wrong, and
+  accuracy drops with no change in weights.
+- **Sequence data.** Variable-length padding pollutes batch statistics,
+  one reason [transformers](/reference/transformer) and
+  [RNNs](/reference/rnn) use LayerNorm instead.
+
 **See also:** [Vanishing/Exploding Gradients](/reference/vanishing-gradients),
 [Transformer](/reference/transformer)
 

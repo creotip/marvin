@@ -11,6 +11,41 @@ as bit width drops. It's central to running [LLMs](/reference/llm)
 locally (tools like llama.cpp and Ollama) and to fitting larger models
 into limited GPU memory in production.
 
+## How it works
+
+A group of floating-point weights is mapped onto a small integer grid by
+storing a scale (and often a zero-point) alongside the integers, so the
+original value is approximated as `scale * (q - zero_point)`. Scales are
+kept per channel or per small block rather than per tensor, because one
+global scale lets a single outlier weight crush the resolution of
+everything else.
+
+Two families matter in practice. **Post-training quantization** converts
+an already-trained model, sometimes using a small calibration set to
+choose scales — this is what GPTQ and AWQ do. **Quantization-aware
+training** simulates the rounding during training so the weights adapt
+to it. For decode in a [transformer](/reference/transformer), the win is
+mostly bandwidth: fewer bytes read per forward pass means faster
+generation, even when the math runs in higher
+precision.
+
+## When it breaks
+
+- **Activation outliers, not weights, cause the damage.** Transformers
+  produce a few extreme activation channels; naive low-bit activation
+  quantization destroys them and tanks quality, which is why many
+  schemes quantize weights only.
+- **Perplexity hides the loss.** A 4-bit model often matches its `fp16`
+  parent on perplexity while getting visibly worse at long-context
+  recall, code, and multi-step reasoning. Evaluate on the actual task.
+- **Smaller does not always mean faster.** If a kernel dequantizes back
+  to `fp16` to do the matmul, you save memory but may gain little
+  speed — and at small [batch](/reference/batching) sizes the overhead
+  can dominate.
+- **Stacking with fine-tuning compounds error.** Quantizing a model that
+  was already adapted with [low-rank adapters](/reference/lora) can undo
+  much of the adaptation.
+
 **See also:** [Inference](/reference/inference), [GPU](/reference/gpu)
 
 **Learn more:** [Inference & Serving](/docs/inference-and-serving) ·

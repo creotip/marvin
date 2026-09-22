@@ -14,6 +14,35 @@ which stalled connectionist research funding for over a decade — until
 [backpropagation](/reference/backpropagation) provided the fix for
 multi-layer networks.
 
+## How it works
+
+A perceptron computes `y = step(w · x + b)`: a weighted sum of the
+inputs passed through a hard threshold producing 0 or 1. Learning is an
+error-correction rule applied one example at a time — predict, compare
+against the label, and if wrong nudge the weights toward the correct
+answer with `w += lr * (target - prediction) * x`. Nothing updates when
+the prediction is already right. Rosenblatt's convergence theorem
+guarantees this terminates in a finite number of updates *if* the data
+is linearly separable. Note what's absent relative to a modern unit:
+the hard threshold has no useful derivative, so there is no
+[loss function](/reference/loss-function) to differentiate and no way
+to push error back through a second layer.
+
+## When it breaks
+
+- The decision boundary is a single hyperplane, so any problem that
+  isn't linearly separable — XOR being the canonical case — cannot be
+  learned at all. That's the result Minsky and Papert formalized.
+- On non-separable data the update rule never settles; the weights
+  oscillate indefinitely instead of converging to a best-effort fit.
+- Stacking perceptrons doesn't help without a differentiable
+  [activation function](/reference/activation-function). That swap is
+  what makes multi-layer networks trainable and gives them their
+  [universal approximation](/reference/universal-approximation-theorem)
+  property.
+- The linear-threshold unit itself never went away: it is exactly one
+  row of a modern layer's matrix multiply.
+
 **See also:** [Neural Network](/reference/neural-network),
 [Backpropagation](/reference/backpropagation)
 
