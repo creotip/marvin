@@ -1,0 +1,44 @@
+---
+title: Jailbreak
+description: A jailbreak is a prompt crafted to bypass a model's own safety training and get it to produce output it was tuned to refuse.
+---
+
+A **jailbreak** targets the model's own trained behavior, not the
+application around it: the attacker is the user, working entirely
+within their own conversation, trying to get a model to produce output
+its [RLHF](/reference/rlhf) or safety fine-tuning was meant to prevent.
+That's the key difference from [prompt injection](/reference/prompt-injection),
+which targets the application by smuggling instructions in through data
+the model wasn't supposed to treat as commands — though the two compound:
+an indirectly injected instruction can itself be a jailbreak attempt.
+
+## How it works
+
+Common techniques include **role-play framing** (asking the model to
+"play a character" with no restrictions), **hypothetical framing**
+("for a novel I'm writing..."), and **encoding or obfuscation** (splitting
+a request across turns, or encoding it so a keyword filter doesn't match
+but the model still decodes and follows it). **Many-shot jailbreaking**
+exploits long context windows directly: filling the context with dozens
+of turns of a fictional dialogue where an assistant complies with
+similar requests makes the real model more likely to continue the
+pattern, since it's conditioning on everything already in context.
+
+## When it breaks
+
+- **It's a moving target, not a solved problem.** Safety fine-tuning
+  closes specific jailbreak patterns; new ones are found continuously —
+  the relationship is adversarial and ongoing, not a one-time fix.
+- **Capability and refusal are both learned, and can trade off.** A model
+  trained to refuse too aggressively becomes less useful for legitimate
+  edge cases; tuned too permissively, more jailbreaks succeed. Providers
+  are constantly re-balancing this.
+- **Bigger models are not automatically safer.** Scale improves
+  capability, including the capability to be talked into things — new
+  jailbreak classes routinely appear on newly released, larger models.
+
+**See also:** [Prompt Injection](/reference/prompt-injection),
+[Adversarial Example](/reference/adversarial-example),
+[Red Teaming](/reference/red-teaming), [RLHF](/reference/rlhf)
+
+**Learn more:** [AI Security](/docs/ai-security)

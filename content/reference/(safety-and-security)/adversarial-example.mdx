@@ -1,0 +1,49 @@
+---
+title: Adversarial Example
+description: An adversarial example is an input with a small, often imperceptible perturbation deliberately crafted to make a model produce a wrong or attacker-chosen output.
+---
+
+An **adversarial example** is a normal-looking input with a small,
+deliberately crafted perturbation that causes a model to misclassify it
+or produce an attacker-chosen output — while looking essentially
+unchanged to a human. [Ian Goodfellow](/people/ian-goodfellow) and
+collaborators demonstrated the effect in 2014 on image classifiers: an
+imperceptible amount of structured noise added to a panda photo made a
+model confidently label it a gibbon, even though nothing a person could
+see had changed.
+
+## How it works
+
+The classic construction runs [gradient descent](/reference/gradient-descent)
+in reverse: instead of adjusting weights to reduce the
+[loss function](/reference/loss-function) for a fixed input, it adjusts
+the *input* in the direction that increases loss (or targets a specific
+wrong label), while keeping the change small enough to stay
+imperceptible. Because the perturbation is derived from the model's own
+gradients, it's precisely aimed at that model's actual decision boundary
+rather than random noise.
+
+Adversarial examples aren't unique to vision. LLM-oriented variants
+search for short suffixes — often not meaningful text, sometimes
+gibberish tokens — that, appended to a prompt, reliably push the model
+past its own safety training, functioning as an automatically discovered
+[jailbreak](/reference/jailbreak) rather than a hand-crafted one.
+
+## When it breaks
+
+- **Perturbations transfer across models.** An adversarial example
+  crafted against one model often fools a different model trained on
+  similar data, which means attackers don't need access to the exact
+  deployed model to find one.
+- **Robustness trades off against accuracy.** Training a model to resist
+  known adversarial perturbations (adversarial training) typically costs
+  some accuracy on ordinary, unperturbed inputs.
+- **Defenses generalize poorly.** A defense tuned against one attack
+  method is routinely broken by a slightly different one — there is no
+  known way to guarantee robustness against every possible perturbation.
+
+**See also:** [Jailbreak](/reference/jailbreak),
+[Red Teaming](/reference/red-teaming)
+
+**Learn more:** [AI Security](/docs/ai-security) ·
+[Computer Vision](/docs/computer-vision)

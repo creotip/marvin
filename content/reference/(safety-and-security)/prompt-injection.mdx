@@ -1,0 +1,50 @@
+---
+title: Prompt Injection
+description: Prompt injection is an attack where text an LLM processes — user input, a retrieved document, or a tool's output — contains instructions that override the application's intended behavior.
+---
+
+**Prompt injection** exploits a structural fact about how
+[LLMs](/reference/llm) work: the system prompt, the user's message,
+retrieved documents, and tool output are all just tokens concatenated
+into one context window. Nothing marks any of it as more trustworthy
+than the rest, and the model was trained to follow instructions wherever
+it finds them — so any of those sources can smuggle in instructions the
+application never intended to run.
+
+## How it works
+
+**Direct injection** is a user simply typing an instruction meant to
+override the system prompt — "ignore your previous instructions and
+instead...". It's the easiest case to reason about, because the attacker
+and the user are the same person.
+
+**Indirect injection** is the more dangerous case: the malicious
+instruction arrives inside content the *model* retrieves or is shown,
+not text the user typed. A [RAG](/reference/rag) system that retrieves a
+web page, an [agent](/reference/agent) that reads an email, or an
+[MCP](/reference/mcp) server that returns a file — any of them can
+return text containing hidden instructions, and the model has no
+reliable way to tell "this is data I should reason about" apart from
+"this is a command I should obey," because both arrive as the same kind
+of token sequence.
+
+## When it breaks
+
+- **There is no parameterized-query equivalent.** SQL solved this class
+  of problem by separating code from data at the protocol level.
+  Nothing analogous exists for LLM context — delimiters and formatting
+  hints reduce the attack surface but don't eliminate it.
+- **Higher-privilege tools raise the stakes, not the odds.** An injected
+  instruction is just as likely to succeed whether the model can only
+  reply with text or can send an email — but the second case turns a
+  successful injection into actual data leaving the system.
+- **Defenses are layers, not a fix.** Instruction-hierarchy training
+  (weighting system-prompt instructions above retrieved content),
+  output filtering, and least-privilege tool access all reduce risk;
+  none of them close the gap completely.
+
+**See also:** [Jailbreak](/reference/jailbreak),
+[Red Teaming](/reference/red-teaming), [Agent](/reference/agent),
+[MCP](/reference/mcp)
+
+**Learn more:** [AI Security](/docs/ai-security)

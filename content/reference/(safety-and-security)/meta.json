@@ -1,0 +1,6 @@
+{
+  "title": "Safety & Security",
+  "collapsible": true,
+  "defaultOpen": true,
+  "pages": ["prompt-injection", "jailbreak", "adversarial-example", "red-teaming"]
+}

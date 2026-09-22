@@ -1,0 +1,6 @@
+{
+  "title": "Safety & Security",
+  "collapsible": true,
+  "defaultOpen": true,
+  "pages": ["ai-security"]
+}

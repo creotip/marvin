@@ -58,11 +58,14 @@ Three lessons build up to that loop one piece at a time:
 
 Read them in that order — each is a heavier lever than the last, and
 agents commonly use retrieval as just one of their available tools, so
-the agent lesson assumes you've seen the RAG one.
+the agent lesson assumes you've seen the RAG one. Every one of those
+levers is also a new attack surface, covered separately in
+[AI Security](/docs/ai-security) once you've seen what there is to
+attack.
 
 ## Course recap
 
-Across these sixteen lessons: probability and MLE as the reason loss
+Across these seventeen lessons: probability and MLE as the reason loss
 functions look the way they do, learning as loss minimization via
 gradient descent, backpropagation as the mechanism that makes that
 tractable at scale, the practitioner tooling (PyTorch, Hugging Face, and
@@ -74,7 +77,9 @@ problem entirely (generation, not prediction), the multi-stage recipe
 reinforcement learning as the actual algorithm family behind that last
 step, the engineering (KV caching, batching, quantization) that makes
 serving one practical, benchmarks and evaluation as the (imperfect) way
-to know if any of it worked, and finally prompting, retrieval, and
-agentic tool use as the patterns that turn a single trained model into
-real, capable applications. Each layer builds directly on the one before
-it — which is exactly why this course was ordered the way it was.
+to know if any of it worked, prompting, retrieval, and agentic tool use
+as the patterns that turn a single trained model into real, capable
+applications, and finally AI security as the reminder that a capable,
+tool-using system is also a bigger attack surface. Each layer builds
+directly on the one before it — which is exactly why this course was
+ordered the way it was.
