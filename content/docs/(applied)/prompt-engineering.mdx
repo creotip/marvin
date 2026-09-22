@@ -1,0 +1,72 @@
+---
+title: Prompt Engineering
+description: Shaping an LLM's output by changing the input alone — few-shot examples, chain-of-thought, and system prompts — with no training involved
+---
+
+A deployed [LLM](/docs/llms) is a frozen, closed-book model: its
+knowledge stops at training time, and it can only produce text, never
+act on the world directly. The rest of this course's applied lessons —
+[RAG & Vector Databases](/docs/rag-and-vector-databases) and
+[Agents & Tool Use](/docs/agents-and-tool-use) — are both patterns for
+working around those limits. This lesson covers the cheapest lever
+available before reaching for either: the **prompt** itself, how you
+phrase the input, entirely without touching the model's weights.
+
+## Zero-shot vs. few-shot prompting
+
+Asking directly — "translate this sentence to French" — is **zero-shot**.
+**Few-shot prompting** includes a couple of example input/output pairs in
+the prompt before the real request, letting the model infer the exact
+format and style you want from examples rather than a description. This
+often substantially improves output quality with no training involved,
+because you're giving the model a pattern to match rather than an
+instruction to interpret.
+
+## Chain-of-thought prompting
+
+Explicitly asking the model to reason step by step before giving a final
+answer — or simply appending "let's think step by step" — measurably
+improves accuracy on tasks requiring multi-step reasoning: arithmetic,
+logic puzzles, multi-hop questions.
+
+The mechanism is a direct consequence of how these models generate: each
+output token is produced conditioned on everything generated so far, so
+making intermediate reasoning steps *part of the output* gives later
+tokens access to that reasoning as context, rather than forcing the model
+to reach a correct answer in a single forward pass with no working-out
+space.
+
+## System prompts
+
+A **system prompt** is a separate instruction channel — set by the
+application, not the end user — used to configure a model's persona,
+constraints, and behavior for an entire conversation. This is how
+products differentiate a single underlying model into different
+assistants with different tones, capabilities, and guardrails: a coding
+assistant and a general chat assistant can be the same base model with
+different system prompts (and, per [LLMs](/docs/llms), different
+fine-tuning on top).
+
+## Where prompting fits relative to RAG and fine-tuning
+
+Prompt engineering, RAG, and fine-tuning aren't competing choices so much
+as a rough order of what to try first: prompting is fastest and cheapest
+to iterate on; RAG adds external knowledge without touching the model;
+fine-tuning (from [LLMs](/docs/llms)) is the heaviest lever, worth
+reaching for mainly when prompting and RAG genuinely can't produce the
+behavior or format you need.
+
+| Approach    | What it fixes                    | Relative cost                | Knowledge freshness         |
+| ----------- | --------------------------------- | ----------------------------- | ---------------------------- |
+| Prompting   | Format, tone, task framing        | Lowest — no training           | Unchanged                    |
+| RAG         | Missing or private knowledge      | Indexing + retrieval per query | As fresh as the index         |
+| Fine-tuning | Behavior the prompt can't elicit  | Highest — a training run       | Frozen again at train time    |
+
+## Recap and what's next
+
+Prompting shapes behavior for free, at the cost of not being able to add
+knowledge the model was never trained on or give it new capabilities —
+that's what the next two lessons are for.
+[RAG & Vector Databases](/docs/rag-and-vector-databases) covers giving a
+model information at request time; [Agents & Tool Use](/docs/agents-and-tool-use)
+covers giving it the ability to act.
