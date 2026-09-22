@@ -27,6 +27,23 @@ Training a model just means: repeatedly measure the loss, compute how to
 adjust `θ` to reduce it, and adjust. That's it — that loop, run millions of
 times, is the entire "learning" in machine learning.
 
+<Mermaid chart={`flowchart LR
+  D[Training data] --> M["Model f(x; θ)"]
+  M --> P[Prediction]
+  T[Correct answer] --> L["Loss L(θ)"]
+  P --> L
+  L --> G["Gradient ∇L(θ)"]
+  G --> O[Optimizer]
+  O -- "update θ" --> M
+`} />
+
+<Misconception claim="the model understands the task.">
+  Nothing in this loop knows what a cat, a language, or a house price *is*.
+  The model only ever receives a number saying how wrong it was, plus a
+  direction to move its parameters. Every capability you have seen from an AI
+  system emerges from repeating that arithmetic at enormous scale.
+</Misconception>
+
 ## Supervised vs. unsupervised learning
 
 The main axis along which ML problems differ is **what data you have**:
@@ -70,6 +87,33 @@ The choice of loss function encodes what you actually want the model to
 optimize for — a frequent source of real-world ML bugs is a loss function
 that's easy to write down but doesn't quite match the behavior you want.
 
+<Deeper title="The two losses, written out">
+
+For $n$ examples with true values $y_i$ and predictions $\hat{y}_i$, mean
+squared error is:
+
+$$
+L_{\text{MSE}} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2
+$$
+
+For classification over $K$ classes, where $y_{i,k}$ is 1 for the correct
+class and 0 otherwise, and $\hat{y}_{i,k}$ is the model's predicted
+probability:
+
+$$
+L_{\text{CE}} = -\frac{1}{n} \sum_{i=1}^{n} \sum_{k=1}^{K} y_{i,k} \log \hat{y}_{i,k}
+$$
+
+Because only the correct class survives the inner sum, this reduces to
+$-\log(\text{probability assigned to the right answer})$. That logarithm is
+what makes confident mistakes so expensive: predicting 0.01 for the correct
+class costs $-\log(0.01) \approx 4.6$, while predicting 0.5 costs only
+$0.69$. As the predicted probability approaches zero the loss approaches
+infinity, so the optimizer will do almost anything to avoid being confidently
+wrong.
+
+</Deeper>
+
 ## Gradient descent
 
 Once you have a loss, you need a way to change `θ` to reduce it. Gradient
@@ -105,6 +149,57 @@ Modern training almost never uses plain SGD directly — optimizers like
 **Adam** adapt the effective learning rate per-parameter based on the
 history of past gradients — but they're all still gradient descent at
 heart: compute a gradient, step against it, repeat.
+
+<NapkinMath title="Why mini-batches exist">
+
+Suppose 1 million training examples and one gradient step per full pass.
+At a generous 10,000 examples/second, one step takes 100 seconds. Training
+needs tens of thousands of steps, so a full-batch run would take **years**.
+
+Use mini-batches of 32 instead and the same 100 seconds buys you ~31,000
+steps. Each step is noisier, but you get four orders of magnitude more of
+them — and averaging over 32 samples already estimates the gradient
+direction well enough to make progress.
+
+</NapkinMath>
+
+<Deeper title="The update rule, precisely">
+
+Gradient descent minimises $L(\theta)$ by repeatedly applying:
+
+$$
+\theta_{t+1} = \theta_t - \eta \nabla L(\theta_t)
+$$
+
+where $\nabla L(\theta) = \left[ \frac{\partial L}{\partial \theta_1}, \dots, \frac{\partial L}{\partial \theta_m} \right]$
+is the vector of partial derivatives — one per parameter.
+
+The gradient points along the direction of steepest *increase*, which is why
+the update subtracts it. The learning rate $\eta$ controls step size, and the
+failure modes sit on either side of it: for a locally quadratic loss with
+curvature $\lambda$, updates diverge once $\eta > 2/\lambda$, while very
+small $\eta$ converges at a rate proportional to $(1 - \eta\lambda)^t$ —
+correct, but arbitrarily slow.
+
+Stochastic gradient descent replaces the full-dataset gradient with an
+estimate from a mini-batch $B$:
+
+$$
+\nabla L(\theta) \approx \frac{1}{|B|} \sum_{i \in B} \nabla L_i(\theta)
+$$
+
+This estimate is *unbiased* — correct on average — and its variance falls as
+$1/|B|$. So quadrupling the batch size only halves the gradient noise, which
+is exactly why small batches win on a compute budget.
+
+</Deeper>
+
+<Misconception claim="a loss that stops decreasing means training is done.">
+  It usually means the learning rate is now too large for where you are on the
+  loss surface. Steps overshoot the minimum and bounce across it instead of
+  descending. This is why nearly every real training run *decays* the learning
+  rate over time rather than holding it fixed.
+</Misconception>
 
 ## Generalization: the goal was never to minimize training loss
 
@@ -147,12 +242,45 @@ Before training, data is split into (at least) three disjoint sets:
   even the patterns present in the training data — both training and
   validation loss stay high.
 
+Reading the two curves together is enough to diagnose which one you have:
+
+<Mermaid chart={`flowchart TD
+  S{"Training loss low?"}
+  S -- No --> U["Underfitting<br/>bigger model, train longer,<br/>raise learning rate"]
+  S -- Yes --> V{"Validation loss<br/>close to training loss?"}
+  V -- Yes --> G["Healthy<br/>scale up if you want more"]
+  V -- No --> O["Overfitting<br/>more data, regularization,<br/>early stopping"]
+`} />
+
 The **bias-variance tradeoff** is the formal name for this balance: a
 model that's too simple has high **bias** (systematically wrong,
 underfitting); a model that's too flexible has high **variance** (fits
 the specific quirks of whatever training data it happened to see,
 overfitting). The practical goal is the sweet spot between the two, not
 the maximum-capacity model.
+
+<Deeper title="Where the tradeoff comes from">
+
+For squared-error loss, the expected error on an unseen point decomposes
+exactly into three terms:
+
+$$
+\mathbb{E}\left[(y - \hat{f}(x))^2\right] = \underbrace{\left(\mathbb{E}[\hat{f}(x)] - f(x)\right)^2}_{\text{bias}^2} + \underbrace{\mathbb{E}\left[\left(\hat{f}(x) - \mathbb{E}[\hat{f}(x)]\right)^2\right]}_{\text{variance}} + \underbrace{\sigma^2}_{\text{noise}}
+$$
+
+The expectations run over *different training sets drawn from the same
+distribution*. Bias is how far the average model is from the truth;
+variance is how much the model moves as the training data changes; $\sigma^2$
+is label noise, and no model can beat it.
+
+Two consequences worth internalising. First, since only two of three terms
+are reducible, a non-zero validation loss is not automatically a bug. Second,
+the classical U-shaped curve this predicts is not the whole story: very
+large neural networks enter a **double descent** regime where test error
+falls *again* past the interpolation point, which is a large part of why
+scaling up keeps working.
+
+</Deeper>
 
 ### Regularization: fighting overfitting on purpose
 
@@ -190,6 +318,27 @@ than the raw cross-entropy value:
   the model catch? High recall means few misses.
 - **F1 score**: the harmonic mean of precision and recall, used when you
   want one number balancing both.
+
+| Metric | Question it answers | Fails when |
+| --- | --- | --- |
+| Accuracy | How often is the model right? | Classes are imbalanced |
+| Precision | When it says yes, is it right? | You care about missed cases |
+| Recall | Does it catch everything? | False alarms are expensive |
+| F1 | Balance of precision and recall | The two have different costs |
+
+<NapkinMath title="The imbalanced-data trap">
+
+1% of email is spam. A model that predicts "not spam" for **every single
+message** scores:
+
+- Accuracy: **99%** — looks excellent
+- Recall: **0%** — it catches no spam at all
+- Precision: undefined — it never flags anything
+
+Same model, three wildly different verdicts. This is why you never report
+accuracy alone on imbalanced data.
+
+</NapkinMath>
 
 Precision and recall trade off against each other (a model can trivially
 get 100% recall by flagging everything, tanking precision) — which one

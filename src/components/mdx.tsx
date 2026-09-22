@@ -8,6 +8,9 @@ import { File, Files, Folder } from 'fumadocs-ui/components/files';
 import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
 import { GithubInfo } from 'fumadocs-ui/components/github-info';
 import { Banner } from 'fumadocs-ui/components/banner';
+import { Mermaid } from '@/components/mermaid';
+import { Deeper } from '@/components/depth';
+import { Misconception, NapkinMath } from '@/components/teaching';
 
 export function getMDXComponents(components?: MDXComponents) {
   return {
@@ -25,6 +28,10 @@ export function getMDXComponents(components?: MDXComponents) {
     InlineTOC,
     GithubInfo,
     Banner,
+    Mermaid,
+    Deeper,
+    NapkinMath,
+    Misconception,
     ...components,
   } satisfies MDXComponents;
 }
