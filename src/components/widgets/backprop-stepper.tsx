@@ -201,6 +201,8 @@ export function BackpropStepper() {
         <svg
           viewBox="0 0 420 230"
           className="bg-fd-background w-full max-w-[420px] shrink-0 rounded-lg border lg:w-[420px]"
+          role="img"
+          aria-label={`Computation graph for (a times b) plus c. ${STAGES[stage].label}: ${STAGES[stage].explain}`}
         >
           <Edge from={positions.a} to={positions.mul} />
           <Edge from={positions.b} to={positions.mul} />
@@ -304,7 +306,10 @@ export function BackpropStepper() {
             ))}
           </div>
 
-          <div className="bg-fd-background rounded-md border p-3">
+          <div
+            className="bg-fd-background rounded-md border p-3"
+            aria-live="polite"
+          >
             <p className="font-medium">
               Step {stage} / {STAGES.length - 1}: {STAGES[stage].label}
             </p>

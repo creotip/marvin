@@ -16,6 +16,7 @@ function gradient(x: number, y: number) {
 const SIZE = 320;
 const RANGE = 3; // data coordinates span [-RANGE, RANGE] on both axes
 const MAX_STEPS = 200;
+const NUDGE = 0.1; // arrow-key step for the starting point, in data coordinates
 const CONVERGE_THRESHOLD = 0.001;
 
 function toScreen(x: number, y: number) {
@@ -113,18 +114,41 @@ export function GradientDescentPlayground() {
     [start, stop],
   );
 
-  const handleSvgClick = useCallback(
-    (e: React.MouseEvent<SVGSVGElement>) => {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const sx = ((e.clientX - rect.left) / rect.width) * SIZE;
-      const sy = ((e.clientY - rect.top) / rect.height) * SIZE;
-      const { x, y } = toData(sx, sy);
+  const moveStart = useCallback(
+    (x: number, y: number) => {
       reset({
         x: Math.max(-RANGE, Math.min(RANGE, x)),
         y: Math.max(-RANGE, Math.min(RANGE, y)),
       });
     },
     [reset],
+  );
+
+  const handleSvgClick = useCallback(
+    (e: React.MouseEvent<SVGSVGElement>) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const sx = ((e.clientX - rect.left) / rect.width) * SIZE;
+      const sy = ((e.clientY - rect.top) / rect.height) * SIZE;
+      const { x, y } = toData(sx, sy);
+      moveStart(x, y);
+    },
+    [moveStart],
+  );
+
+  const handleSvgKeyDown = useCallback(
+    (e: React.KeyboardEvent<SVGSVGElement>) => {
+      const nudge = e.shiftKey ? NUDGE * 5 : NUDGE;
+      const delta = {
+        ArrowLeft: [-nudge, 0],
+        ArrowRight: [nudge, 0],
+        ArrowUp: [0, nudge],
+        ArrowDown: [0, -nudge],
+      }[e.key];
+      if (!delta) return;
+      e.preventDefault();
+      moveStart(start.x + delta[0], start.y + delta[1]);
+    },
+    [moveStart, start],
   );
 
   const pathPoints = useMemo(() => path.map((p) => toScreen(p.x, p.y)), [path]);
@@ -142,10 +166,12 @@ export function GradientDescentPlayground() {
           viewBox={`0 0 ${SIZE} ${SIZE}`}
           width={SIZE}
           height={SIZE}
-          className="bg-fd-background shrink-0 cursor-crosshair rounded-lg border"
+          className="bg-fd-background focus-visible:ring-fd-ring shrink-0 cursor-crosshair rounded-lg border focus-visible:ring-2 focus-visible:outline-none"
           onClick={handleSvgClick}
+          onKeyDown={handleSvgKeyDown}
+          tabIndex={0}
           role="img"
-          aria-label="Gradient descent loss surface — click to set a starting point"
+          aria-label={`Loss surface of f(x, y) = x² + 2y². Starting point x ${start.x.toFixed(2)}, y ${start.y.toFixed(2)}. Click, or use the arrow keys, to move it.`}
         >
           {CONTOUR_LEVELS.map((level) => (
             <path
@@ -252,7 +278,10 @@ export function GradientDescentPlayground() {
             </button>
           </div>
 
-          <div className="text-fd-muted-foreground grid grid-cols-2 gap-2 font-mono text-xs">
+          <div
+            className="text-fd-muted-foreground grid grid-cols-2 gap-2 font-mono text-xs"
+            aria-live="polite"
+          >
             <span>step: {path.length - 1}</span>
             <span>loss: {currentLoss.toFixed(4)}</span>
             <span>x: {current.x.toFixed(3)}</span>

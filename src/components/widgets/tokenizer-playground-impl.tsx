@@ -72,7 +72,10 @@ export function TokenizerPlayground() {
         ))}
       </div>
 
-      <div className="text-fd-muted-foreground mt-3 flex flex-wrap gap-x-6 gap-y-1 font-mono text-xs">
+      <div
+        className="text-fd-muted-foreground mt-3 flex flex-wrap gap-x-6 gap-y-1 font-mono text-xs"
+        aria-live="polite"
+      >
         <span>{tokens.length} tokens</span>
         <span>{text.length} characters</span>
         <span>

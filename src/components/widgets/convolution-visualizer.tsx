@@ -154,7 +154,8 @@ export function ConvolutionVisualizer() {
             key={name}
             type="button"
             onClick={() => changeKernel(name)}
-            className={`rounded-md border px-2.5 py-1 text-xs font-medium ${
+            aria-pressed={name === kernelName}
+            className={`focus-visible:ring-fd-ring rounded-md border px-2.5 py-1 text-xs font-medium focus-visible:ring-2 focus-visible:outline-none ${
               name === kernelName
                 ? 'border-fd-primary bg-fd-primary/15 text-fd-primary'
                 : ''
@@ -174,6 +175,12 @@ export function ConvolutionVisualizer() {
             <div
               className="grid overflow-hidden rounded-md border"
               style={{ gridTemplateColumns: `repeat(${IMG_SIZE}, ${CELL}px)` }}
+              role="img"
+              aria-label={
+                curRow >= 0
+                  ? `Input image, 10 by 10 pixels. The kernel window covers rows ${curRow + 1} to ${curRow + KERNEL_SIZE}, columns ${curCol + 1} to ${curCol + KERNEL_SIZE}.`
+                  : 'Input image, 10 by 10 pixels.'
+              }
             >
               {IMAGE.flatMap((row, r) =>
                 row.map((v, c) => (
@@ -222,7 +229,10 @@ export function ConvolutionVisualizer() {
           </div>
 
           {curValue !== null && (
-            <p className="text-fd-muted-foreground mt-3 max-w-[140px] font-mono text-xs">
+            <p
+              className="text-fd-muted-foreground mt-3 max-w-[140px] font-mono text-xs"
+              aria-live="polite"
+            >
               output[{curRow}][{curCol}] ={' '}
               <span className="text-fd-primary">{curValue.toFixed(2)}</span>
             </p>
@@ -236,6 +246,8 @@ export function ConvolutionVisualizer() {
           <div
             className="grid overflow-hidden rounded-md border"
             style={{ gridTemplateColumns: `repeat(${OUT_SIZE}, ${CELL}px)` }}
+            role="img"
+            aria-label={`Feature map, 8 by 8, ${position + 1} of ${total} positions computed so far.`}
           >
             {output.flatMap((row, r) =>
               row.map((v, c) => (

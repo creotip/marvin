@@ -10,11 +10,28 @@ interface MdastNode {
 }
 
 export interface ReferenceTerm {
+  /** The phrase to match in prose. */
   term: string;
+  /** The reference page's own title, used as the preview heading. */
+  title: string;
   url: string;
-  /** Acronym titles ("RAG", "GPU") only match when the casing matches too. */
+  /** Acronym terms ("RAG", "GPU") only match when the casing matches too. */
   caseSensitive: boolean;
   description?: string;
+}
+
+/**
+ * Reference titles are written as `CNN (Convolutional Neural Network)`, which
+ * nobody types verbatim in prose. Both halves have to be matchable or the page
+ * is never linked at all.
+ */
+export function titleAliases(title: string): string[] {
+  const parenthesised = /^(.+?)\s*\((.+)\)$/.exec(title);
+  if (!parenthesised) return [title];
+
+  return [
+    ...new Set([parenthesised[1].trim(), parenthesised[2].trim()]),
+  ].filter(Boolean);
 }
 
 /** Node types whose text must never be rewritten into a link. */
@@ -34,7 +51,7 @@ const SKIPPED = new Set([
   'yaml',
 ]);
 
-function readFrontmatterField(
+export function readFrontmatterField(
   source: string,
   field: string,
 ): string | undefined {
@@ -77,12 +94,18 @@ export function collectReferenceTerms(
     const title = readFrontmatterField(source, 'title');
     if (!title) continue;
 
-    terms.push({
-      term: title,
-      url: [baseUrl, ...segments].join('/'),
-      caseSensitive: /[A-Z]{2,}/.test(title),
-      description: readFrontmatterField(source, 'description'),
-    });
+    const url = [baseUrl, ...segments].join('/');
+    const description = readFrontmatterField(source, 'description');
+
+    for (const term of titleAliases(title)) {
+      terms.push({
+        term,
+        title,
+        url,
+        caseSensitive: /[A-Z]{2,}/.test(term),
+        description,
+      });
+    }
   }
 
   // Longest first so "neural network" wins over "network" at the same position.
@@ -91,6 +114,45 @@ export function collectReferenceTerms(
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Acronyms have to match casing or "rag" links to RAG, but only the acronym
+ * word does — prose writes "KV cache" where the page title says "KV Cache".
+ */
+function acronymCasingMatches(term: string, matched: string): boolean {
+  const termWords = term.split(/\s+/);
+  const matchedWords = matched.split(/\s+/);
+  if (termWords.length !== matchedWords.length) return false;
+
+  return termWords.every(
+    (word, i) => !/[A-Z]{2,}/.test(word) || word === matchedWords[i],
+  );
+}
+
+/**
+ * Shared matching rules, so the auto-linker and the backlink scanner can never
+ * disagree about what counts as a mention.
+ */
+export function createTermMatcher(terms: ReferenceTerm[]) {
+  const byLowercase = new Map(
+    terms.map((term) => [term.term.toLowerCase(), term]),
+  );
+
+  return {
+    pattern: new RegExp(
+      `\\b(${terms.map((term) => escapeRegExp(term.term)).join('|')})(s|es)?\\b`,
+      'gi',
+    ),
+    resolve(match: RegExpExecArray): ReferenceTerm | undefined {
+      const term = byLowercase.get(match[1].toLowerCase());
+      if (!term) return undefined;
+      if (term.caseSensitive && !acronymCasingMatches(term.term, match[1])) {
+        return undefined;
+      }
+      return term;
+    },
+  };
 }
 
 function collectExistingLinks(node: MdastNode, into: Set<string>): void {
@@ -118,7 +180,7 @@ export function remarkReferencePreviews(terms: ReferenceTerm[]) {
           node.data ??= {};
           node.data.hProperties = {
             ...node.data.hProperties,
-            'data-preview-title': term.term,
+            'data-preview-title': term.title,
             'data-preview': term.description!,
           };
         }
@@ -132,13 +194,7 @@ export function remarkReferencePreviews(terms: ReferenceTerm[]) {
 }
 
 export function remarkReferenceLinks(terms: ReferenceTerm[]) {
-  const byLowercase = new Map(
-    terms.map((term) => [term.term.toLowerCase(), term]),
-  );
-  const pattern = new RegExp(
-    `\\b(${terms.map((term) => escapeRegExp(term.term)).join('|')})(s|es)?\\b`,
-    'gi',
-  );
+  const { pattern, resolve } = createTermMatcher(terms);
 
   return function transform(tree: MdastNode): void {
     const used = new Set<string>();
@@ -155,10 +211,9 @@ export function remarkReferenceLinks(terms: ReferenceTerm[]) {
         match !== null;
         match = pattern.exec(value)
       ) {
-        const term = byLowercase.get(match[1].toLowerCase());
+        const term = resolve(match);
         if (!term) continue;
         if (used.has(term.url)) continue;
-        if (term.caseSensitive && match[1] !== term.term) continue;
 
         used.add(term.url);
         if (match.index > cursor) {

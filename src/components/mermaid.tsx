@@ -34,6 +34,11 @@ export function Mermaid({ chart }: { chart: string }) {
         securityLevel: 'strict',
         fontFamily: 'inherit',
         theme: isDark ? 'dark' : 'default',
+        themeVariables: {
+          // Both themes default to an edge-label background that leaves the
+          // label text just under the 4.5:1 contrast minimum.
+          edgeLabelBackground: isDark ? '#27272a' : '#f4f4f5',
+        },
       });
 
       // `useId` produces colons, which are invalid in the selectors Mermaid generates.
