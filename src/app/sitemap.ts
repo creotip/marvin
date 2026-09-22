@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { docs, reference } from '@/lib/content';
+import { docs, people, reference } from '@/lib/content';
 import { siteUrl } from '@/lib/shared';
 
 export const revalidate = false;
@@ -22,6 +22,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: url(page.url),
       changeFrequency: 'monthly' as const,
       priority: 0.6,
+    })),
+    ...people.source.getPages().map((page) => ({
+      url: url(page.url),
+      changeFrequency: 'monthly' as const,
+      priority: 0.5,
     })),
   ];
 }

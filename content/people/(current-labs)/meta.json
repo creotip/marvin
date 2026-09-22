@@ -1,0 +1,12 @@
+{
+  "title": "Current Labs & Applied AI",
+  "collapsible": true,
+  "defaultOpen": true,
+  "pages": [
+    "jurgen-schmidhuber",
+    "demis-hassabis",
+    "andrew-ng",
+    "dario-amodei",
+    "daniela-amodei"
+  ]
+}

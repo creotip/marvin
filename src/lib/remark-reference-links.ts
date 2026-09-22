@@ -196,9 +196,24 @@ export function remarkReferencePreviews(terms: ReferenceTerm[]) {
 export function remarkReferenceLinks(terms: ReferenceTerm[]) {
   const { pattern, resolve } = createTermMatcher(terms);
 
-  return function transform(tree: MdastNode): void {
+  return function transform(tree: MdastNode, file?: { path?: string }): void {
     const used = new Set<string>();
     collectExistingLinks(tree, used);
+
+    // A page mentioning its own subject (a person's own name, a reference
+    // term's own title) shouldn't link to itself — match on the file's own
+    // basename against each term url's last segment, independent of collection.
+    if (file?.path) {
+      const selfSlug = path
+        .basename(file.path)
+        .replace(/\.mdx$/, '')
+        .toLowerCase();
+      for (const term of terms) {
+        if (term.url.toLowerCase().endsWith(`/${selfSlug}`)) {
+          used.add(term.url);
+        }
+      }
+    }
 
     function linkText(node: MdastNode): MdastNode[] | undefined {
       const value = node.value ?? '';

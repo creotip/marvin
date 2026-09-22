@@ -239,6 +239,23 @@ describe('remarkReferenceLinks', () => {
     ]);
   });
 
+  it("does not link a page's own name to itself", () => {
+    const tree = root(paragraph(text('A neural network learns.')));
+    remarkReferenceLinks(terms)(tree, {
+      path: '/content/reference/neural-network.mdx',
+    });
+    expect(tokens(tree)).toEqual(['A neural network learns.']);
+  });
+
+  it('still links other terms on a page that skips its own', () => {
+    const tree = root(paragraph(text('A neural network uses RAG.')));
+    remarkReferenceLinks(terms)(tree, {
+      path: '/content/reference/neural-network.mdx',
+    });
+    expect(tokens(tree)).toContain('link(/reference/rag)');
+    expect(tokens(tree)).not.toContain('link(/reference/neural-network)');
+  });
+
   it.each([
     ['code', 0],
     ['heading', 0],
