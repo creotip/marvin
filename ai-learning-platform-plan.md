@@ -2,7 +2,9 @@
 
 A self-built, interactive alternative to Karpathy/D2L/HF Learn: docs-style navigation, inline interactive widgets, and post-lesson quizzes. Built on the TypeScript/React/Bun/Hono/Drizzle/Neon stack.
 
-**MVP v1 scope (current focus): a working docs site with good written content — no widgets, no quizzes, no progress tracking.** Those are all deferred to v1.5+ (Section 4). Get the site live with real content first.
+This is the stable reference doc — goals, content outline, architecture, and decisions. For current build status and what's next, see [ROADMAP.md](ROADMAP.md).
+
+**MVP v1 (shipped, live on Vercel): a working docs site with good written content.** Widgets, quizzes, and progress tracking are v1.5+ — see the roadmap.
 
 ---
 
@@ -41,21 +43,11 @@ A self-built, interactive alternative to Karpathy/D2L/HF Learn: docs-style navig
 15. **Agents & Tool Use** — function calling, MCP, the agent loop, compounding error
 16. **Applied & Agentic Systems** — capstone: how the three above combine, course recap
 
-**North star (not immediate scope):** the long-term ambition is for this to grow into a much deeper, broader "university of AI" — more rigorous math, more topics (optimization theory, MLOps, safety & alignment, multimodal models — see below), possibly grouped into course-like sections instead of one flat list. Approach: deepen existing lessons and add clearly-missing content incrementally, rather than a big-bang rewrite. Information architecture already moved past "flat list": the sidebar is grouped into collapsible sections (Foundations / Architectures / Language Models / Systems / Applied), and any lesson bundling multiple independently-searchable topics (as Applied & Agentic Systems used to) gets split out — done once already, worth repeating any time a lesson covers 3+ distinct concepts.
+**North star (not immediate scope):** the long-term ambition is for this to grow into a much deeper, broader "university of AI" — more rigorous math, more topics (optimization theory, MLOps, safety & alignment, multimodal models). Approach: deepen existing lessons and add clearly-missing content incrementally, rather than a big-bang rewrite. Information architecture already moved past "flat list": the sidebar is grouped into collapsible sections (Foundations / Architectures / Language Models / Systems / Applied), and any lesson bundling multiple independently-searchable topics gets split out — done once already for Applied & Agentic Systems.
 
-**Flagged future lessons (not yet built):**
+Flagged future lessons, glossary additions, the People content collection, and the History & Landscape timeline component are tracked in [ROADMAP.md](ROADMAP.md), not here.
 
-- **AI Safety & Alignment** — a real gap for a platform aiming at "university of AI" scope, and a heavily-searched, current topic in its own right
-- **AI Security** — distinct from safety/alignment: adversarial misuse of a _deployed_ system rather than the model's own objectives. Prompt injection, jailbreaks, adversarial examples, data exfiltration via tool use, red-teaming. Directly relevant to the site owner's own security background — worth prioritizing alongside Safety & Alignment, not after it.
-- **Multimodal Models** — vision-language and audio models; the course currently only covers single-modality (text, or vision separately in the CV lesson), not models that combine them
-
-**Flagged reference glossary additions (not yet built):** a new "Safety & Security" glossary group, to support the two lessons above before they're written and to stand alone as SEO-targetable terms in their own right — Prompt Injection, Jailbreak, Adversarial Example, Red Teaming, AI Safety, Alignment. (RLHF already exists and is the natural cross-link from Alignment.)
-
-**Flagged new content type: "People" (not yet built)** — a third content collection (alongside `docs` and `reference`, using the same `Collection` abstraction in `src/lib/content.ts`), profiling the people who actually built this field: short bio, key contribution, era, and cross-links to the lessons/glossary terms their work underpins. Candidates, roughly by era — founding (Turing, McCulloch, Pitts, Shannon, McCarthy, Minsky, Rosenblatt); connectionism's second wave (Rumelhart, Hinton, LeCun, Bengio — the "godfathers of deep learning"); modern deep learning and transformers (Sutskever, Vaswani et al., Karpathy, Goodfellow, Fei-Fei Li); current labs and applied AI (Hassabis, Schmidhuber, the Amodei siblings, Andrew Ng). Aim for as many as reasonably well-documented — breadth is the point. History & Landscape already names several of these in prose; those mentions should link to their profile page once it exists, the same way glossary terms auto-link today.
-
-**Flagged UI improvement: replace the History & Landscape flowchart with a real timeline component** — the current `<Mermaid>` flowchart (generic boxes-and-arrows) is a poor fit for what is fundamentally chronological content. Build a custom vertical timeline component (visual pattern inspired by [reui.io's timeline](https://reui.io/components/timeline) — dated milestone markers, era grouping, not a literal dependency since reui ships copy-paste source, not an npm package) and use it for the "Four eras" overview in History & Landscape. Reusable later for a person's career timeline on their People profile page, or a mini-timeline within a lesson (e.g. the GPT-1→2→3→ChatGPT progression in LLMs).
-
-Each topic = one lesson page (MDX route). Widgets and quizzes listed above are deferred past MVP v1 — write the lessons as strong prose (with static diagrams/code where useful) first; widgets get slotted in later without changing the content structure.
+Each topic = one lesson page (MDX route). Widgets and quizzes are deferred past MVP v1 — write the lessons as strong prose (with static diagrams/code where useful) first; widgets get slotted in later without changing the content structure.
 
 ---
 
@@ -84,7 +76,7 @@ Each topic = one lesson page (MDX route). Widgets and quizzes listed above are d
 | Agent trace stepper                    | **Precomputed** — pick a goal from a dropdown, step through a scripted Thought → Tool call → Observation → ... → Final answer trace, revealed one step at a time (same spirit as the backprop stepper, for the agent loop instead)                                                             |
 | Batching latency/throughput slider     | Simulated by design — adjust batch size, watch simulated per-request latency rise and total throughput rise together, visualizing the tradeoff Inference & Serving describes in prose                                                                                                          |
 
-Priority order if picked up: Bayes' calculator and the Q-learning grid are the strongest next additions (both fully live, no precomputed-data caveat needed, and land on lessons — Probability & Stats, Reinforcement Learning — that currently have zero widgets).
+Build status and priority order for unbuilt widgets: see [ROADMAP.md](ROADMAP.md).
 
 **Backend (v1: none needed)**
 
@@ -117,54 +109,11 @@ Only build this once localStorage-only progress proves insufficient (e.g. you wa
 
 ---
 
-## 4. Build Order (phased)
+## 4. Build Status
 
-**Phase 1 — MVP v1: working site, full content, no widgets/quizzes**
+MVP v1 shipped and live on Vercel: Next.js + Fumadocs scaffold, all 16 lessons, mobile-responsive. 6 widgets shipped (gradient descent playground, backprop stepper, convolution kernel visualizer, attention weight visualizer, tokenizer playground, KV-cache latency simulator). Progress tracking and quizzes (Sections 3 storage design, Section 5 quiz format below) remain deferred, not yet started.
 
-- [x] Set up Next.js + Fumadocs (sidebar, search, MDX routing come from Fumadocs — search is free here, not a separate later task)
-- [x] Write all 8 lessons from Section 2 as solid MDX prose (static code snippets/diagrams where they help — no interactive components yet)
-- [x] Basic docs-site layout (left nav, main content, optional right TOC) — Fumadocs defaults, verified in-browser
-- [x] Mobile responsiveness pass — verified at 375px, sidebar collapses correctly
-- [x] Deploy to Vercel — done
-- [x] **MVP shipped.**
-
-**Phase 2 — Widgets (in progress)**
-
-- [x] Gradient descent playground — live, pure SVG/JS, no libs. Click to set a start point, adjustable learning rate, step/run/reset, detects both convergence and divergence. Embedded in [ML Fundamentals](<content/docs/(foundations)/ml-fundamentals.mdx>)
-- [x] Backprop stepper (Neural Networks & Backprop) — SVG computation graph for the lesson's exact `loss = a*b + c` example, step through forward then backward, editable a/b/c
-- [x] Convolution kernel visualizer (Computer Vision) — 4 selectable kernels (vertical/horizontal edge, blur, sharpen) sliding over a hollow-square test image, feature map builds live, cell by cell
-- [x] Attention weight visualizer (Attention & Transformers) — 3 hand-crafted example sentences (the lesson's own trophy/suitcase coreference example, a second coreference example, and a subject-verb agreement long-range example), click a token to see its full attention row as a bar chart
-- [x] Tokenizer playground (LLMs) — live, real BPE tokenizer via the `gpt-tokenizer` package (cl100k_base), fully client-side, editable text input
-- [x] KV-cache latency simulator (Inference & Serving) — simulated (not measured) per-token cost bars, quadratic without cache vs. linear with cache, live speedup readout
-- [x] All 6 planned widgets shipped. Slotted directly into each lesson's MDX — content structure from Phase 1 didn't need to change, as planned.
-- [ ] 6 more candidates identified, not yet built — see the widget table above. Priority: Bayes' theorem calculator, grid-world Q-learning visualizer (both fully live, both land on lessons with zero widgets today).
-
-**Phase 2.5 — Content quality & SEO (new)**
-
-Prioritized by combined pedagogy + SEO value, not effort:
-
-- [ ] **Comparison tables** via the `TypeTable` component (already registered in `getMDXComponents`, currently unused) — optimizers, vector DBs (Pinecone/Weaviate/Milvus/Qdrant/Chroma/pgvector), tokenization schemes, PyTorch vs. JAX vs. TensorFlow. Comparison-intent search queries are exactly what these tables answer, and Google favors tables for those featured snippets.
-- [ ] **FAQ-style, question-phrased subheadings** sprinkled into lessons and glossary "How it works" sections (e.g. "Why does attention need multiple heads?") — the single most direct SEO lever available: this is what "People Also Ask" boxes and snippet answers are built from.
-- [ ] **Diagrams always paired with a caption/restating sentence**, never standalone — an SVG/Mermaid diagram has no crawlable text, so a diagram that _replaces_ prose instead of _accompanying_ it is invisible to search engines. Audit existing diagrams for this; enforce it going forward.
-- [ ] **Newbie-readability audit** — read each lesson's baseline text (not the deep-dive expansions) as someone with zero ML background, flag jargon introduced without a plain-language anchor first. Indirect SEO benefit (bounce rate, dwell time) but the bigger reason: beginners and experts search with different vocabulary ("what is attention in AI" vs. "self-attention mechanism"), and a page that naturally answers both captures more long-tail traffic.
-- [ ] Explicitly deprioritized for now: a force-directed concept-map graph of the glossary (auto-generated from the existing "See also" cross-links). Genuinely fun, real UX-delight value — but it's client-side JS with zero crawlable text, so no direct SEO payoff. Revisit after the items above.
-
-**Phase 3 — Progress tracking (deferred, localStorage only)**
-
-- [ ] Define localStorage schema (see Section 3) and a small typed helper module to read/write it
-- [ ] Sidebar/lesson-list checkmarks reflect localStorage state
-- [ ] No backend work in this phase
-
-**Phase 4 — Quizzes (deferred, client-side only)**
-
-- [ ] Quiz questions authored as static data alongside each lesson's MDX (`.quiz.ts` per lesson, format in Section 5)
-- [ ] Quiz React component (MCQ, immediate feedback, explanation on wrong answer)
-- [ ] Score written to localStorage on completion — no attempt history/backend needed yet
-- [ ] Optional later (v2, needs DB): resurface previously-missed questions via spaced repetition
-
-**Phase 5 — Polish / v2**
-
-- [ ] Optional: auth accounts, streaks, completion badges, cross-device progress sync (Bun/Hono/Drizzle/Neon, per Section 3)
+For phase-by-phase checkboxes, remaining widget candidates, content-quality/SEO backlog, and flagged future content, see [ROADMAP.md](ROADMAP.md).
 
 ---
 
