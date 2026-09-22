@@ -1,0 +1,22 @@
+diff --git a/dist/mdx-plugins/stringifier.js b/dist/mdx-plugins/stringifier.js
+index 3e3c01977a7d9175a852e0c5c3155830f5bf75b1..5e5620651b72ed7937701cb9c3942c83a4034d6c 100644
+--- a/dist/mdx-plugins/stringifier.js
++++ b/dist/mdx-plugins/stringifier.js
+@@ -17,7 +17,7 @@ function defaultStringifier(config = {}) {
+ 		return true;
+ 	}, stringify, ...customExtension } = config;
+ 	function modHandler(handler, ctx) {
+-		return function(node, parent, state, info) {
++		const wrapped = function(node, parent, state, info) {
+ 			let visibility = filterElement(node);
+ 			if (visibility === false) return "";
+ 			if (stringify) {
+@@ -65,6 +65,8 @@ function defaultStringifier(config = {}) {
+ 				default: return handler(node, parent, state, info);
+ 			}
+ 		};
++		if (handler.peek) wrapped.peek = handler.peek;
++		return wrapped;
+ 	}
+ 	const customToMarkdown = { handlers: { _custom(node, _, state, info) {
+ 		const handlers = state.handlers;
