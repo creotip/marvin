@@ -101,14 +101,14 @@ export function Deeper({
   useEffect(() => register?.(), [register]);
 
   return (
-    <div className="my-6 overflow-hidden rounded-lg border border-fd-primary/25 bg-fd-primary/[0.03]">
+    <div className="border-fd-primary/25 bg-fd-primary/[0.03] my-6 overflow-hidden rounded-lg border">
       <button
         type="button"
         onClick={() => setLocallyOpen(!expanded)}
         aria-expanded={expanded}
-        className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-medium hover:bg-fd-primary/5"
+        className="hover:bg-fd-primary/5 flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-medium"
       >
-        <Sigma className="size-4 shrink-0 text-fd-primary" />
+        <Sigma className="text-fd-primary size-4 shrink-0" />
         <span className="flex-1">{title}</span>
         <ChevronDown
           className={cn(

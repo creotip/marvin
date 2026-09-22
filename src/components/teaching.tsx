@@ -9,8 +9,8 @@ export function NapkinMath({
   children: ReactNode;
 }) {
   return (
-    <figure className="my-6 rounded-lg border border-dashed bg-fd-muted/40 px-4 py-3">
-      <figcaption className="mb-2 flex items-center gap-2 text-sm font-medium text-fd-muted-foreground">
+    <figure className="bg-fd-muted/40 my-6 rounded-lg border border-dashed px-4 py-3">
+      <figcaption className="text-fd-muted-foreground mb-2 flex items-center gap-2 text-sm font-medium">
         <Calculator className="size-4" />
         {title}
       </figcaption>

@@ -34,7 +34,7 @@ export function ContentPage({
         {page.data.description}
       </DocsDescription>
       <DepthProvider>
-        <div className="flex flex-row flex-wrap gap-2 items-center border-b pb-6">
+        <div className="flex flex-row flex-wrap items-center gap-2 border-b pb-6">
           <MarkdownCopyButton markdownUrl={markdownUrl} />
           <ViewOptionsPopover
             markdownUrl={markdownUrl}

@@ -51,7 +51,9 @@ function contourPath(level: number) {
 export function GradientDescentPlayground() {
   const [learningRate, setLearningRate] = useState(0.3);
   const [start, setStart] = useState({ x: 2.4, y: 1.6 });
-  const [path, setPath] = useState<{ x: number; y: number }[]>([{ x: 2.4, y: 1.6 }]);
+  const [path, setPath] = useState<{ x: number; y: number }[]>([
+    { x: 2.4, y: 1.6 },
+  ]);
   const [running, setRunning] = useState(false);
   const [diverged, setDiverged] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -72,13 +74,19 @@ export function GradientDescentPlayground() {
     setPath((prev) => {
       const last = prev[prev.length - 1];
       const { gx, gy } = gradient(last.x, last.y);
-      const next = { x: last.x - learningRate * gx, y: last.y - learningRate * gy };
+      const next = {
+        x: last.x - learningRate * gx,
+        y: last.y - learningRate * gy,
+      };
       if (Math.abs(next.x) > RANGE * 3 || Math.abs(next.y) > RANGE * 3) {
         setDiverged(true);
         stop();
         return prev;
       }
-      if (prev.length >= MAX_STEPS || loss(next.x, next.y) < CONVERGE_THRESHOLD) {
+      if (
+        prev.length >= MAX_STEPS ||
+        loss(next.x, next.y) < CONVERGE_THRESHOLD
+      ) {
         stop();
         return [...prev, next];
       }
@@ -111,26 +119,30 @@ export function GradientDescentPlayground() {
       const sx = ((e.clientX - rect.left) / rect.width) * SIZE;
       const sy = ((e.clientY - rect.top) / rect.height) * SIZE;
       const { x, y } = toData(sx, sy);
-      reset({ x: Math.max(-RANGE, Math.min(RANGE, x)), y: Math.max(-RANGE, Math.min(RANGE, y)) });
+      reset({
+        x: Math.max(-RANGE, Math.min(RANGE, x)),
+        y: Math.max(-RANGE, Math.min(RANGE, y)),
+      });
     },
     [reset],
   );
 
-  const pathPoints = useMemo(
-    () => path.map((p) => toScreen(p.x, p.y)),
-    [path],
-  );
-  const pathD = pathPoints.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.sx.toFixed(2)},${p.sy.toFixed(2)}`).join('');
+  const pathPoints = useMemo(() => path.map((p) => toScreen(p.x, p.y)), [path]);
+  const pathD = pathPoints
+    .map(
+      (p, i) => `${i === 0 ? 'M' : 'L'}${p.sx.toFixed(2)},${p.sy.toFixed(2)}`,
+    )
+    .join('');
   const minimum = toScreen(0, 0);
 
   return (
-    <div className="not-prose my-6 rounded-xl border bg-fd-card p-4">
+    <div className="not-prose bg-fd-card my-6 rounded-xl border p-4">
       <div className="flex flex-col gap-4 sm:flex-row">
         <svg
           viewBox={`0 0 ${SIZE} ${SIZE}`}
           width={SIZE}
           height={SIZE}
-          className="shrink-0 cursor-crosshair rounded-lg border bg-fd-background"
+          className="bg-fd-background shrink-0 cursor-crosshair rounded-lg border"
           onClick={handleSvgClick}
           role="img"
           aria-label="Gradient descent loss surface — click to set a starting point"
@@ -146,19 +158,48 @@ export function GradientDescentPlayground() {
             />
           ))}
           {/* axes */}
-          <line x1={0} y1={SIZE / 2} x2={SIZE} y2={SIZE / 2} stroke="currentColor" strokeOpacity={0.1} />
-          <line x1={SIZE / 2} y1={0} x2={SIZE / 2} y2={SIZE} stroke="currentColor" strokeOpacity={0.1} />
+          <line
+            x1={0}
+            y1={SIZE / 2}
+            x2={SIZE}
+            y2={SIZE / 2}
+            stroke="currentColor"
+            strokeOpacity={0.1}
+          />
+          <line
+            x1={SIZE / 2}
+            y1={0}
+            x2={SIZE / 2}
+            y2={SIZE}
+            stroke="currentColor"
+            strokeOpacity={0.1}
+          />
           {/* minimum marker */}
-          <circle cx={minimum.sx} cy={minimum.sy} r={4} className="fill-fd-primary" />
+          <circle
+            cx={minimum.sx}
+            cy={minimum.sy}
+            r={4}
+            className="fill-fd-primary"
+          />
           {/* descent path */}
-          <path d={pathD} fill="none" stroke="currentColor" strokeWidth={2} className="text-fd-primary" />
+          <path
+            d={pathD}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            className="text-fd-primary"
+          />
           {pathPoints.map((p, i) => (
             <circle
               key={i}
               cx={p.sx}
               cy={p.sy}
               r={i === pathPoints.length - 1 ? 5 : 2.5}
-              className={i === pathPoints.length - 1 ? 'fill-fd-primary' : 'fill-fd-primary/50'}
+              className={
+                i === pathPoints.length - 1
+                  ? 'fill-fd-primary'
+                  : 'fill-fd-primary/50'
+              }
             />
           ))}
         </svg>
@@ -190,7 +231,7 @@ export function GradientDescentPlayground() {
               type="button"
               onClick={running ? stop : play}
               disabled={converged || diverged}
-              className="rounded-md bg-fd-primary px-3 py-1.5 font-medium text-fd-primary-foreground disabled:opacity-50"
+              className="bg-fd-primary text-fd-primary-foreground rounded-md px-3 py-1.5 font-medium disabled:opacity-50"
             >
               {running ? 'Pause' : 'Run'}
             </button>
@@ -202,12 +243,16 @@ export function GradientDescentPlayground() {
             >
               Step
             </button>
-            <button type="button" onClick={() => reset()} className="rounded-md border px-3 py-1.5 font-medium">
+            <button
+              type="button"
+              onClick={() => reset()}
+              className="rounded-md border px-3 py-1.5 font-medium"
+            >
               Reset
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 font-mono text-xs text-fd-muted-foreground">
+          <div className="text-fd-muted-foreground grid grid-cols-2 gap-2 font-mono text-xs">
             <span>step: {path.length - 1}</span>
             <span>loss: {currentLoss.toFixed(4)}</span>
             <span>x: {current.x.toFixed(3)}</span>
@@ -215,11 +260,14 @@ export function GradientDescentPlayground() {
           </div>
 
           {converged && (
-            <p className="text-fd-primary">Converged — loss is effectively zero.</p>
+            <p className="text-fd-primary">
+              Converged — loss is effectively zero.
+            </p>
           )}
           {diverged && (
             <p className="text-red-500">
-              Diverged — the learning rate is too large for this curvature. Lower it and reset.
+              Diverged — the learning rate is too large for this curvature.
+              Lower it and reset.
             </p>
           )}
         </div>

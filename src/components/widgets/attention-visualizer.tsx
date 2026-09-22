@@ -12,7 +12,9 @@ import { useMemo, useState } from 'react';
 // actually learn to track (coreference, subject-verb agreement).
 
 function gaussianRow(n: number, center: number, sigma = 1.3) {
-  const raw = Array.from({ length: n }, (_, j) => Math.exp(-((j - center) ** 2) / (2 * sigma * sigma)));
+  const raw = Array.from({ length: n }, (_, j) =>
+    Math.exp(-((j - center) ** 2) / (2 * sigma * sigma)),
+  );
   const sum = raw.reduce((a, b) => a + b, 0);
   return raw.map((v) => v / sum);
 }
@@ -27,15 +29,40 @@ interface Example {
 const EXAMPLES: Example[] = [
   {
     text: "The trophy didn't fit in the suitcase because it was too big.",
-    tokens: ['The', 'trophy', "didn't", 'fit', 'in', 'the', 'suitcase', 'because', 'it', 'was', 'too', 'big'],
+    tokens: [
+      'The',
+      'trophy',
+      "didn't",
+      'fit',
+      'in',
+      'the',
+      'suitcase',
+      'because',
+      'it',
+      'was',
+      'too',
+      'big',
+    ],
     special: {
-      8: [0.02, 0.52, 0.02, 0.02, 0.01, 0.01, 0.08, 0.02, 0.14, 0.12, 0.01, 0.03],
+      8: [
+        0.02, 0.52, 0.02, 0.02, 0.01, 0.01, 0.08, 0.02, 0.14, 0.12, 0.01, 0.03,
+      ],
     },
     note: 'Click "it" — coreference resolution, exactly the lesson\'s own example.',
   },
   {
     text: 'The dog chased the cat because it was scared.',
-    tokens: ['The', 'dog', 'chased', 'the', 'cat', 'because', 'it', 'was', 'scared'],
+    tokens: [
+      'The',
+      'dog',
+      'chased',
+      'the',
+      'cat',
+      'because',
+      'it',
+      'was',
+      'scared',
+    ],
     special: {
       6: [0.02, 0.1, 0.02, 0.02, 0.55, 0.02, 0.15, 0.09, 0.03],
     },
@@ -43,7 +70,17 @@ const EXAMPLES: Example[] = [
   },
   {
     text: 'The keys to the cabinet are on the table.',
-    tokens: ['The', 'keys', 'to', 'the', 'cabinet', 'are', 'on', 'the', 'table'],
+    tokens: [
+      'The',
+      'keys',
+      'to',
+      'the',
+      'cabinet',
+      'are',
+      'on',
+      'the',
+      'table',
+    ],
     special: {
       5: [0.02, 0.5, 0.02, 0.02, 0.1, 0.15, 0.09, 0.02, 0.08],
     },
@@ -66,7 +103,10 @@ export function AttentionVisualizer() {
   const [focus, setFocus] = useState<number | null>(null);
 
   const example = EXAMPLES[exampleIndex];
-  const weights = useMemo(() => (focus !== null ? getRow(example, focus) : null), [example, focus]);
+  const weights = useMemo(
+    () => (focus !== null ? getRow(example, focus) : null),
+    [example, focus],
+  );
 
   const changeExample = (i: number) => {
     setExampleIndex(i);
@@ -74,7 +114,7 @@ export function AttentionVisualizer() {
   };
 
   return (
-    <div className="not-prose my-6 rounded-xl border bg-fd-card p-4">
+    <div className="not-prose bg-fd-card my-6 rounded-xl border p-4">
       <div className="mb-3 flex flex-wrap gap-2">
         {EXAMPLES.map((ex, i) => (
           <button
@@ -82,7 +122,9 @@ export function AttentionVisualizer() {
             type="button"
             onClick={() => changeExample(i)}
             className={`rounded-md border px-2.5 py-1 text-xs font-medium ${
-              i === exampleIndex ? 'border-fd-primary bg-fd-primary/15 text-fd-primary' : ''
+              i === exampleIndex
+                ? 'border-fd-primary bg-fd-primary/15 text-fd-primary'
+                : ''
             }`}
           >
             Example {i + 1}
@@ -90,7 +132,7 @@ export function AttentionVisualizer() {
         ))}
       </div>
 
-      <p className="mb-3 text-xs text-fd-muted-foreground">{example.note}</p>
+      <p className="text-fd-muted-foreground mb-3 text-xs">{example.note}</p>
 
       <div className="flex flex-wrap gap-1.5">
         {example.tokens.map((tok, i) => {
@@ -100,7 +142,9 @@ export function AttentionVisualizer() {
               key={i}
               type="button"
               onClick={() => setFocus(i)}
-              style={{ backgroundColor: focus !== null ? weightColor(w) : undefined }}
+              style={{
+                backgroundColor: focus !== null ? weightColor(w) : undefined,
+              }}
               className={`rounded-md border px-2 py-1.5 font-mono text-sm transition-colors ${
                 focus === i ? 'border-fd-primary' : 'border-fd-border'
               }`}
@@ -113,9 +157,9 @@ export function AttentionVisualizer() {
 
       {focus !== null && weights ? (
         <div className="mt-4">
-          <p className="mb-2 text-xs text-fd-muted-foreground">
+          <p className="text-fd-muted-foreground mb-2 text-xs">
             Attention weights from{' '}
-            <span className="font-mono text-fd-primary">
+            <span className="text-fd-primary font-mono">
               &quot;{example.tokens[focus]}&quot;
             </span>{' '}
             to every token (this is one row of the softmax(Q·Kᵀ) matrix):
@@ -123,14 +167,16 @@ export function AttentionVisualizer() {
           <div className="flex flex-col gap-1">
             {example.tokens.map((tok, i) => (
               <div key={i} className="flex items-center gap-2 text-xs">
-                <span className="w-20 shrink-0 truncate font-mono text-fd-muted-foreground">{tok}</span>
-                <div className="h-3 flex-1 overflow-hidden rounded bg-fd-secondary">
+                <span className="text-fd-muted-foreground w-20 shrink-0 truncate font-mono">
+                  {tok}
+                </span>
+                <div className="bg-fd-secondary h-3 flex-1 overflow-hidden rounded">
                   <div
-                    className="h-full bg-fd-primary"
+                    className="bg-fd-primary h-full"
                     style={{ width: `${Math.min(100, weights[i] * 100)}%` }}
                   />
                 </div>
-                <span className="w-10 shrink-0 text-right font-mono text-fd-muted-foreground">
+                <span className="text-fd-muted-foreground w-10 shrink-0 text-right font-mono">
                   {weights[i].toFixed(2)}
                 </span>
               </div>
@@ -138,7 +184,9 @@ export function AttentionVisualizer() {
           </div>
         </div>
       ) : (
-        <p className="mt-4 text-sm text-fd-muted-foreground">Click any token above to see what it attends to.</p>
+        <p className="text-fd-muted-foreground mt-4 text-sm">
+          Click any token above to see what it attends to.
+        </p>
       )}
     </div>
   );
