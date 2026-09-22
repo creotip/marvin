@@ -26,11 +26,15 @@ function Bars({
   maxCost: number;
 }) {
   return (
-    <div className="flex h-24 items-end gap-px overflow-hidden rounded-md border bg-fd-background p-1">
+    <div className="bg-fd-background flex h-24 items-end gap-px overflow-hidden rounded-md border p-1">
       {costs.map((c, i) => (
         <div
           key={i}
-          style={{ height: `${Math.min(100, (c / maxCost) * 100)}%`, backgroundColor: color, width: 4 }}
+          style={{
+            height: `${Math.min(100, (c / maxCost) * 100)}%`,
+            backgroundColor: color,
+            width: 4,
+          }}
           className="shrink-0 rounded-t-sm"
         />
       ))}
@@ -79,28 +83,34 @@ export function KVCacheSimulator() {
     [stop],
   );
 
-  const { noCacheCosts, cachedCosts, noCacheTotal, cachedTotal } = useMemo(() => {
-    const noCache: number[] = [];
-    const cached: number[] = [];
-    let noCacheSum = 0;
-    let cachedSum = 0;
-    for (let i = 0; i < generated; i++) {
-      const nc = noCacheStepCost(i);
-      const c = cachedStepCost(i);
-      noCache.push(nc);
-      cached.push(c);
-      noCacheSum += nc;
-      cachedSum += c;
-    }
-    return { noCacheCosts: noCache, cachedCosts: cached, noCacheTotal: noCacheSum, cachedTotal: cachedSum };
-  }, [generated]);
+  const { noCacheCosts, cachedCosts, noCacheTotal, cachedTotal } =
+    useMemo(() => {
+      const noCache: number[] = [];
+      const cached: number[] = [];
+      let noCacheSum = 0;
+      let cachedSum = 0;
+      for (let i = 0; i < generated; i++) {
+        const nc = noCacheStepCost(i);
+        const c = cachedStepCost(i);
+        noCache.push(nc);
+        cached.push(c);
+        noCacheSum += nc;
+        cachedSum += c;
+      }
+      return {
+        noCacheCosts: noCache,
+        cachedCosts: cached,
+        noCacheTotal: noCacheSum,
+        cachedTotal: cachedSum,
+      };
+    }, [generated]);
 
   const maxCost = Math.max(noCacheStepCost(totalTokens - 1), 1);
   const speedup = cachedTotal > 0 ? noCacheTotal / cachedTotal : 1;
   const done = generated >= totalTokens;
 
   return (
-    <div className="not-prose my-6 rounded-xl border bg-fd-card p-4">
+    <div className="not-prose bg-fd-card my-6 rounded-xl border p-4">
       <label className="mb-3 flex flex-col gap-1 text-sm">
         <span className="flex justify-between">
           <span>Tokens to generate</span>
@@ -119,18 +129,30 @@ export function KVCacheSimulator() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <p className="mb-1 flex justify-between text-xs text-fd-muted-foreground">
+          <p className="text-fd-muted-foreground mb-1 flex justify-between text-xs">
             <span>Without KV cache (recompute every step)</span>
-            <span className="font-mono text-red-500">{noCacheTotal.toFixed(0)} ms</span>
+            <span className="font-mono text-red-500">
+              {noCacheTotal.toFixed(0)} ms
+            </span>
           </p>
-          <Bars costs={noCacheCosts} color="var(--color-red-500)" maxCost={maxCost} />
+          <Bars
+            costs={noCacheCosts}
+            color="var(--color-red-500)"
+            maxCost={maxCost}
+          />
         </div>
         <div>
-          <p className="mb-1 flex justify-between text-xs text-fd-muted-foreground">
+          <p className="text-fd-muted-foreground mb-1 flex justify-between text-xs">
             <span>With KV cache</span>
-            <span className="font-mono text-fd-primary">{cachedTotal.toFixed(0)} ms</span>
+            <span className="text-fd-primary font-mono">
+              {cachedTotal.toFixed(0)} ms
+            </span>
           </p>
-          <Bars costs={cachedCosts} color="var(--color-fd-primary)" maxCost={maxCost} />
+          <Bars
+            costs={cachedCosts}
+            color="var(--color-fd-primary)"
+            maxCost={maxCost}
+          />
         </div>
       </div>
 
@@ -139,7 +161,7 @@ export function KVCacheSimulator() {
           type="button"
           onClick={running ? stop : play}
           disabled={done}
-          className="rounded-md bg-fd-primary px-3 py-1.5 font-medium text-fd-primary-foreground disabled:opacity-50"
+          className="bg-fd-primary text-fd-primary-foreground rounded-md px-3 py-1.5 font-medium disabled:opacity-50"
         >
           {running ? 'Pause' : 'Generate'}
         </button>
@@ -151,23 +173,29 @@ export function KVCacheSimulator() {
         >
           Step
         </button>
-        <button type="button" onClick={() => reset()} className="rounded-md border px-3 py-1.5 font-medium">
+        <button
+          type="button"
+          onClick={() => reset()}
+          className="rounded-md border px-3 py-1.5 font-medium"
+        >
           Reset
         </button>
-        <span className="font-mono text-xs text-fd-muted-foreground">
+        <span className="text-fd-muted-foreground font-mono text-xs">
           {generated} / {totalTokens} tokens
         </span>
         {generated > 0 && (
-          <span className="ml-auto font-mono text-sm text-fd-primary">{speedup.toFixed(1)}x faster so far</span>
+          <span className="text-fd-primary ml-auto font-mono text-sm">
+            {speedup.toFixed(1)}x faster so far
+          </span>
         )}
       </div>
 
-      <p className="mt-3 text-xs text-fd-muted-foreground">
-        Simulated costs, not measured hardware timing — the point is the
-        shape: without caching, each step redoes work proportional to
-        everything generated so far (quadratic total cost); with caching,
-        each step is roughly constant work (linear total cost). The
-        speedup grows the longer the generation runs.
+      <p className="text-fd-muted-foreground mt-3 text-xs">
+        Simulated costs, not measured hardware timing — the point is the shape:
+        without caching, each step redoes work proportional to everything
+        generated so far (quadratic total cost); with caching, each step is
+        roughly constant work (linear total cost). The speedup grows the longer
+        the generation runs.
       </p>
     </div>
   );

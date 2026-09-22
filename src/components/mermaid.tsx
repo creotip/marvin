@@ -50,12 +50,12 @@ export function Mermaid({ chart }: { chart: string }) {
   }, [chart, id, isDark]);
 
   if (!svg) {
-    return <div className="my-6 h-40 animate-pulse rounded-lg bg-fd-muted" />;
+    return <div className="bg-fd-muted my-6 h-40 animate-pulse rounded-lg" />;
   }
 
   return (
     <figure
-      className="my-6 flex justify-center overflow-x-auto rounded-lg border bg-fd-card p-4"
+      className="bg-fd-card my-6 flex justify-center overflow-x-auto rounded-lg border p-4"
       // Charts are trusted content authored in MDX, and Mermaid runs at securityLevel 'strict'.
       dangerouslySetInnerHTML={{ __html: svg }}
     />

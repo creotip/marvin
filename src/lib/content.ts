@@ -12,9 +12,8 @@ const docsCollection = defineDocs({
     // Dynamic imports keep the build-only glossary scanner out of the app bundle.
     mdxOptions: async (environment) => {
       const { createMdxOptions } = await import('./mdx-options');
-      const { collectReferenceTerms, remarkReferenceLinks } = await import(
-        './remark-reference-links'
-      );
+      const { collectReferenceTerms, remarkReferenceLinks } =
+        await import('./remark-reference-links');
 
       const terms = collectReferenceTerms('content/reference', '/reference');
 

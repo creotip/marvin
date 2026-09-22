@@ -12,7 +12,12 @@ const CELL = 22;
 // produces a visibly different, meaningful feature map.
 const IMAGE: number[][] = Array.from({ length: IMG_SIZE }, (_, r) =>
   Array.from({ length: IMG_SIZE }, (_, c) => {
-    const inRing = r >= 2 && r <= 7 && c >= 2 && c <= 7 && (r === 2 || r === 7 || c === 2 || c === 7);
+    const inRing =
+      r >= 2 &&
+      r <= 7 &&
+      c >= 2 &&
+      c <= 7 &&
+      (r === 2 || r === 7 || c === 2 || c === 7);
     return inRing ? 1 : 0;
   }),
 );
@@ -42,7 +47,11 @@ const KERNELS = {
 
 type KernelName = keyof typeof KERNELS;
 
-function convolveAt(row: number, col: number, kernel: readonly (readonly number[])[]) {
+function convolveAt(
+  row: number,
+  col: number,
+  kernel: readonly (readonly number[])[],
+) {
   let sum = 0;
   for (let kr = 0; kr < KERNEL_SIZE; kr++) {
     for (let kc = 0; kc < KERNEL_SIZE; kc++) {
@@ -78,7 +87,9 @@ export function ConvolutionVisualizer() {
   const total = OUT_SIZE * OUT_SIZE;
 
   const output = useMemo(() => {
-    const grid: (number | null)[][] = Array.from({ length: OUT_SIZE }, () => Array(OUT_SIZE).fill(null));
+    const grid: (number | null)[][] = Array.from({ length: OUT_SIZE }, () =>
+      Array(OUT_SIZE).fill(null),
+    );
     for (let p = 0; p <= position; p++) {
       const r = Math.floor(p / OUT_SIZE);
       const c = p % OUT_SIZE;
@@ -89,7 +100,8 @@ export function ConvolutionVisualizer() {
 
   const maxAbs = useMemo(() => {
     let m = 0;
-    for (const row of output) for (const v of row) if (v !== null) m = Math.max(m, Math.abs(v));
+    for (const row of output)
+      for (const v of row) if (v !== null) m = Math.max(m, Math.abs(v));
     return m || 1;
   }, [output]);
 
@@ -135,7 +147,7 @@ export function ConvolutionVisualizer() {
   const curValue = position >= 0 ? convolveAt(curRow, curCol, kernel) : null;
 
   return (
-    <div className="not-prose my-6 rounded-xl border bg-fd-card p-4">
+    <div className="not-prose bg-fd-card my-6 rounded-xl border p-4">
       <div className="mb-3 flex flex-wrap gap-2">
         {(Object.keys(KERNELS) as KernelName[]).map((name) => (
           <button
@@ -143,7 +155,9 @@ export function ConvolutionVisualizer() {
             type="button"
             onClick={() => changeKernel(name)}
             className={`rounded-md border px-2.5 py-1 text-xs font-medium ${
-              name === kernelName ? 'border-fd-primary bg-fd-primary/15 text-fd-primary' : ''
+              name === kernelName
+                ? 'border-fd-primary bg-fd-primary/15 text-fd-primary'
+                : ''
             }`}
           >
             {name}
@@ -153,7 +167,9 @@ export function ConvolutionVisualizer() {
 
       <div className="flex flex-col gap-5 lg:flex-row">
         <div>
-          <p className="mb-1 text-xs text-fd-muted-foreground">Input image (10×10)</p>
+          <p className="text-fd-muted-foreground mb-1 text-xs">
+            Input image (10×10)
+          </p>
           <div className="relative inline-block">
             <div
               className="grid overflow-hidden rounded-md border"
@@ -161,13 +177,20 @@ export function ConvolutionVisualizer() {
             >
               {IMAGE.flatMap((row, r) =>
                 row.map((v, c) => (
-                  <div key={`${r}-${c}`} style={{ width: CELL, height: CELL, background: grayscale(v) }} />
+                  <div
+                    key={`${r}-${c}`}
+                    style={{
+                      width: CELL,
+                      height: CELL,
+                      background: grayscale(v),
+                    }}
+                  />
                 )),
               )}
             </div>
             {curRow >= 0 && (
               <div
-                className="pointer-events-none absolute border-2 border-fd-primary"
+                className="border-fd-primary pointer-events-none absolute border-2"
                 style={{
                   width: CELL * KERNEL_SIZE,
                   height: CELL * KERNEL_SIZE,
@@ -180,14 +203,17 @@ export function ConvolutionVisualizer() {
         </div>
 
         <div>
-          <p className="mb-1 text-xs text-fd-muted-foreground">Kernel (3×3)</p>
-          <div className="grid gap-0.5" style={{ gridTemplateColumns: `repeat(3, ${CELL}px)` }}>
+          <p className="text-fd-muted-foreground mb-1 text-xs">Kernel (3×3)</p>
+          <div
+            className="grid gap-0.5"
+            style={{ gridTemplateColumns: `repeat(3, ${CELL}px)` }}
+          >
             {kernel.flatMap((row, r) =>
               row.map((v, c) => (
                 <div
                   key={`${r}-${c}`}
                   style={{ width: CELL, height: CELL }}
-                  className="flex items-center justify-center rounded bg-fd-secondary font-mono text-[10px]"
+                  className="bg-fd-secondary flex items-center justify-center rounded font-mono text-[10px]"
                 >
                   {Number.isInteger(v) ? v : v.toFixed(2)}
                 </div>
@@ -196,14 +222,17 @@ export function ConvolutionVisualizer() {
           </div>
 
           {curValue !== null && (
-            <p className="mt-3 max-w-[140px] font-mono text-xs text-fd-muted-foreground">
-              output[{curRow}][{curCol}] = <span className="text-fd-primary">{curValue.toFixed(2)}</span>
+            <p className="text-fd-muted-foreground mt-3 max-w-[140px] font-mono text-xs">
+              output[{curRow}][{curCol}] ={' '}
+              <span className="text-fd-primary">{curValue.toFixed(2)}</span>
             </p>
           )}
         </div>
 
         <div>
-          <p className="mb-1 text-xs text-fd-muted-foreground">Feature map (8×8)</p>
+          <p className="text-fd-muted-foreground mb-1 text-xs">
+            Feature map (8×8)
+          </p>
           <div
             className="grid overflow-hidden rounded-md border"
             style={{ gridTemplateColumns: `repeat(${OUT_SIZE}, ${CELL}px)` }}
@@ -215,7 +244,8 @@ export function ConvolutionVisualizer() {
                   style={{
                     width: CELL,
                     height: CELL,
-                    background: v === null ? 'rgb(40,40,48)' : diverging(v, maxAbs),
+                    background:
+                      v === null ? 'rgb(40,40,48)' : diverging(v, maxAbs),
                   }}
                 />
               )),
@@ -229,7 +259,7 @@ export function ConvolutionVisualizer() {
           type="button"
           onClick={running ? stop : play}
           disabled={position + 1 >= total}
-          className="rounded-md bg-fd-primary px-3 py-1.5 font-medium text-fd-primary-foreground disabled:opacity-50"
+          className="bg-fd-primary text-fd-primary-foreground rounded-md px-3 py-1.5 font-medium disabled:opacity-50"
         >
           {running ? 'Pause' : 'Play'}
         </button>
@@ -241,10 +271,14 @@ export function ConvolutionVisualizer() {
         >
           Step
         </button>
-        <button type="button" onClick={reset} className="rounded-md border px-3 py-1.5 font-medium">
+        <button
+          type="button"
+          onClick={reset}
+          className="rounded-md border px-3 py-1.5 font-medium"
+        >
           Reset
         </button>
-        <span className="ml-auto font-mono text-xs text-fd-muted-foreground">
+        <span className="text-fd-muted-foreground ml-auto font-mono text-xs">
           {position + 1} / {total}
         </span>
       </div>
