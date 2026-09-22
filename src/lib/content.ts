@@ -11,19 +11,16 @@ const docsCollection = defineDocs({
     postprocess: { includeProcessedMarkdown: true },
     // Dynamic imports keep the build-only glossary scanner out of the app bundle.
     mdxOptions: async (environment) => {
-      const { applyMdxPreset } = await import('fumadocs-mdx/config');
+      const { createMdxOptions } = await import('./mdx-options');
       const { collectReferenceTerms, remarkReferenceLinks } = await import(
         './remark-reference-links'
       );
 
       const terms = collectReferenceTerms('content/reference', '/reference');
 
-      return applyMdxPreset({
-        remarkPlugins: (plugins) => [
-          ...plugins,
-          [remarkReferenceLinks, terms] as const,
-        ],
-      })(environment);
+      return createMdxOptions(environment, {
+        remarkPlugins: [[remarkReferenceLinks, terms]],
+      });
     },
   },
   meta: { schema: metaSchema },
@@ -34,6 +31,10 @@ const referenceCollection = defineDocs({
   docs: {
     schema: pageSchema,
     postprocess: { includeProcessedMarkdown: true },
+    mdxOptions: async (environment) => {
+      const { createMdxOptions } = await import('./mdx-options');
+      return createMdxOptions(environment);
+    },
   },
   meta: { schema: metaSchema },
 });

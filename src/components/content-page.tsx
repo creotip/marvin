@@ -10,6 +10,7 @@ import { notFound } from 'next/navigation';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
 import type { Metadata } from 'next';
 import { getMDXComponents } from '@/components/mdx';
+import { DepthProvider, DepthToggle } from '@/components/depth';
 import type { Collection } from '@/lib/content';
 import { gitConfig } from '@/lib/shared';
 
@@ -32,21 +33,24 @@ export function ContentPage({
       <DocsDescription className="mb-0">
         {page.data.description}
       </DocsDescription>
-      <div className="flex flex-row gap-2 items-center border-b pb-6">
-        <MarkdownCopyButton markdownUrl={markdownUrl} />
-        <ViewOptionsPopover
-          markdownUrl={markdownUrl}
-          githubUrl={`https://github.com/${gitConfig.user}/${gitConfig.repo}/blob/${gitConfig.branch}/${collection.contentDir}/${page.path}`}
-        />
-      </div>
-      <DocsBody>
-        <MDX
-          components={getMDXComponents({
-            // this allows you to link to other pages with relative file paths
-            a: createRelativeLink(collection.source, page),
-          })}
-        />
-      </DocsBody>
+      <DepthProvider>
+        <div className="flex flex-row flex-wrap gap-2 items-center border-b pb-6">
+          <MarkdownCopyButton markdownUrl={markdownUrl} />
+          <ViewOptionsPopover
+            markdownUrl={markdownUrl}
+            githubUrl={`https://github.com/${gitConfig.user}/${gitConfig.repo}/blob/${gitConfig.branch}/${collection.contentDir}/${page.path}`}
+          />
+          <DepthToggle />
+        </div>
+        <DocsBody>
+          <MDX
+            components={getMDXComponents({
+              // this allows you to link to other pages with relative file paths
+              a: createRelativeLink(collection.source, page),
+            })}
+          />
+        </DocsBody>
+      </DepthProvider>
     </DocsPage>
   );
 }
