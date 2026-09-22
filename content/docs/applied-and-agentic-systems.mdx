@@ -1,13 +1,13 @@
 ---
 title: Applied & Agentic Systems
-description: RAG, tool use, and agents — what's built on top of a served LLM
+description: How prompting, RAG, and agents combine to turn a single trained LLM into a real, capable application
 ---
 
-Every previous lesson built toward one artifact: a trained, servable LLM
-that can take text in and produce text out. This final lesson covers how
-real applications turn that single capability — text in, text out — into
-systems that can answer questions about private data, take actions in the
-world, and complete multi-step tasks.
+Every previous lesson built toward one artifact: a trained, servable
+[LLM](/docs/llms) that can take text in and produce text out. This final
+part of the course covers how real applications turn that single
+capability into systems that can answer questions about private data,
+take actions in the world, and complete multi-step tasks.
 
 ## The core limitation: a frozen, closed-book model
 
@@ -22,10 +22,10 @@ A deployed LLM has two structural limits worth naming explicitly:
   appears to take in an application are actually the *application* acting
   on the model's text output, not the model doing anything itself.
 
-Everything in this lesson is a pattern for working around one or both of
-these limits. The most general of those patterns — an LLM run in a loop,
-with the application executing tools on its behalf and feeding results
-back in — looks like this:
+Every pattern in this part of the course is a way of working around one
+or both of these limits. The most general of those patterns — an LLM run
+in a loop, with the application executing tools on its behalf and
+feeding results back in — looks like this:
 
 <Mermaid chart={`flowchart TD
   G[User goal] --> C[Model reads<br/>the context]
@@ -36,335 +36,33 @@ back in — looks like this:
   R --> C
 `} />
 
-The rest of this lesson builds up to that loop one piece at a time:
-shaping the prompt, retrieving text to put in it, giving the model tools,
-and finally letting it decide for itself how many times to go around.
+Three lessons build up to that loop one piece at a time:
 
-## Prompt engineering: shaping behavior without training
+<Cards>
+  <Card
+    title="Prompt Engineering"
+    href="/docs/prompt-engineering"
+    description="Shaping behavior for free, by changing the input alone — no training, no retrieval, no tools."
+  />
+  <Card
+    title="RAG & Vector Databases"
+    href="/docs/rag-and-vector-databases"
+    description="Giving the model information it wasn't trained on, retrieved at request time and grounded in real text."
+  />
+  <Card
+    title="Agents & Tool Use"
+    href="/docs/agents-and-tool-use"
+    description="Giving the model the ability to act — call functions, take actions, and chain multiple steps toward a goal."
+  />
+</Cards>
 
-Before reaching for RAG or tool use, the cheapest lever available is the
-**prompt** itself — how you phrase the input, entirely without touching
-the model's weights. A few patterns that measurably change output
-quality, worth knowing by name:
-
-- **Zero-shot vs. few-shot prompting**: asking directly ("translate this
-  sentence to French") is zero-shot; including a couple of example
-  input/output pairs in the prompt before the real request is **few-shot**
-  — it lets the model infer the exact format and style you want from
-  examples rather than a description, often substantially improving
-  output quality with no training involved.
-- **Chain-of-thought prompting**: explicitly asking the model to reason
-  step by step before giving a final answer (or simply appending
-  "let's think step by step") measurably improves accuracy on tasks
-  requiring multi-step reasoning — arithmetic, logic puzzles, multi-hop
-  questions. The mechanism is a direct consequence of how these models
-  generate: each output token is produced conditioned on everything
-  generated so far, so making intermediate reasoning steps *part of the
-  output* gives later tokens access to that reasoning as context, rather
-  than forcing the model to reach a correct answer in a single forward
-  pass with no working-out space.
-- **System prompts**: a separate instruction channel (set by the
-  application, not the end user) used to configure a model's persona,
-  constraints, and behavior for an entire conversation — this is how
-  products differentiate a single underlying model into different
-  assistants with different tones, capabilities, and guardrails.
-
-Prompt engineering, RAG, and fine-tuning aren't competing choices so much
-as a rough order of what to try first: prompting is fastest and cheapest
-to iterate on; RAG adds external knowledge without touching the model;
-fine-tuning (from [LLMs](/docs/llms)) is the heaviest lever, worth
-reaching for mainly when prompting and RAG genuinely can't produce the
-behavior or format you need.
-
-| Approach | What it fixes | Relative cost | Knowledge freshness |
-| --- | --- | --- | --- |
-| Prompting | Format, tone, task framing | Lowest — no training | Unchanged |
-| RAG | Missing or private knowledge | Indexing + retrieval per query | As fresh as the index |
-| Fine-tuning | Behavior the prompt can't elicit | Highest — a training run | Frozen again at train time |
-
-## RAG: retrieval-augmented generation
-
-**RAG** addresses the frozen-knowledge problem by giving the model
-relevant information *at request time*, rather than trying to bake
-everything into its weights via training. The pattern:
-
-1. **Index**: split your documents (docs, PDFs, support tickets, whatever
-   the knowledge source is) into chunks, and convert each chunk into an
-   embedding vector — conceptually the same kind of embedding from
-   [LLMs](/docs/llms), but here used to represent a whole passage of text
-   rather than a single token. Store these in a **vector database**.
-2. **Retrieve**: when a user asks a question, embed the question the same
-   way, and find the stored chunks whose embeddings are most similar
-   (nearest neighbors in vector space) — the intuition being that
-   semantically related text ends up with similar embedding vectors, so
-   this retrieves passages relevant to the question even if they don't
-   share exact keywords with it.
-3. **Generate**: insert the retrieved chunks into the prompt, along with
-   the user's question, and let the LLM generate an answer *grounded in*
-   that retrieved text.
-
-RAG's appeal: it lets a model answer questions about private, current, or
-otherwise-untrained-on data without any retraining — you update the
-answers by updating the indexed documents, not by fine-tuning the model.
-Its main failure modes are retrieval quality (if the wrong chunks are
-retrieved, the model confidently answers from irrelevant context) and
-context limits (a model can only be given so much retrieved text before a
-prompt gets too long or too noisy to reason over well).
-
-<Deeper title="How retrieval actually ranks chunks">
-
-Indexing turns each chunk into a vector $\mathbf{d}_i \in \mathbb{R}^n$;
-a query becomes a vector $\mathbf{q}$ in the *same* space. Ranking is then
-just sorting every chunk by **cosine similarity**:
-
-$$
-\text{sim}(\mathbf{q}, \mathbf{d}) = \frac{\mathbf{q} \cdot \mathbf{d}}{\lVert \mathbf{q} \rVert \, \lVert \mathbf{d} \rVert} = \cos \theta
-$$
-
-Dividing by the magnitudes is what makes this measure *direction only*, so
-a long document and a short one are compared on meaning rather than length.
-The value ranges over $[-1, 1]$ for arbitrary vectors, and the top $k$
-chunks by this score are the ones spliced into the prompt.
-
-This is also why **chunking strategy** matters so much. One vector has to
-summarise an entire chunk, so a chunk spanning several unrelated topics
-gets an embedding that averages them and lands near none of them — it will
-never be the nearest neighbour of a sharp question. Chunks that are too
-small have the opposite problem: the sentence that matches the query no
-longer carries the surrounding context needed to answer it. Overlapping
-windows are the usual compromise.
-
-Cosine similarity also has a blind spot: an exact rare token — an error
-code, a product SKU, a surname — barely moves a dense embedding, so a
-purely semantic search can miss the one chunk that literally contains it.
-**Hybrid search** fixes this by running a keyword index such as BM25
-alongside the vector index and blending the two rankings,
-$s = \alpha \, s_{\text{vector}} + (1 - \alpha) \, s_{\text{keyword}}$,
-so exact matches and semantic matches can both surface.
-
-</Deeper>
-
-<Misconception claim="RAG eliminates hallucination.">
-  It narrows the problem without removing it. Retrieval can surface the
-  wrong chunks, or no relevant chunk at all — and nothing in the generation
-  step forces the model to say so instead of answering anyway. Even with
-  perfect retrieval, the model is still free to blend the retrieved text
-  with its own parametric knowledge, or to state something the passage
-  doesn't actually support. Grounding raises the odds of a correct answer;
-  it is not a constraint the decoder is obliged to obey.
-</Misconception>
-
-### Vector databases and similarity search
-
-A **vector database** is a database built specifically to store
-embedding vectors and answer one kind of query fast: "which stored
-vectors are closest to this query vector?" That's a different problem
-from what a normal database indexes for — exact matches and ranges on
-structured fields — which is why RAG systems reach for a purpose-built
-one rather than bolting vector search onto a regular table.
-
-**"Closest" is measured** with a similarity metric, most commonly
-**cosine similarity** (the angle between two vectors, ignoring their
-magnitude) or plain dot product. Two embeddings from
-[LLMs](/docs/llms) that represent semantically similar text end up
-pointing in similar directions in that high-dimensional space, which is
-exactly what makes nearest-neighbor search double as "find text with a
-similar meaning."
-
-Naively, finding the true nearest neighbors means comparing the query
-against *every* stored vector — fine for thousands of chunks, far too
-slow once you're indexing millions. Vector databases solve this with
-**approximate nearest neighbor (ANN)** indexes — **HNSW** (Hierarchical
-Navigable Small World) is the most common — that organize vectors into a
-searchable graph structure ahead of time, trading a small amount of
-recall accuracy for orders-of-magnitude faster lookups. This tradeoff
-(exact vs. approximate, accuracy vs. speed) is a recurring theme in
-systems that need to operate at scale, the same way
-[quantization](/docs/inference-and-serving) trades numerical precision
-for speed at inference time.
-
-In practice, "vector database" covers a range of tools: dedicated
-managed services (**Pinecone**), open-source databases built
-vector-first (**Weaviate**, **Milvus**, **Qdrant**), a lightweight
-option for local/small-scale use (**Chroma**), and vector-search
-*extensions* added to databases you might already run (**pgvector** for
-Postgres). Which one to reach for mostly comes down to scale, whether you
-want a separate system to operate versus extending an existing database,
-and how much of the ANN tuning you want to manage yourself.
-
-## Tool use: letting the model take (indirect) actions
-
-**Tool use** (also called function calling) addresses the
-can't-do-anything limitation. The model is given a description of
-available tools — a web search function, a calculator, an internal API —
-each with a name, a description, and a schema for its inputs. Instead of
-directly answering, the model can output a *structured request* to call a
-specific tool with specific arguments; the surrounding application
-actually executes that call, and feeds the result back into the model's
-context so it can use it to continue answering.
-
-Crucially, the model itself never runs code or hits an API — it only ever
-produces text (here, a structured tool call). The actual execution,
-authentication, and side effects are entirely the responsibility of the
-application wrapped around the model. This is the same "frozen, closed-box
-model" from the top of this lesson — tool use just gives the surrounding
-system a clean protocol for extending what the model can effectively
-accomplish, without changing what the model fundamentally is.
-
-<Deeper title="What a tool schema actually is">
-
-A tool is described to the model as a name, a natural-language
-description, and a machine-readable parameter schema — in practice, JSON
-Schema:
-
-```json
-{
-  "name": "get_weather",
-  "description": "Current weather for a city.",
-  "parameters": {
-    "type": "object",
-    "properties": {
-      "city": { "type": "string" },
-      "unit": { "type": "string", "enum": ["c", "f"] }
-    },
-    "required": ["city"]
-  }
-}
-```
-
-The model's output for a call is then structured arguments —
-`{"city": "Berlin", "unit": "c"}` — not a sentence like *please look up the
-weather in Berlin*. The reason is entirely on the application's side: prose
-has to be parsed, and parsing free text is ambiguous and brittle, whereas a
-schema-conforming object can be validated and passed straight to a function
-call.
-
-Mechanically nothing new is happening. The model is still sampling tokens
-from $P(x_t \mid x_{<t})$; the schema simply appears in its context, and
-fine-tuning has taught it to emit tokens that parse as valid JSON in that
-position. Providers additionally enforce this with **constrained decoding**:
-at each step the sampler zeroes the probability of any token that cannot
-continue a valid parse, renormalising over what remains. That converts
-*usually well-formed* into *always well-formed*, but it guarantees only
-syntax — never that the chosen tool or the chosen arguments were the right
-ones.
-
-</Deeper>
-
-A practical problem tool use created: every application wiring an LLM to
-its own tools originally had to define its own bespoke integration.
-**MCP (Model Context Protocol)** is an open standard, introduced by
-Anthropic in late 2024, that standardizes how applications expose tools
-and data to LLMs — letting a tool built once be reused across different
-LLM-powered applications, the same way a USB standard means a peripheral
-doesn't need custom wiring for every computer it plugs into.
-
-## Agents: chaining tool use over multiple steps
-
-An **agent** is what you get when you put an LLM in a loop with tool use
-and let it decide, autonomously, which tools to call and in what order to
-accomplish a goal — rather than a single request/response with at most
-one tool call. A typical agent loop:
-
-<Steps>
-<Step>
-Given a goal and the current context, the model decides: respond
-directly, or call a tool.
-</Step>
-<Step>
-If it calls a tool, the application executes it and appends the result
-to the context.
-</Step>
-<Step>
-Repeat from step 1, until the model decides the goal is achieved and
-produces a final response.
-</Step>
-</Steps>
-
-This is a genuinely different mode from a single Q&A exchange: an agent
-might search the web, read a file, run a calculation, and check its own
-intermediate result against the original goal — several LLM calls chained
-together, each one building on tool results from the previous step, all
-directed at one overall task rather than one prompt.
-
-The tradeoffs are real: more steps means more opportunities for the model
-to make a wrong call, and errors can compound across a chain rather than
-being isolated to one response — which is why practical agent systems
-usually add guardrails (limits on how many steps to take, confirmation
-before high-stakes actions, structured output validation at each step)
-rather than letting a model loop entirely unsupervised.
-
-<Deeper title="Why long agent chains compound error">
-
-Model a run as $n$ steps, each independently correct with probability $p$,
-where a step means one tool choice plus one interpretation of its result.
-If the task needs *every* step to be right, the run succeeds with
-probability:
-
-$$
-P(\text{success}) = p^{\,n}
-$$
-
-The exponent is the whole story. At $p = 0.95$, five steps give $0.77$ and
-twenty steps give $0.36$ — the per-step reliability barely changed, but the
-task went from usually working to usually failing. Equivalently, holding a
-target success rate $P$ fixed, the reliability each step must hit is
-$p = P^{1/n}$, which climbs steeply in $n$: a 90%-reliable 20-step task
-needs $p \approx 0.995$ per step.
-
-The independence assumption is a simplification in both directions. Errors
-often *correlate* — a bad early retrieval poisons the context every later
-step reads, so failures cluster. But agents can also recover: a step that
-checks its own intermediate result turns some wrong steps into retries
-rather than failures, which is precisely why verification steps and step
-budgets buy so much. The design implication is the same either way — fewer,
-more reliable, verifiable steps beat longer autonomous chains.
-
-</Deeper>
-
-<NapkinMath title="The cost of a growing context">
-
-An agent re-sends its **entire** context on every iteration — the original
-goal, plus every tool call and result appended so far. Say the prompt starts
-at 2,000 tokens and each step adds 1,000 tokens of tool output.
-
-Over 10 steps, the input tokens processed per step are 2k, 3k, 4k … 11k —
-about **65,000 tokens total**, not the 12,000 a single final call would
-suggest. Run 20 steps and it is roughly **250,000**.
-
-The cost grows with the *square* of the step count, and so does latency,
-since prefill work scales with prompt length. This is why agent frameworks
-truncate, summarise, or cache context rather than letting the transcript
-grow unbounded — and why a step budget is a cost control, not just a safety
-rail.
-
-</NapkinMath>
-
-## How these patterns combine
-
-RAG and tool use aren't mutually exclusive — a well-built agent commonly
-has *retrieval* as one of its available tools ("search internal docs")
-alongside other tools (web search, code execution, sending a message),
-and decides which to invoke, and in what sequence, based on the specific
-request. The pattern underlying all of it is the same one from the start
-of this lesson: the LLM itself stays a frozen, text-in-text-out model; RAG
-and tool use are both ways of enriching what goes *into* that model and
-acting on what comes *out* of it.
-
-<Misconception claim="a big enough context window makes retrieval unnecessary.">
-  Two things stay true no matter how long the window gets. Private and
-  current data still has to come from *somewhere* — pasting it in is
-  retrieval, just done by hand and without ranking. And attention cost grows
-  with sequence length, so every irrelevant token you paste in is paid for in
-  latency and money on every single request. Accuracy also degrades in
-  practice: models are measurably worse at using information buried in the
-  middle of a very long prompt than the same information placed near the
-  edges. Retrieval is what decides *which* text is worth the window.
-</Misconception>
+Read them in that order — each is a heavier lever than the last, and
+agents commonly use retrieval as just one of their available tools, so
+the agent lesson assumes you've seen the RAG one.
 
 ## Course recap
 
-Across these thirteen lessons: probability and MLE as the reason loss
+Across these sixteen lessons: probability and MLE as the reason loss
 functions look the way they do, learning as loss minimization via
 gradient descent, backpropagation as the mechanism that makes that
 tractable at scale, the practitioner tooling (PyTorch, Hugging Face, and
@@ -376,7 +74,7 @@ problem entirely (generation, not prediction), the multi-stage recipe
 reinforcement learning as the actual algorithm family behind that last
 step, the engineering (KV caching, batching, quantization) that makes
 serving one practical, benchmarks and evaluation as the (imperfect) way
-to know if any of it worked, and finally prompting/RAG/tool use/agents
-as the patterns that turn a single trained model into real, capable
-applications. Each layer builds directly on the one before it — which is
-exactly why this course was ordered the way it was.
+to know if any of it worked, and finally prompting, retrieval, and
+agentic tool use as the patterns that turn a single trained model into
+real, capable applications. Each layer builds directly on the one before
+it — which is exactly why this course was ordered the way it was.

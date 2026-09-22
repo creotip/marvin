@@ -1,0 +1,135 @@
+---
+title: RAG & Vector Databases
+description: Retrieval-augmented generation grounds an LLM's answers in retrieved text at request time — and the vector databases and similarity search that make it work
+---
+
+[Prompt Engineering](/docs/prompt-engineering) covered shaping behavior
+for free, but it can't fix the deeper problem: a deployed
+[LLM](/docs/llms)'s knowledge is frozen at training time, and it knows
+nothing about private data it was never trained on. **RAG
+(retrieval-augmented generation)** addresses that by giving the model
+relevant information *at request time*, rather than trying to bake
+everything into its weights via training.
+
+## The RAG pattern
+
+<Steps>
+<Step>
+**Index**: split your documents (docs, PDFs, support tickets, whatever
+the knowledge source is) into chunks, and convert each chunk into an
+embedding vector — conceptually the same kind of embedding from
+[LLMs](/docs/llms), but here used to represent a whole passage of text
+rather than a single token. Store these in a **vector database**.
+</Step>
+<Step>
+**Retrieve**: when a user asks a question, embed the question the same
+way, and find the stored chunks whose embeddings are most similar
+(nearest neighbors in vector space) — the intuition being that
+semantically related text ends up with similar embedding vectors, so
+this retrieves passages relevant to the question even if they don't
+share exact keywords with it.
+</Step>
+<Step>
+**Generate**: insert the retrieved chunks into the prompt, along with
+the user's question, and let the LLM generate an answer *grounded in*
+that retrieved text.
+</Step>
+</Steps>
+
+RAG's appeal: it lets a model answer questions about private, current, or
+otherwise-untrained-on data without any retraining — you update the
+answers by updating the indexed documents, not by fine-tuning the model.
+Its main failure modes are retrieval quality (if the wrong chunks are
+retrieved, the model confidently answers from irrelevant context) and
+context limits (a model can only be given so much retrieved text before a
+prompt gets too long or too noisy to reason over well).
+
+<Deeper title="How retrieval actually ranks chunks">
+
+Indexing turns each chunk into a vector $\mathbf{d}_i \in \mathbb{R}^n$;
+a query becomes a vector $\mathbf{q}$ in the *same* space. Ranking is then
+just sorting every chunk by **cosine similarity**:
+
+$$
+\text{sim}(\mathbf{q}, \mathbf{d}) = \frac{\mathbf{q} \cdot \mathbf{d}}{\lVert \mathbf{q} \rVert \, \lVert \mathbf{d} \rVert} = \cos \theta
+$$
+
+Dividing by the magnitudes is what makes this measure *direction only*, so
+a long document and a short one are compared on meaning rather than length.
+The value ranges over $[-1, 1]$ for arbitrary vectors, and the top $k$
+chunks by this score are the ones spliced into the prompt.
+
+This is also why **chunking strategy** matters so much. One vector has to
+summarise an entire chunk, so a chunk spanning several unrelated topics
+gets an embedding that averages them and lands near none of them — it will
+never be the nearest neighbour of a sharp question. Chunks that are too
+small have the opposite problem: the sentence that matches the query no
+longer carries the surrounding context needed to answer it. Overlapping
+windows are the usual compromise.
+
+Cosine similarity also has a blind spot: an exact rare token — an error
+code, a product SKU, a surname — barely moves a dense embedding, so a
+purely semantic search can miss the one chunk that literally contains it.
+**Hybrid search** fixes this by running a keyword index such as BM25
+alongside the vector index and blending the two rankings,
+$s = \alpha \, s_{\text{vector}} + (1 - \alpha) \, s_{\text{keyword}}$,
+so exact matches and semantic matches can both surface.
+
+</Deeper>
+
+<Misconception claim="RAG eliminates hallucination.">
+  It narrows the problem without removing it. Retrieval can surface the
+  wrong chunks, or no relevant chunk at all — and nothing in the generation
+  step forces the model to say so instead of answering anyway. Even with
+  perfect retrieval, the model is still free to blend the retrieved text
+  with its own parametric knowledge, or to state something the passage
+  doesn't actually support. Grounding raises the odds of a correct answer;
+  it is not a constraint the decoder is obliged to obey.
+</Misconception>
+
+## Vector databases and similarity search
+
+A **vector database** is a database built specifically to store
+embedding vectors and answer one kind of query fast: "which stored
+vectors are closest to this query vector?" That's a different problem
+from what a normal database indexes for — exact matches and ranges on
+structured fields — which is why RAG systems reach for a purpose-built
+one rather than bolting vector search onto a regular table.
+
+**"Closest" is measured** with a similarity metric, most commonly
+**cosine similarity** (the angle between two vectors, ignoring their
+magnitude) or plain dot product. Two embeddings from
+[LLMs](/docs/llms) that represent semantically similar text end up
+pointing in similar directions in that high-dimensional space, which is
+exactly what makes nearest-neighbor search double as "find text with a
+similar meaning."
+
+Naively, finding the true nearest neighbors means comparing the query
+against *every* stored vector — fine for thousands of chunks, far too
+slow once you're indexing millions. Vector databases solve this with
+**approximate nearest neighbor (ANN)** indexes — **HNSW** (Hierarchical
+Navigable Small World) is the most common — that organize vectors into a
+searchable graph structure ahead of time, trading a small amount of
+recall accuracy for orders-of-magnitude faster lookups. This tradeoff
+(exact vs. approximate, accuracy vs. speed) is a recurring theme in
+systems that need to operate at scale, the same way
+[quantization](/docs/inference-and-serving) trades numerical precision
+for speed at inference time.
+
+In practice, "vector database" covers a range of tools: dedicated
+managed services (**Pinecone**), open-source databases built
+vector-first (**Weaviate**, **Milvus**, **Qdrant**), a lightweight
+option for local/small-scale use (**Chroma**), and vector-search
+*extensions* added to databases you might already run (**pgvector** for
+Postgres). Which one to reach for mostly comes down to scale, whether you
+want a separate system to operate versus extending an existing database,
+and how much of the ANN tuning you want to manage yourself.
+
+## Recap and what's next
+
+RAG grounds generation in retrieved text, and vector databases are the
+infrastructure that makes retrieval fast at scale — but a model that can
+only read still can't *act*. The next lesson,
+[Agents & Tool Use](/docs/agents-and-tool-use), covers giving a model the
+ability to call functions, take actions, and chain multiple steps
+together — including using retrieval itself as one tool among several.
