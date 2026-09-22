@@ -180,7 +180,10 @@ export function KVCacheSimulator() {
         >
           Reset
         </button>
-        <span className="text-fd-muted-foreground font-mono text-xs">
+        <span
+          className="text-fd-muted-foreground font-mono text-xs"
+          aria-live="polite"
+        >
           {generated} / {totalTokens} tokens
         </span>
         {generated > 0 && (

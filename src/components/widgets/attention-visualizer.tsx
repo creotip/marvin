@@ -121,7 +121,8 @@ export function AttentionVisualizer() {
             key={ex.text}
             type="button"
             onClick={() => changeExample(i)}
-            className={`rounded-md border px-2.5 py-1 text-xs font-medium ${
+            aria-pressed={i === exampleIndex}
+            className={`focus-visible:ring-fd-ring rounded-md border px-2.5 py-1 text-xs font-medium focus-visible:ring-2 focus-visible:outline-none ${
               i === exampleIndex
                 ? 'border-fd-primary bg-fd-primary/15 text-fd-primary'
                 : ''
@@ -142,10 +143,12 @@ export function AttentionVisualizer() {
               key={i}
               type="button"
               onClick={() => setFocus(i)}
+              aria-pressed={focus === i}
+              aria-label={`Attend from "${tok}"`}
               style={{
                 backgroundColor: focus !== null ? weightColor(w) : undefined,
               }}
-              className={`rounded-md border px-2 py-1.5 font-mono text-sm transition-colors ${
+              className={`focus-visible:ring-fd-ring rounded-md border px-2 py-1.5 font-mono text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none ${
                 focus === i ? 'border-fd-primary' : 'border-fd-border'
               }`}
             >

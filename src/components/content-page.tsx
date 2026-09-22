@@ -11,6 +11,7 @@ import { createRelativeLink } from 'fumadocs-ui/mdx';
 import type { Metadata } from 'next';
 import { getMDXComponents } from '@/components/mdx';
 import { DepthProvider, DepthToggle } from '@/components/depth';
+import { ReferenceBacklinks } from '@/components/reference-backlinks';
 import type { Collection } from '@/lib/content';
 import { gitConfig } from '@/lib/shared';
 
@@ -50,6 +51,9 @@ export function ContentPage({
             })}
           />
         </DocsBody>
+        {collection.name === 'reference' && (
+          <ReferenceBacklinks url={page.url} />
+        )}
       </DepthProvider>
     </DocsPage>
   );

@@ -90,6 +90,14 @@ description:
 ---
 `,
     );
+    write(
+      '(foundations)/cnn.mdx',
+      `---
+title: CNN (Convolutional Neural Network)
+description: A network built around convolution.
+---
+`,
+    );
     // Neither of these should become a term.
     write('index.mdx', `---\ntitle: Reference\n---\n`);
     write('untitled.mdx', `---\ndescription: No title here.\n---\n`);
@@ -102,10 +110,33 @@ description:
 
   it('skips index pages, untitled pages, and non-mdx files', () => {
     expect(terms.map((t) => t.term).sort()).toEqual([
+      'CNN',
+      'Convolutional Neural Network',
       'GPU',
       'Neural network',
       'RAG',
     ]);
+  });
+
+  it('emits both halves of a `CNN (Convolutional...)` title, pointing at one page', () => {
+    const aliases = terms.filter((t) => t.url === '/reference/cnn');
+    expect(aliases.map((t) => t.term)).toEqual(
+      expect.arrayContaining(['CNN', 'Convolutional Neural Network']),
+    );
+    // The preview heading stays the full page title for both.
+    expect(new Set(aliases.map((t) => t.title))).toEqual(
+      new Set(['CNN (Convolutional Neural Network)']),
+    );
+  });
+
+  it('decides case sensitivity per alias, not per title', () => {
+    const aliases = Object.fromEntries(
+      terms
+        .filter((t) => t.url === '/reference/cnn')
+        .map((t) => [t.term, t.caseSensitive]),
+    );
+    expect(aliases['CNN']).toBe(true);
+    expect(aliases['Convolutional Neural Network']).toBe(false);
   });
 
   it('strips (group) folders from the url', () => {
@@ -133,10 +164,20 @@ description:
 });
 
 describe('remarkReferenceLinks', () => {
+  const term = (
+    text: string,
+    url: string,
+    caseSensitive = false,
+  ): ReferenceTerm => ({ term: text, title: text, url, caseSensitive });
+
   const terms: ReferenceTerm[] = [
-    { term: 'neural network', url: '/reference/neural-network', caseSensitive: false }, // prettier-ignore
-    { term: 'network', url: '/reference/network', caseSensitive: false },
-    { term: 'RAG', url: '/reference/rag', caseSensitive: true },
+    term('neural network', '/reference/neural-network'),
+    term('network', '/reference/network'),
+    term('RAG', '/reference/rag', true),
+    // Two aliases for one page, as `collectReferenceTerms` now emits.
+    term('CNN', '/reference/cnn', true),
+    term('Convolutional Neural Network', '/reference/cnn'),
+    term('KV Cache', '/reference/kv-cache', true),
   ].sort((a, b) => b.term.length - a.term.length);
 
   const run = (tree: Node) => {
@@ -188,6 +229,16 @@ describe('remarkReferenceLinks', () => {
     );
   });
 
+  it('holds only the acronym word to its casing, not the whole term', () => {
+    // Prose writes "KV cache" where the page title says "KV Cache".
+    expect(tokens(run(root(paragraph(text('The KV cache grows.')))))).toContain(
+      'link(/reference/kv-cache)',
+    );
+    expect(tokens(run(root(paragraph(text('The kv cache grows.')))))).toEqual([
+      'The kv cache grows.',
+    ]);
+  });
+
   it.each([
     ['code', 0],
     ['heading', 0],
@@ -225,17 +276,50 @@ describe('remarkReferenceLinks', () => {
     const tree = run(root(paragraph(text('Nothing to link here.'))));
     expect(tokens(tree)).toEqual(['Nothing to link here.']);
   });
+
+  it('links a page through either of its title aliases', () => {
+    expect(tokens(run(root(paragraph(text('A CNN sees pixels.')))))).toContain(
+      'link(/reference/cnn)',
+    );
+    const spelledOut = run(
+      root(paragraph(text('A Convolutional Neural Network sees pixels.'))),
+    );
+    expect(tokens(spelledOut)).toContain('link(/reference/cnn)');
+  });
+
+  it('still links an aliased page only once per page', () => {
+    const tree = run(
+      root(
+        paragraph(text('A CNN sees pixels.')),
+        paragraph(text('A Convolutional Neural Network also sees pixels.')),
+      ),
+    );
+    expect(countLinks(tree)).toBe(1);
+  });
 });
 
 describe('remarkReferencePreviews', () => {
   const terms: ReferenceTerm[] = [
     {
       term: 'Neural network',
+      title: 'Neural network',
       url: '/reference/neural-network',
       caseSensitive: false,
       description: 'A stack of layers.',
     },
-    { term: 'GPU', url: '/reference/gpu', caseSensitive: true },
+    {
+      term: 'CNN',
+      title: 'CNN (Convolutional Neural Network)',
+      url: '/reference/cnn',
+      caseSensitive: true,
+      description: 'A network built around convolution.',
+    },
+    {
+      term: 'GPU',
+      title: 'GPU',
+      url: '/reference/gpu',
+      caseSensitive: true,
+    },
   ];
 
   const link = (url: string, data?: Node['data']): Node => ({
@@ -269,6 +353,14 @@ describe('remarkReferencePreviews', () => {
     const node = link('/docs/llms');
     run(root(paragraph(node)));
     expect(node.data?.hProperties).toBeUndefined();
+  });
+
+  it('uses the full page title, not the matched alias, as the heading', () => {
+    const node = link('/reference/cnn');
+    run(root(paragraph(node)));
+    expect(node.data?.hProperties?.['data-preview-title']).toBe(
+      'CNN (Convolutional Neural Network)',
+    );
   });
 
   it('preserves hProperties that are already set', () => {
