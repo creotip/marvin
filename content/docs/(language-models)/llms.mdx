@@ -10,6 +10,19 @@ A **large language model** is what you get by taking that architecture, scaling 
 training it in a specific multi-stage recipe on text. This lesson walks
 through that recipe end to end.
 
+The whole pipeline, before we break it into pieces:
+
+<Mermaid chart={`flowchart TD
+  W[Raw web-scale text] --> P[Pretraining on<br/>next-token prediction]
+  P --> B[Base model<br/>fluent but not helpful]
+  B --> S[Supervised fine-tuning on<br/>instruction and response pairs]
+  S --> R[Preference tuning from<br/>human feedback]
+  R --> A[Deployed assistant]
+`} />
+
+Each arrow is the *same* transformer being trained again — what changes
+from stage to stage is the data and the objective, never the architecture.
+
 ## Tokenization: turning text into numbers
 
 Neural networks operate on numbers, not characters. **Tokenization** is
@@ -43,6 +56,32 @@ similar contexts during training end up with similar embedding vectors —
 this is learned entirely from data, not hand-specified, and is the raw
 input that the transformer's attention layers then operate on.
 
+<Deeper title="How byte-pair encoding builds a vocabulary">
+
+BPE is trained, not designed. Start with a base vocabulary of individual
+bytes, so every possible string is representable. Then repeat: count every
+adjacent pair of symbols in the training corpus, find the most frequent
+pair $(a, b)$, and add a new symbol $ab$ to the vocabulary, replacing every
+occurrence. Stop when the vocabulary reaches a target size $V$ — typically
+$V \approx 3 \times 10^4$ to $2 \times 10^5$ for modern models.
+
+Frequent sequences get merged early and end up as single tokens; rare ones
+never get merged and stay as several pieces. That is why token counts do
+not track word counts. A common English word is usually one token, but a
+rare word, a proper noun, a chemical name, or a long identifier in code may
+cost three or four. Whitespace is generally merged *into* the following
+token, so ` the` and `the` are different tokens.
+
+Two consequences that bite in practice. First, non-English text — and
+especially scripts far from the corpus's distribution — often costs
+noticeably more tokens per unit of meaning, which means more compute and
+more money for the same sentence. Second, because tokens are opaque chunks
+rather than letters, tasks defined over characters (counting letters,
+reversing a string, rhyming) are genuinely harder for the model than they
+look — it is not seeing the letters you are seeing.
+
+</Deeper>
+
 ## Pretraining: next-token prediction at scale
 
 **Pretraining** is self-supervised learning (see
@@ -66,6 +105,81 @@ inclined to *follow instructions* or hold a helpful conversation — a base
 model trained to predict "what comes next" on internet text is just as
 likely to continue a question with more questions (that's a common pattern
 in its training data) as it is to answer it.
+
+<Deeper title="The next-token objective, written out">
+
+A language model assigns a probability to a whole sequence of tokens
+$x_1, \dots, x_T$ by factoring it into conditionals — each token given
+everything before it:
+
+$$
+p_\theta(x_1, \dots, x_T) = \prod_{t=1}^{T} p_\theta(x_t \mid x_{<t})
+$$
+
+This factorization is exact, not an approximation — it is just the chain
+rule of probability. What the model supplies is the parameterized
+conditional $p_\theta(x_t \mid x_{<t})$, produced by a softmax over the
+vocabulary at each position.
+
+Taking the negative log turns the product into a sum, which is exactly the
+cross-entropy loss from [ML Fundamentals](/docs/ml-fundamentals) applied
+at every position:
+
+$$
+L(\theta) = -\frac{1}{T} \sum_{t=1}^{T} \log p_\theta(x_t \mid x_{<t})
+$$
+
+So "train a language model" and "do classification over the vocabulary at
+every token position" are the same sentence.
+
+**Perplexity** is this loss exponentiated:
+
+$$
+\text{PPL} = \exp\big(L(\theta)\big)
+$$
+
+It is readable as an effective branching factor: a perplexity of 20 means
+the model is, on average, as uncertain as if it were choosing uniformly
+among 20 tokens. A uniform model over a vocabulary of size $V$ has
+perplexity exactly $V$, and a perfect model has perplexity 1. Because it
+depends on the tokenizer — the same text split into more tokens changes
+the per-token average — perplexity is only comparable across models that
+share a vocabulary.
+
+</Deeper>
+
+<Misconception claim="fine-tuning is where the model learns what it knows.">
+  Essentially all of a model's world knowledge, grammar, and reasoning
+  ability comes from pretraining, which consumes trillions of tokens.
+  Supervised fine-tuning and preference tuning together use a vanishingly
+  small fraction of that — typically thousands to low millions of examples.
+  They are teaching *behavior*, not *content*: how to answer, how to refuse,
+  what tone to take. This is why fine-tuning rarely fixes a factual gap, and
+  why retrieval, not more fine-tuning, is the usual answer when a model
+  needs to know something it was never pretrained on.
+</Misconception>
+
+<NapkinMath title="How much memory do the weights alone need?">
+
+Memory for parameters is just a multiplication: **bytes = parameters ×
+bytes per parameter**. At `fp32` that's 4 bytes each, `fp16`/`bf16` 2,
+`int8` 1, `int4` half a byte.
+
+| Parameters | fp16 | int8 | int4 |
+| --- | --- | --- | --- |
+| 7B | ~14 GB | ~7 GB | ~3.5 GB |
+| 70B | ~140 GB | ~70 GB | ~35 GB |
+
+So a 7B model at `fp16` fits on a single 24 GB consumer GPU, while a 70B
+model at the same precision needs roughly two 80 GB datacenter GPUs just to
+*hold the weights* — before any activations or KV cache. Quantizing to
+`int4` is what drops that same 70B model to ~35 GB and onto one card.
+
+Training is far worse than this table suggests: the optimizer state alone
+(Adam keeps two extra values per parameter) plus gradients typically pushes
+the requirement to several times the inference footprint.
+
+</NapkinMath>
 
 ## Decoding: turning probabilities into text
 
@@ -93,6 +207,54 @@ and it has a real effect on output quality and character:
 Production chat products typically combine temperature with top-p or
 top-k rather than using any one alone, tuned to balance coherence against
 repetitiveness for the specific product.
+
+<Deeper title="Temperature, top-k and top-p over the logits">
+
+The model's raw output at a position is a vector of **logits**
+$z \in \mathbb{R}^V$, one score per vocabulary entry. Softmax turns it into
+a distribution:
+
+$$
+p_i = \frac{e^{z_i / T}}{\sum_{j=1}^{V} e^{z_j / T}}
+$$
+
+where $T$ is the **temperature**. Dividing the logits before exponentiating
+is the entire mechanism. As $T \to 0$ the largest logit dominates and the
+distribution collapses onto $\arg\max_i z_i$ — that is greedy decoding, so
+temperature 0 and greedy are the same thing. At $T = 1$ you sample from the
+model's own distribution unchanged. As $T$ grows the exponents shrink toward
+each other and the distribution flattens toward uniform.
+
+**Top-k** truncates before sampling: keep the set $K$ of indices with the
+$k$ largest logits, zero the rest, renormalize over $K$. The pool size is
+fixed regardless of how confident the model is.
+
+**Top-p**, or nucleus sampling, makes that pool adaptive. Sort tokens by
+probability descending and take the smallest prefix $S$ satisfying:
+
+$$
+\sum_{i \in S} p_i \geq p
+$$
+
+then renormalize over $S$. When the model is confident, a couple of tokens
+already exceed $p$ and the pool is tiny; when it is genuinely uncertain, the
+pool widens automatically. That adaptivity is the argument for top-p over
+top-k — a fixed $k$ is simultaneously too permissive at confident positions
+and too restrictive at uncertain ones.
+
+When combined, the conventional order is: scale by temperature, apply the
+top-k and top-p filters, renormalize, then sample.
+
+</Deeper>
+
+<Misconception claim="setting temperature to zero makes the model accurate.">
+  Temperature 0 makes the model *deterministic*, which is not the same thing.
+  It always picks the highest-probability token, so you get the same output
+  every run — but if the model's most likely continuation is a confidently
+  wrong fact, temperature 0 guarantees you get that wrong fact every single
+  time. Sampling parameters control variance, not correctness. They operate
+  on a distribution the model has already committed to.
+</Misconception>
 
 ## Fine-tuning: turning a base model into an assistant
 
@@ -203,6 +365,14 @@ Output: an instruction-tuned "chat" model — what you actually interact
 with as a product.
 </Step>
 </Steps>
+
+The three stages differ along every axis except the model itself:
+
+| Stage | Data | Signal | Relative scale |
+| --- | --- | --- | --- |
+| Pretraining | Raw text, unlabeled | The actual next token | Trillions of tokens |
+| SFT | Curated instruction/response pairs | The written ideal response | Thousands to millions |
+| RLHF / DPO | Ranked response pairs | Which response a human preferred | Thousands to millions |
 
 Each stage is training the *same* underlying transformer — nothing about
 the architecture changes between stages, only the data and objective. This

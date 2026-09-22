@@ -82,6 +82,21 @@ history behind it:
   ReLU's sharp corner at zero, which empirically trains slightly better
   at the scale modern models operate at, at a small extra compute cost.
 
+| Activation | Derivative behavior | Main failure mode |
+| --- | --- | --- |
+| Sigmoid | Near zero for large inputs | Vanishing gradients with depth |
+| Tanh | Near zero for large inputs | Vanishing gradients with depth |
+| ReLU | Exactly 1 when `z > 0`, else 0 | Dying neurons stuck at zero |
+| GELU | Smooth, nonzero near zero | Slightly more compute per unit |
+
+<Misconception claim="the activation function is a minor implementation detail.">
+  It decides whether a deep network trains at all. Backprop multiplies one
+  activation derivative per layer, so a nonlinearity whose derivative is
+  typically 0.2 leaves a 20-layer network with a gradient scaled by roughly
+  `0.2^20` — effectively zero. Swapping sigmoid for ReLU was one of the
+  changes that made depth practical, not a cosmetic preference.
+</Misconception>
+
 ## The forward pass
 
 Running an input through the network to produce an output is called the
@@ -97,6 +112,18 @@ loss = (y_pred - y_true)^2  # e.g. squared error against the true label
 Every one of those operations — multiply, add, ReLU, subtract, square — is
 a simple, differentiable function. That fact is the entire key to what
 comes next.
+
+The same graph is traversed twice: values flow left to right to produce a
+loss, then gradients flow right to left back to the parameters.
+
+<Mermaid chart={`flowchart LR
+  X[Input x] --> H[Hidden<br/>h]
+  H --> Y[Prediction<br/>y]
+  Y --> L[Loss]
+  L -. gradient .-> Y
+  Y -. gradient .-> H
+  H -. gradient .-> W[Weights<br/>and biases]
+`} />
 
 ## The chain rule, and why it scales
 
@@ -118,6 +145,42 @@ The trick is *order of computation*: work backward from the loss,
 computing each local derivative once and reusing it for everything
 upstream. That's why it's called **back**propagation — you build a
 computation graph forward, then walk it backward, accumulating gradients.
+
+<Deeper title="The chain rule, written out layer by layer">
+
+Write the two-layer network above with explicit pre-activations. With
+$z^{(1)} = W^{(1)} x + b^{(1)}$, $h = \sigma(z^{(1)})$,
+$z^{(2)} = W^{(2)} h + b^{(2)}$, and a scalar loss $L$, define the
+**error signal** at each layer as the gradient of the loss with respect to
+that layer's pre-activation:
+
+$$
+\delta^{(2)} = \frac{\partial L}{\partial z^{(2)}}, \qquad
+\delta^{(1)} = \left( W^{(2)\top} \delta^{(2)} \right) \odot \sigma'(z^{(1)})
+$$
+
+where $\odot$ is elementwise multiplication. Once you have $\delta$ for a
+layer, that layer's parameter gradients are immediate:
+
+$$
+\frac{\partial L}{\partial W^{(\ell)}} = \delta^{(\ell)} \, a^{(\ell-1)\top},
+\qquad
+\frac{\partial L}{\partial b^{(\ell)}} = \delta^{(\ell)}
+$$
+
+with $a^{(\ell-1)}$ the incoming activation ($a^{(0)} = x$). This is the
+whole algorithm: compute $\delta$ at the output, push it backward with
+$W^{\top}$ and the local derivative $\sigma'$, and read off parameter
+gradients as an outer product at each stop. The transpose appears because
+the forward pass maps activations through $W$, so the derivative maps
+sensitivities back through $W^{\top}$.
+
+Note what $\partial L/\partial W^{(\ell)}$ depends on: the activation
+$a^{(\ell-1)}$ from the *forward* pass. Those values must still be in memory
+when the backward pass reaches that layer, which is the cost discussed
+below.
+
+</Deeper>
 
 ## Stepping through it, node by node
 
@@ -152,6 +215,38 @@ That last property — the gradient of *all* parameters costs about the same
 as *one* forward pass — is what makes training networks with billions of
 parameters computationally feasible at all. Without it, gradient descent at
 LLM scale would be a non-starter.
+
+<NapkinMath title="Backprop vs. nudging each parameter by hand">
+
+You could estimate gradients without any calculus: nudge one parameter by a
+tiny amount, re-run the network, and see how much the loss changed. That's
+a **finite difference**, and it needs one forward pass *per parameter*.
+
+For a small MLP with 1M parameters:
+
+- Finite differences: **1,000,000** forward passes per gradient step
+- Backprop: 1 forward + 1 backward ≈ **3** forward passes' worth of work
+
+That's a factor of roughly 300,000 — and the gap grows linearly with
+parameter count, so at a billion parameters it is a factor of hundreds of
+millions. Backprop is not a speedup over the naive method; it is the
+difference between possible and impossible.
+
+The price is memory. Take a 10-layer MLP with 1,024 units per layer, batch
+size 64, stored as 4-byte floats: each layer's activations are
+64 × 1024 × 4 ≈ 0.26 MB, so all ten together are only
+~2.6 MB. Tiny here — but the same accounting at transformer scale is why
+training a model needs far more memory than running it.
+
+</NapkinMath>
+
+<Misconception claim="backpropagation is how a network learns.">
+  Backprop only *computes* gradients. It never changes a single weight. The
+  learning happens in the optimizer step from the previous lesson — backprop
+  answers "which direction reduces the loss," and gradient descent decides how
+  far to move. They are routinely called one thing because they always run
+  back to back.
+</Misconception>
 
 ### A fully worked numeric example
 
@@ -230,6 +325,37 @@ name, since all three show up throughout this course:
   lost — it can flow through the skip connection instead. This one
   architectural trick is a major reason networks with dozens or hundreds
   of layers (again, transformers included) are trainable at all.
+
+<Deeper title="Why depth makes gradients vanish or explode">
+
+The backward recursion above is a repeated matrix product. Unrolling it
+across $L$ layers, the gradient reaching layer $\ell$ carries the factor:
+
+$$
+\frac{\partial L}{\partial z^{(\ell)}} =
+\left( \prod_{k=\ell+1}^{L} J^{(k)} \right)^{\!\top} \frac{\partial L}{\partial z^{(L)}},
+\qquad
+J^{(k)} = \operatorname{diag}\!\left(\sigma'(z^{(k-1)})\right) W^{(k)}
+$$
+
+Each $J^{(k)}$ is a **Jacobian** — the derivative of one layer's output with
+respect to its input. The magnitude of the whole product is governed roughly
+by the product of their singular values. If the typical scale factor per
+layer is $s$, the gradient at depth $d$ scales like $s^{\,d}$:
+
+- $s = 0.9$ over 50 layers gives $0.9^{50} \approx 0.005$ — vanishing
+- $s = 1.1$ over 50 layers gives $1.1^{50} \approx 117$ — exploding
+
+Because the dependence is *exponential* in depth, there is no safe middle
+ground you can tune your way into; $s$ has to be held near 1 by
+construction. That is exactly what the three fixes above do. Initialization
+schemes set $W$ so the initial scale is near 1, normalization layers rescale
+activations back to a fixed variance at every step, and a residual
+connection changes the Jacobian to $I + J^{(k)}$, whose product stays
+well-behaved because the identity term guarantees a path with scale exactly
+1.
+
+</Deeper>
 
 ## Recap
 

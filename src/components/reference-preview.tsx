@@ -1,11 +1,11 @@
 'use client';
 
-import { useCallback, useRef, useState, type ReactNode } from 'react';
+import { type ReactNode, useCallback, useRef, useState } from 'react';
 import { cn } from '@/lib/cn';
 
 const OPEN_DELAY_MS = 180;
 const CLOSE_DELAY_MS = 120;
-const CARD_WIDTH = 288;
+const CARD_WIDTH = 384;
 
 /**
  * Hover/focus preview for links into the reference glossary, so a reader can
@@ -55,7 +55,7 @@ export function ReferencePreview({
         role="tooltip"
         hidden={!open}
         className={cn(
-          'bg-fd-popover text-fd-popover-foreground absolute top-full z-50 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-lg border p-3 text-sm leading-relaxed font-normal shadow-lg',
+          'bg-fd-popover text-fd-popover-foreground absolute top-full z-50 mt-2 w-96 max-w-[calc(100vw-2rem)] rounded-lg border p-3 text-sm leading-relaxed font-normal text-pretty shadow-lg',
           alignEnd ? 'right-0' : 'left-0',
         )}
       >

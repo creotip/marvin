@@ -28,13 +28,13 @@ adjust `θ` to reduce it, and adjust. That's it — that loop, run millions of
 times, is the entire "learning" in machine learning.
 
 <Mermaid chart={`flowchart LR
-  D[Training data] --> M["Model f(x; θ)"]
+  D[Training data] --> M[Model f of x<br/>with parameters θ]
   M --> P[Prediction]
-  T[Correct answer] --> L["Loss L(θ)"]
+  T[Correct answer] --> L[Loss]
   P --> L
-  L --> G["Gradient ∇L(θ)"]
+  L --> G[Gradient of loss<br/>w.r.t. θ]
   G --> O[Optimizer]
-  O -- "update θ" --> M
+  O -- update θ --> M
 `} />
 
 <Misconception claim="the model understands the task.">
@@ -245,11 +245,11 @@ Before training, data is split into (at least) three disjoint sets:
 Reading the two curves together is enough to diagnose which one you have:
 
 <Mermaid chart={`flowchart TD
-  S{"Training loss low?"}
-  S -- No --> U["Underfitting<br/>bigger model, train longer,<br/>raise learning rate"]
-  S -- Yes --> V{"Validation loss<br/>close to training loss?"}
-  V -- Yes --> G["Healthy<br/>scale up if you want more"]
-  V -- No --> O["Overfitting<br/>more data, regularization,<br/>early stopping"]
+  S{Is training loss low}
+  S -- No --> U[Underfitting<br/>bigger model<br/>train longer<br/>raise learning rate]
+  S -- Yes --> V{Is validation loss<br/>close to training loss}
+  V -- Yes --> G[Healthy<br/>scale up if you want more]
+  V -- No --> O[Overfitting<br/>more data<br/>regularization<br/>early stopping]
 `} />
 
 The **bias-variance tradeoff** is the formal name for this balance: a

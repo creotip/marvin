@@ -10,6 +10,24 @@ actually mean. Both answers come from probability and statistics — not
 as background trivia, but as the actual mathematical foundation loss
 functions, uncertainty, and even regularization are built on.
 
+The frame to hold onto: there is some **true distribution** out in the
+world that produced your data, you only ever see a **finite sample** of
+it, and everything training does is pick the parameters that make that
+sample look as likely as possible. Every step in the pipeline is a step
+in that chain.
+
+<Mermaid chart={`flowchart LR
+  A[Unknown data<br/>distribution] --> B[Finite training<br/>sample]
+  B --> C[Model fit by<br/>maximum likelihood]
+  C --> D[Predictions with<br/>uncertainty]
+  D --> E[Evaluation on<br/>held-out data]
+  E -- estimates the gap --> A
+`} />
+
+The arrow looping back is the whole game. You never get to measure how
+well you did against the true distribution — you only ever get another
+finite sample, held out, and use it to *estimate* that gap.
+
 ## Random variables and distributions
 
 A **random variable** represents a quantity whose value isn't fixed but
@@ -40,6 +58,50 @@ abstract definitions: a loss function *is* an expectation — cross-entropy
 loss is the expected negative log-probability the model assigns to the
 correct answer, averaged over your training examples.
 
+But you can't compute that expectation directly, because you don't have
+the true distribution — you have a finite sample of it. So you compute
+the **sample mean** instead and hope it's close. It usually is, and
+there's a precise reason why.
+
+<Deeper title="Why the sample mean is trustworthy">
+
+For a random variable $X$ with distribution $p$, the expectation and
+variance are:
+
+$$
+\mathbb{E}[X] = \sum_x x \, p(x), \qquad \operatorname{Var}(X) = \mathbb{E}\left[(X - \mathbb{E}[X])^2\right]
+$$
+
+Given $n$ independent samples, the sample mean $\bar{X}_n = \frac{1}{n}\sum_i X_i$
+is *unbiased* — $\mathbb{E}[\bar{X}_n] = \mathbb{E}[X]$ — and its variance
+shrinks with $n$:
+
+$$
+\operatorname{Var}(\bar{X}_n) = \frac{\operatorname{Var}(X)}{n}
+$$
+
+So the **standard error** — the typical distance between your measured
+average and the truth — falls as $\sigma / \sqrt{n}$. That square root is
+the most consequential fact in applied statistics: halving your error bar
+costs *four times* the data, and getting 10× more precision costs 100×.
+
+This single expression explains two things at once. It's why a validation
+set of 100 examples gives a noisy accuracy estimate while 10,000 gives a
+usable one, and it's why mini-batch gradients work — the same $1/n$
+variance reduction applies to gradient estimates, which is covered in
+[ML Fundamentals](/docs/ml-fundamentals).
+
+</Deeper>
+
+<Misconception claim="collecting more data steadily shrinks your error bars.">
+  It shrinks them with the *square root* of the sample size, not the sample
+  size — which in practice feels like diminishing returns hitting a wall.
+  If your benchmark measures 71.2% accuracy on 1,000 examples, the
+  uncertainty on that number is roughly ±1.4 points. Getting it to ±0.14
+  points needs 100,000 examples. This is why two models reported a fraction
+  of a point apart on a small benchmark are usually indistinguishable.
+</Misconception>
+
 ## Bayes' theorem
 
 **Bayes' theorem** relates two conditional probabilities — how likely a
@@ -69,6 +131,64 @@ from "how likely is it you have the disease, given a positive test result"
 tool for converting between the two correctly.
 </Callout>
 
+<Deeper title="Bayes' rule, written out">
+
+For a hypothesis $H$ and observed evidence $E$:
+
+$$
+P(H \mid E) = \frac{P(E \mid H) \, P(H)}{P(E)}
+$$
+
+The denominator is just a normalising constant — the total probability of
+seeing that evidence at all, summed over every hypothesis:
+
+$$
+P(E) = \sum_{H'} P(E \mid H') \, P(H')
+$$
+
+The cleanest way to see what's going on is the **odds form**. Divide the
+rule for $H$ by the rule for its negation $\neg H$; the $P(E)$ terms
+cancel:
+
+$$
+\underbrace{\frac{P(H \mid E)}{P(\neg H \mid E)}}_{\text{posterior odds}} = \underbrace{\frac{P(E \mid H)}{P(E \mid \neg H)}}_{\text{likelihood ratio}} \times \underbrace{\frac{P(H)}{P(\neg H)}}_{\text{prior odds}}
+$$
+
+Evidence *multiplies* your prior odds by how much better the hypothesis
+explains it than the alternative does. A test that fires 20× more often on
+sick people than healthy ones multiplies your odds by 20 — which is a lot,
+but not enough if your prior odds were 1 in 10,000. Strong evidence cannot
+rescue a weak prior on its own, and that is the entire content of the
+base-rate fallacy.
+
+</Deeper>
+
+<NapkinMath title="A 99% accurate test on a rare disease">
+
+A disease affects **1 in 10,000** people. A test catches 99% of real cases
+and has a 1% false-positive rate. You test positive. How worried should
+you be?
+
+Imagine 1,000,000 people tested:
+
+- **100** have the disease. 99 of them test positive.
+- **999,900** are healthy. 1% of them — about **9,999** — test positive
+  anyway.
+
+So 10,098 positive results, of which 99 are real:
+
+$$
+P(\text{disease} \mid \text{positive}) \approx \frac{99}{10{,}098} \approx 1\%
+$$
+
+A "99% accurate" test on a positive result leaves you **99% likely to be
+fine**. Nothing about the test is broken — the false positives simply come
+from a pool 10,000× larger. Swap *disease* for *fraud*, *spam*, or *safety
+violation* and the same arithmetic explains why rare-event classifiers
+drown in false alarms.
+
+</NapkinMath>
+
 ## Maximum likelihood estimation: what training actually optimizes
 
 Here's the connection that ties this lesson directly back to
@@ -90,6 +210,54 @@ cross-entropy loss via [gradient descent](/reference/gradient-descent)
 has a probabilistic story behind it — mean squared error is the MLE
 solution under an assumption that errors are Gaussian-distributed noise.
 
+<Deeper title="Maximum likelihood is cross-entropy minimisation">
+
+Assume the $n$ training examples are independent. The likelihood of the
+whole dataset under parameters $\theta$ is the product of the per-example
+probabilities:
+
+$$
+L(\theta) = \prod_{i=1}^{n} p(y_i \mid x_i; \theta)
+$$
+
+Products of thousands of numbers below 1 underflow to zero in floating
+point, so take logs — monotonic, so the maximiser is unchanged — and flip
+the sign to turn maximisation into minimisation:
+
+$$
+\hat{\theta} = \arg\max_\theta \, L(\theta) = \arg\min_\theta \, -\frac{1}{n} \sum_{i=1}^{n} \log p(y_i \mid x_i; \theta)
+$$
+
+That right-hand expression **is** the cross-entropy loss from
+[ML Fundamentals](/docs/ml-fundamentals) — the negative log-probability
+assigned to the correct label, averaged over the data. No derivation step
+was skipped; they are the same object written two ways.
+
+The Gaussian case follows the same route. Assume $y_i = f(x_i; \theta) + \epsilon_i$
+with $\epsilon_i \sim \mathcal{N}(0, \sigma^2)$. Then
+$p(y_i \mid x_i; \theta) \propto \exp\!\left(-\frac{(y_i - f(x_i; \theta))^2}{2\sigma^2}\right)$,
+and taking the negative log leaves:
+
+$$
+-\log p(y_i \mid x_i; \theta) = \frac{(y_i - f(x_i; \theta))^2}{2\sigma^2} + \text{const}
+$$
+
+The constant doesn't depend on $\theta$, so minimising it is minimising
+mean squared error. MSE is not an arbitrary choice of "squaring feels
+right" — it is the assumption of Gaussian noise, written as a loss.
+
+</Deeper>
+
+<Misconception claim="a model that outputs 0.95 is right 95% of the time.">
+  That's the definition of a **calibrated** model, and most trained
+  networks are not calibrated out of the box. Cross-entropy rewards
+  assigning high probability to the right answer, which pushes models
+  toward overconfidence — a network can report 0.95 on a set of inputs it
+  actually gets right 70% of the time. Calibration is a separate property
+  that has to be measured on held-out data and often corrected for
+  afterwards; it does not come free with a low loss.
+</Misconception>
+
 ## MAP estimation: where regularization comes from
 
 **Maximum a posteriori (MAP) estimation** extends MLE by incorporating a
@@ -106,6 +274,16 @@ objective that is *precisely* the ordinary loss function plus an L2
 penalty on the weights. Regularization isn't a separate hack bolted onto
 training — it's what MLE becomes once you add a prior belief about the
 parameters.
+
+| | Maximises | Uses a prior | Training objective |
+| --- | --- | --- | --- |
+| MLE | Probability of the data given `θ` | No | Plain loss |
+| MAP | Probability of `θ` given the data | Yes | Loss + regularization penalty |
+
+The choice of prior picks the penalty: a Gaussian prior gives the squared
+(L2) penalty of weight decay, while a Laplace prior gives an absolute-value
+(L1) penalty, which drives weights to exactly zero and produces sparse
+models.
 
 ## Recap and what's next
 

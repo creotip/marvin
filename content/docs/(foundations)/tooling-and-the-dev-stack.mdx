@@ -9,6 +9,22 @@ look like in actual code, on an actual machine, and which tools do you
 reach for at each stage? If you're a working developer who's used AI
 products for years but never built one, this is the map you're missing.
 
+The stack is a tower of abstractions, and each layer exists to hand
+something specific to the one above it. It's worth seeing the shape of it
+before walking through the layers one at a time:
+
+<Mermaid chart={`flowchart TD
+  H[GPU hardware<br/>NVIDIA AMD TPU] -- raw matrix throughput --> C[Driver plus CUDA<br/>and cuDNN kernels]
+  C -- fast primitive ops --> F[Framework<br/>PyTorch JAX TensorFlow]
+  F -- tensors and autograd --> L[Model and data libraries<br/>transformers datasets PEFT]
+  L -- trained weights --> S[Serving layer<br/>vLLM TensorRT-LLM Ollama]
+  S -- tokens per second --> A[Your application]
+`} />
+
+Most developers spend their time in the middle two layers, reach down to
+the driver layer only when something breaks, and reach up to the serving
+layer once a model actually has users.
+
 ## The language layer: (almost always) Python
 
 Nearly all model development happens in **Python** — not because Python is
@@ -37,6 +53,17 @@ A few other languages show up at specific layers:
 don't need C++/CUDA unless you're doing performance engineering
 specifically.
 
+<Misconception claim="Python being slow makes it a bad choice for training models.">
+  Python's speed is nearly irrelevant here, because Python is not doing the
+  work. A training step issues a small number of Python calls that each
+  launch a compiled kernel on the GPU; the interpreter spends its time
+  waiting, not computing. Python is the *control* language, and the
+  arithmetic happens somewhere it can't slow down. Python overhead only
+  becomes visible when the GPU work per call is tiny — which is exactly the
+  case `torch.compile` and JAX's `jit` exist to fix, by fusing many small
+  operations into fewer, larger kernel launches.
+</Misconception>
+
 ## The framework layer: what defines a model in code
 
 A **deep learning framework** gives you two core things: a way to define a
@@ -45,6 +72,42 @@ computation graph of tensor operations (the forward pass), and
 (backprop, from the previous lesson) for you, automatically, from the
 forward pass you wrote. You never hand-derive gradients in practice; the
 framework does it.
+
+<Deeper title="What autograd actually records">
+
+Automatic differentiation is not symbolic calculus and it is not numerical
+finite differences. It is bookkeeping. As the forward pass runs, the
+framework builds a **tape** — a directed graph whose nodes are the
+primitive operations that were executed, in the order they executed, each
+storing whatever intermediate values its derivative will need.
+
+Each primitive $f$ contributes not its full Jacobian $J$ but a
+**vector-Jacobian product**: a function that maps an incoming gradient
+$\bar{y}$ to the outgoing gradient
+
+$$
+\bar{x} = J^{\top} \bar{y}
+$$
+
+Replaying the tape backwards and composing these products is exactly the
+chain rule, and it is why the whole thing is called *reverse-mode* autodiff.
+For a loss $L = f_n \circ \dots \circ f_1$ the cost of one backward pass is
+a small constant multiple of the forward pass, *regardless of how many
+parameters there are* — which is the property that makes training
+billion-parameter models possible at all.
+
+The price is memory. Every intermediate value the backward pass will need
+must stay resident until it is consumed, so activation memory scales with
+depth times batch size. **Gradient checkpointing** trades that back: discard
+most intermediates and recompute them during the backward pass, buying a
+large memory saving for roughly one extra forward pass of compute.
+
+PyTorch builds this tape implicitly as you call operations on tensors that
+have `requires_grad` set. TensorFlow's `GradientTape` is the same idea with
+the name left visible. JAX instead traces your function once and transforms
+it, which is why it demands pure functions and no hidden state.
+
+</Deeper>
 
 - **PyTorch** — the dominant framework today, in both research and most
   production training. Defines computation "eagerly" (operations run
@@ -161,6 +224,76 @@ You won't touch these directly for small projects — they matter once
 you're training something too large for a single machine, which for most
 developers experimenting or fine-tuning is not the common case.
 
+The reason this tooling exists at all is that model *weights* are rarely
+what fills a GPU. Training also has to hold gradients, optimizer state, and
+the stored activations autograd needs — and those together usually dwarf
+the weights themselves.
+
+<NapkinMath title="Fine-tuning a 7B model, memory line by line">
+
+Take a 7-billion-parameter model, fine-tuned in the standard mixed-precision
+setup with Adam. Count 2 bytes per fp16 number and 4 per fp32:
+
+- **Weights**, fp16: 7B × 2 = **14 GB**
+- **Gradients**, fp16: 7B × 2 = **14 GB**
+- **Adam state**, fp32 master weights + two moments: 7B × 4 × 3 = **84 GB**
+
+That's **~112 GB before a single activation is stored** — on a GPU with
+80 GB of memory. The optimizer state alone is six times the size of the
+fp16 weights.
+
+This is why the two most common fixes are (a) shard those tensors across
+GPUs with FSDP or DeepSpeed, or (b) don't create most of them at all: LoRA
+freezes the base weights, so gradients and Adam state exist only for the
+small adapter, collapsing the last two lines to near zero and leaving the
+14 GB of frozen weights as the dominant term.
+
+</NapkinMath>
+
+<Deeper title="Where GPU memory actually goes">
+
+For $P$ parameters, a training step's memory splits into four terms:
+
+$$
+M = \underbrace{b_w P}_{\text{weights}} + \underbrace{b_g P}_{\text{gradients}} + \underbrace{b_o P}_{\text{optimizer state}} + \underbrace{M_{\text{act}}}_{\text{activations}}
+$$
+
+The first three are fixed by the model and optimizer and do not depend on
+batch size. In mixed-precision training with Adam, $b_w = b_g = 2$ and
+$b_o = 12$ — four bytes each for the fp32 master copy of the weights, the
+first moment $m$, and the second moment $v$. Plain SGD without momentum has
+$b_o = 0$, which is a large part of why it is still used when memory is the
+binding constraint.
+
+The activation term behaves completely differently. It scales roughly as
+
+$$
+M_{\text{act}} \propto B \cdot L \cdot d \cdot n_{\text{layers}}
+$$
+
+for batch size $B$, sequence length $L$, and hidden size $d$ — so it is the
+*only* term you control at runtime. Attention adds a term that grows with
+$L^2$ unless a fused implementation avoids materialising the full score
+matrix, which is what FlashAttention-style kernels are for.
+
+The practical consequence: an out-of-memory error at step 1 is a
+weights-plus-optimizer problem and needs sharding, quantization, or a
+different optimizer. An out-of-memory error part-way into a run is almost
+always an activation problem and is fixed by a smaller batch, a shorter
+sequence, or gradient checkpointing.
+
+</Deeper>
+
+<Misconception claim="a bigger GPU is always the fix for out-of-memory errors.">
+  Sometimes, but it's usually the most expensive option and often the wrong
+  diagnosis. The same failure can come from optimizer state that a different
+  optimizer wouldn't allocate, from activations that gradient checkpointing
+  would recompute instead of store, from a batch size chosen without thought,
+  or from full fine-tuning where LoRA would do. Read *which* term is
+  dominating before buying hardware — the fix is frequently a one-line
+  configuration change.
+</Misconception>
+
 ## Keeping track of what you're doing: experiment tooling
 
 Training runs take hours to weeks, and you'll run many variations (different
@@ -189,6 +322,57 @@ None of the above runs without hardware underneath it:
   heavily inside Google and paired closely with JAX.
 - **AMD (ROCm)**: NVIDIA's real alternative on the hardware side, with a
   growing but still much smaller software ecosystem in comparison.
+
+Modern accelerators are also much faster at low-precision arithmetic than
+at the 32-bit floats you'd write by default, which is why virtually all
+training today is **mixed precision** — most operations in a 16-bit format,
+a few numerically delicate ones kept in fp32. The two 16-bit formats differ
+in how they spend their bits:
+
+| Format | Exponent bits | Mantissa bits | Practical consequence |
+| --- | --- | --- | --- |
+| fp32 | 8 | 23 | Baseline range and precision |
+| fp16 | 5 | 10 | Narrow range; needs loss scaling |
+| bf16 | 8 | 7 | fp32 range, coarser steps; no scaling needed |
+
+<Deeper title="Mixed precision and why loss scaling exists">
+
+A floating-point number is $\pm\, m \times 2^{e}$, so the exponent bits buy
+**range** and the mantissa bits buy **precision**. fp16 keeps only 5
+exponent bits, which puts its smallest normal positive value around
+$6.1 \times 10^{-5}$, with subnormals reaching to roughly $6 \times 10^{-8}$
+before hitting zero.
+
+That is a real problem in the backward pass. Gradients in deep networks are
+routinely smaller than $10^{-5}$, and anything below the subnormal floor
+doesn't become small — it becomes exactly $0$, and that zero then propagates
+through the chain rule and silently kills the update for everything upstream
+of it.
+
+**Loss scaling** is the fix, and it works because differentiation is linear.
+Multiply the loss by a constant $S$ before the backward pass and every
+gradient is multiplied by the same $S$:
+
+$$
+\nabla_\theta (S \cdot L) = S \cdot \nabla_\theta L
+$$
+
+So small gradients get lifted into fp16's representable range, and the
+optimizer divides by $S$ again before applying the update. Nothing about
+the mathematics changes — only which numbers survive the trip. Frameworks
+pick $S$ dynamically: raise it while steps are clean, and on any step where
+a gradient overflows to infinity or NaN, throw that step away and halve $S$.
+
+**bf16** sidesteps the whole mechanism by keeping fp32's 8 exponent bits and
+spending the savings on precision instead — same dynamic range as fp32, so
+no underflow and no scaling required, at the cost of a coarser mantissa.
+This is why bf16 is the default on hardware that supports it and fp16 with
+loss scaling is what you use on hardware that doesn't. In either case the
+optimizer still keeps an fp32 master copy of the weights, because a 16-bit
+weight plus a much smaller 16-bit update frequently rounds to the unchanged
+weight.
+
+</Deeper>
 
 ## After training: the deployment/inference layer
 
