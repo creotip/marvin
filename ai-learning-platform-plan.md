@@ -102,8 +102,8 @@ Only build this once localStorage-only progress proves insufficient (e.g. you wa
 - [x] Write all 8 lessons from Section 2 as solid MDX prose (static code snippets/diagrams where they help — no interactive components yet)
 - [x] Basic docs-site layout (left nav, main content, optional right TOC) — Fumadocs defaults, verified in-browser
 - [x] Mobile responsiveness pass — verified at 375px, sidebar collapses correctly
-- [ ] Deploy to Vercel — needs your Vercel account/login, not done here
-- [ ] **This is the MVP.** Ship it here before adding anything below.
+- [x] Deploy to Vercel — done
+- [x] **MVP shipped.**
 
 **Phase 2 — Widgets (in progress)**
 
