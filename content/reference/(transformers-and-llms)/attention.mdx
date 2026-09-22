@@ -12,6 +12,38 @@ directly relate any two tokens regardless of distance, learned entirely
 from data. **Multi-head attention** runs several such computations in
 parallel, each able to specialize in a different kind of relationship.
 
+## How it works
+
+Each input vector is projected three ways: `Q = xW_q`, `K = xW_k`,
+`V = xW_v`. Raw scores are `Q @ K.T / sqrt(d_k)` — the division keeps
+dot products from growing with dimension and saturating the softmax.
+Softmax over the last axis turns scores into weights summing to 1 per
+query, and the output is `weights @ V`. With batch and heads the
+tensors are `(batch, heads, seq, d_head)` and the score matrix is
+`(batch, heads, seq, seq)`.
+
+Multi-head attention splits `d_model` across `h` heads, runs the above
+in parallel, concatenates the per-head outputs, and applies one final
+projection `W_o`. Each head can specialize — one on local syntax,
+another on long-range coreference — without competing for the same
+subspace.
+
+## When it breaks
+
+- **Quadratic cost.** The score matrix is `seq × seq` per head, so
+  memory and compute grow with the square of context length. Naive
+  implementations exhaust VRAM long before the model runs out of
+  capability; fused kernels like FlashAttention avoid materializing it.
+- **Order blindness.** Attention is permutation-equivariant on its own,
+  so without [positional encoding](/reference/positional-encoding) the
+  model sees an unordered bag of tokens.
+- **Mask bugs.** Padding and
+  [causal masks](/reference/causal-masking) must be applied *before*
+  the softmax as large negative values; applying them afterward leaks
+  future or padding tokens silently.
+- **Weights aren't explanations.** High attention on a token does not
+  reliably mean the model's output depended on it.
+
 **See also:** [Transformer](/reference/transformer), [LLM](/reference/llm)
 
 **Learn more:** [Attention & Transformers](/docs/attention-and-transformers) ·

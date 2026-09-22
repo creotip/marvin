@@ -11,6 +11,34 @@ training examples at no extra labeling cost, and is standard practice in
 nearly every [CNN](/reference/cnn) training pipeline as a cheap defense
 against [overfitting](/reference/overfitting).
 
+## How it works
+
+Augmentation runs on the fly in the input pipeline, so each epoch sees a
+different random perturbation of the same image and the model never
+fits a fixed arrangement of pixels. A typical image policy composes
+`RandomResizedCrop`, `RandomHorizontalFlip`, and color jitter, then
+normalization. Two properties matter: the transform must preserve the
+label, and the randomness must be resampled per example rather than
+fixed once per epoch. Stronger policies mix examples instead of merely
+perturbing them — `mixup` blends two images and their labels linearly,
+`CutMix` pastes a patch of one image into another and mixes the labels
+in proportion to area. Functionally this is a
+[regularizer](/reference/regularization), and it belongs to the
+training split only.
+
+## When it breaks
+
+- Applying random transforms to validation or test data silently
+  corrupts your [evaluation split](/reference/train-val-test-split);
+  only deterministic resize and normalize belong there.
+- An overly aggressive policy destroys signal — a hard crop can remove
+  the object entirely, leaving a confidently mislabeled example.
+- The transforms encode assumptions. Horizontal flips are fine for
+  natural photos and wrong for medical scans, where laterality is
+  diagnostic.
+- CPU-side augmentation routinely becomes the training bottleneck,
+  leaving the accelerator idle between batches.
+
 **See also:** [Overfitting](/reference/overfitting), [CNN](/reference/cnn)
 
 **Learn more:** [Computer Vision](/docs/computer-vision)

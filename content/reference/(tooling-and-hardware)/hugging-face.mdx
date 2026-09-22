@@ -12,6 +12,37 @@ pretrained weights. `accelerate` and `PEFT` (including **LoRA**) handle
 multi-GPU distribution and efficient [fine-tuning](/reference/fine-tuning)
 respectively.
 
+## How it works
+
+The Hub is a Git-backed repository host: model weights, configs, and
+tokenizer files live under a repo id like `org/model-name`. Calling
+`AutoModelForCausalLM.from_pretrained("org/model-name")` resolves that
+id, downloads the files into a local cache, reads `config.json` to pick
+the right architecture class, and loads the weights into it. A matching
+`AutoTokenizer` handles [tokenization](/reference/tokenization) with the
+exact vocabulary the model was trained on.
+
+The abstraction is deliberately thin — what you get back is an ordinary
+`nn.Module` you can train, inspect, or wrap yourself. `Trainer` and
+`accelerate` sit above that for training loops and
+[distributed training](/reference/distributed-training), and `PEFT`
+injects adapter layers so only a small fraction of parameters receive
+gradient updates.
+
+## When it breaks
+
+- **Tokenizer/model drift.** Loading a tokenizer from a different repo
+  than the weights produces no error, just garbage output, because token
+  ids silently map to the wrong [embeddings](/reference/embedding).
+- **Chat templates matter.** Instruction-tuned models expect a specific
+  prompt format. Skipping `apply_chat_template` yields plausible-looking
+  but noticeably worse generations.
+- **Repos are mutable.** `main` on a Hub repo can change under you;
+  reproducible runs need a pinned `revision` commit hash.
+- **Cache and quota surprises.** The default cache grows without bound
+  and gated or private repos fail at download time with an auth error
+  rather than at import time.
+
 **See also:** [PyTorch](/reference/pytorch), [Fine-tuning](/reference/fine-tuning)
 
 **Learn more:** [Tooling & The Dev Stack](/docs/tooling-and-the-dev-stack) ·

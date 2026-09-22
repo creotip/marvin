@@ -14,6 +14,42 @@ random batch of data at a time rather than the full dataset; **Adam** is
 a widely used variant that adapts the effective learning rate per
 parameter.
 
+## How it works
+
+One training step is: sample a mini-batch, run the forward pass, compute
+the loss, call [backpropagation](/reference/backpropagation) to get
+`grad`, then apply `w := w - lr * grad`. Repeat until the loss plateaus.
+
+The practical variants differ in how they turn raw gradients into a step:
+
+- **Momentum** accumulates an exponentially decayed running average of
+  past gradients, damping oscillation across narrow ravines.
+- **Adam** and **AdamW** keep running estimates of both the first and
+  second moment of the gradient and divide by the square root of the
+  second, giving each parameter its own effective step size.
+- **Learning-rate schedules** (warmup then cosine or linear decay) are
+  standard for [transformers](/reference/transformer); a large constant
+  rate rarely converges well.
+
+Batch size trades gradient noise for throughput — smaller batches are
+noisier but take more steps per epoch.
+
+## When it breaks
+
+- **Learning rate dominates everything.** Too high and the loss spikes
+  to `NaN` within a few hundred steps; too low and it decreases so
+  slowly it looks like a modelling problem. It is almost always the
+  first hyperparameter to sweep.
+- **Loss goes to `NaN`.** Usually an exploding gradient, a `log(0)` in
+  the loss, or mixed-precision overflow. Gradient clipping and a loss
+  scaler are the standard fixes.
+- **Plateaus are not always minima.** Long flat stretches often come
+  from saturated [activations](/reference/activation-function) or a
+  decayed schedule, not from convergence.
+- **AdamW ≠ Adam + weight decay.** Adding L2 to the loss under Adam
+  interacts with the adaptive denominator and regularizes far less than
+  intended.
+
 **See also:** [Loss Function](/reference/loss-function),
 [Backpropagation](/reference/backpropagation)
 

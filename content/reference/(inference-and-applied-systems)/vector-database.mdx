@@ -15,6 +15,39 @@ nearest neighbor (ANN)** indexes — most commonly **HNSW** — trading a
 little accuracy for large speedups. Common tools: Pinecone, Weaviate,
 Milvus, Qdrant, Chroma, and the pgvector extension for Postgres.
 
+## How it works
+
+HNSW builds a layered proximity graph. The top layers are sparse and
+act as long-range highways; the bottom layer contains every vector with
+short-range links. A search enters at the top, greedily walks toward the
+query, and drops a layer when it can no longer improve — turning a
+linear scan into roughly logarithmic hops. Two knobs govern the trade:
+`M`, the number of links per node, fixes index size and build time;
+`efSearch`, the size of the candidate list kept during traversal, trades
+latency for recall at query time.
+
+A usable database wraps that index with the payload the application
+needs: the original text a [transformer](/reference/transformer)
+embedded, plus metadata for filtering by tenant, date, or permission —
+which must be applied during traversal, not after, or the top `k` comes
+back empty.
+
+## When it breaks
+
+- **Recall is invisible.** ANN search returns *something* for every
+  query, so a badly tuned `efSearch` silently drops the right answer.
+  Measure recall against exact search on a sample.
+- **Filtering fights the graph.** A highly selective filter can
+  disconnect the region the walk needs to traverse, so results degrade
+  exactly where precision matters most.
+- **Updates are awkward.** HNSW handles inserts far better than
+  deletes, which are usually tombstoned and only reclaimed by a rebuild,
+  so churn-heavy corpora bloat and slow down.
+- **Re-embedding is a migration.** Changing the encoder model invalidates
+  every stored vector; old and new embeddings are not comparable and
+  mixing them corrupts results for the whole [LLM](/reference/llm)
+  pipeline downstream.
+
 **See also:** [Embedding](/reference/embedding), [RAG](/reference/rag)
 
 **Learn more:** [Applied & Agentic Systems](/docs/applied-and-agentic-systems)

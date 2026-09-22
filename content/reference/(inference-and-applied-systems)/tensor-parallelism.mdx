@@ -12,6 +12,38 @@ overhead on the critical path of every forward pass, which is why serving
 very large models efficiently depends heavily on fast GPU-to-GPU
 interconnects, not just raw GPU count.
 
+## How it works
+
+Inside a [transformer](/reference/transformer) block the splits follow
+the matrix algebra. A feed-forward layer's first weight matrix is cut
+*column-wise*, so each device produces a slice of the hidden
+activations and can apply the
+[activation function](/reference/activation-function) locally. The
+second matrix is cut *row-wise*, so each device computes a partial sum
+of the output and a single `all-reduce` adds them together. Attention
+splits naturally by head: each device owns a subset of heads and their
+[KV cache](/reference/kv-cache), with another `all-reduce` after the
+output projection.
+
+That is two collectives per block, on the critical path, for every
+token. Degree is therefore kept within one node — typically 2, 4, or 8
+GPUs on NVLink — while pipeline or data parallelism spans nodes.
+
+## When it breaks
+
+- **Communication does not shrink with scale.** Each `all-reduce` moves
+  activation-sized tensors regardless of how finely the weights are
+  split, so past a point adding GPUs raises latency instead of lowering
+  it.
+- **Interconnect is the deciding factor.** The same degree that works
+  over NVLink can be slower than a single device over PCIe, and worse
+  across nodes.
+- **Divisibility constraints.** Head count and hidden size must divide
+  evenly by the degree, which quietly rules out some model/GPU-count
+  combinations.
+- **Stragglers sync the whole group.** Collectives are barriers, so one
+  slow or thermally throttled device sets the pace for every other.
+
 **See also:** [GPU](/reference/gpu), [Inference](/reference/inference)
 
 **Learn more:** [Inference & Serving](/docs/inference-and-serving) ·

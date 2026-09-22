@@ -11,6 +11,40 @@ model is too simple to capture even the patterns present in the training
 data. [Regularization](/reference/regularization) techniques (dropout,
 weight decay, early stopping) exist specifically to fight overfitting.
 
+## How it works
+
+A model has enough capacity to represent many functions that fit the
+training points equally well. Without a preference among them,
+[gradient descent](/reference/gradient-descent) will happily pick one
+that also encodes the sampling noise, because reducing training loss is
+the only thing it is asked to do.
+
+You detect it by tracking training and validation loss on a
+[train/validation/test split](/reference/train-val-test-split) on the
+same axes:
+
+- Both high and flat → underfitting; add capacity or train longer.
+- Both falling together → healthy; keep going.
+- Training falling, validation flat or rising → overfitting; the epoch
+  where validation bottoms out is the early-stopping point.
+
+The gap widens as capacity grows relative to dataset size, which is the
+[bias-variance tradeoff](/reference/bias-variance-tradeoff) in practice.
+
+## When it breaks
+
+- **Validation set overfitting.** Tuning hyperparameters against the
+  same validation set hundreds of times overfits *it* too, so the
+  validation score stops predicting test performance.
+- **Leakage disguises it.** If duplicates or target-derived features
+  cross the split, validation loss tracks training loss and the model
+  looks perfectly healthy until deployment.
+- **Small validation sets.** Below a few hundred examples the curve is
+  noisy enough that early stopping triggers on randomness.
+- **Noisy labels.** With a meaningful fraction of wrong labels, enough
+  capacity will memorize the errors specifically; label cleaning beats
+  any amount of regularization.
+
 **See also:** [Regularization](/reference/regularization),
 [Loss Function](/reference/loss-function)
 

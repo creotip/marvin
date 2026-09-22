@@ -12,6 +12,40 @@ its predictions are), and an optimizer (usually
 parameters to reduce that loss. [Deep learning](/reference/deep-learning)
 is the subfield of ML built on [neural networks](/reference/neural-network).
 
+## How it works
+
+The standard workflow is the same whether the model is a linear
+regression or a [transformer](/reference/transformer):
+
+1. Split the data into train, validation, and test sets — see
+   [train/validation/test split](/reference/train-val-test-split).
+2. Choose a model family and initialize its parameters.
+3. Loop: predict on a batch, score with the loss, compute gradients,
+   update the parameters.
+4. Check validation error to pick hyperparameters and decide when to
+   stop.
+5. Report on the test set once.
+
+The main learning settings differ in what signal is available.
+**Supervised** learning has input–label pairs; **unsupervised** learning
+has inputs only and looks for structure; **self-supervised** learning
+manufactures labels from the input itself (predict the next token);
+**reinforcement** learning receives a reward after acting.
+
+## When it breaks
+
+- **Data leakage.** Any signal that reaches training but will not exist
+  at prediction time — a target-derived feature, duplicated rows across
+  splits, normalizing before splitting — produces validation scores that
+  evaporate in production.
+- **Non-random splits.** Time series must be split chronologically;
+  grouped data (multiple rows per user) must be split by group, or the
+  model memorizes the group.
+- **Optimizing the wrong objective.** The loss you can differentiate is
+  rarely the outcome the business cares about.
+- **Stale models.** Input distributions drift, and a model that is never
+  retrained degrades quietly with no error signal.
+
 **See also:** [Loss Function](/reference/loss-function),
 [Gradient Descent](/reference/gradient-descent),
 [Overfitting](/reference/overfitting)

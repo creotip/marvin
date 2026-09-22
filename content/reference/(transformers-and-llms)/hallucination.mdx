@@ -12,6 +12,40 @@ fluent continuation. [RAG](/reference/rag) reduces hallucination by
 grounding generation in retrieved, verifiable text instead of relying
 purely on what the model absorbed during [pretraining](/reference/pretraining).
 
+## How it works
+
+Nothing in the training objective separates "true" from "likely."
+Next-token prediction rewards the most plausible continuation given the
+context, and a fabricated citation in the right format is highly
+plausible. Several mechanisms compound this:
+
+- **No abstention signal.** Base models are never trained to say "I
+  don't know" about facts they lack, so the distribution puts little
+  mass on refusal.
+- **Alignment pressure.** [RLHF](/reference/rlhf) raters tend to prefer
+  confident, complete answers, which pushes the model away from
+  hedging.
+- **Sampling.** Anything with nonzero probability can be emitted, and
+  higher-temperature [decoding](/reference/decoding-strategies) reaches
+  further into the tail.
+- **Lossy storage.** Facts seen once during training are compressed
+  into weights and recalled as something that merely rhymes with the
+  original.
+
+## When it breaks
+
+- **Fluency masks it.** Wrong output is stylistically identical to
+  right output, so reviewers skim past it; token probabilities are only
+  a weak correlate of correctness.
+- **Retrieval doesn't guarantee grounding.** If retrieved passages are
+  irrelevant or contradictory, the model still answers — now with a
+  citation that doesn't support the claim.
+- **Self-checking is circular.** Asking the same model whether it was
+  correct produces another confident answer generated the same way.
+- **Compounding in loops.** An [agent](/reference/agent) that acts on a
+  fabricated API name or file path carries the error into every
+  subsequent step.
+
 **See also:** [LLM](/reference/llm), [RAG](/reference/rag)
 
 **Learn more:** [LLMs](/docs/llms) ·

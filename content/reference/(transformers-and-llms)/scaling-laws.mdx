@@ -11,6 +11,36 @@ fixed compute budget, a smaller model trained on more data often beats a
 larger model trained on less. This directly shapes how labs allocate
 compute between making a model bigger versus training it on more data.
 
+## How it works
+
+The empirical finding is that test [loss](/reference/loss-function)
+follows a power law in each of parameter count `N`, training tokens
+`D`, and compute `C` — a straight line on a log-log plot. Because
+`C ≈ 6 * N * D` for [transformer](/reference/transformer) training,
+fixing a compute budget fixes a trade-off curve between model size and
+data, and that curve has a minimum. Chinchilla's fit placed the optimum
+near roughly 20 training tokens per parameter, far more data per
+parameter than earlier models used.
+
+In practice labs train a series of small models, fit the exponents, and
+extrapolate to pick the configuration for the single expensive run.
+Hyperparameters such as learning rate and batch size are fit along the
+same curves.
+
+## When it breaks
+
+- **Compute-optimal is not deployment-optimal.** The Chinchilla point
+  minimizes training loss per FLOP and ignores
+  [inference](/reference/inference) cost. For a model serving many
+  requests, a smaller model trained well past the optimum is cheaper
+  overall — which is why open models are routinely over-trained.
+- **Loss is not capability.** Smooth loss curves coexist with abrupt
+  changes on downstream benchmarks, so a predicted loss does not tell
+  you what the model will be able to do.
+- **The fits assume clean, non-repeated data.** Returns fall off once a
+  corpus is repeated many times, and the frontier is increasingly
+  data-limited rather than compute-limited.
+
 **See also:** [LLM](/reference/llm), [Pretraining](/reference/pretraining)
 
 **Learn more:** [LLMs](/docs/llms) ·

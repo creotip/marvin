@@ -13,6 +13,37 @@ pairs an unmasked encoder over the input with a causal decoder that also
 attends back to the encoder's output — common for translation and
 summarization.
 
+## How it works
+
+The difference is entirely in which positions may attend to which.
+
+- **Encoder-only**: bidirectional [attention](/reference/attention),
+  every token sees the whole input. Trained with masked-token
+  objectives, it yields one contextual vector per position and is used
+  for classification, tagging, and
+  [embedding](/reference/embedding) extraction.
+- **Decoder-only**: each token sees only its predecessors, so one
+  forward pass supervises every position at once and the same graph
+  serves both training and generation.
+- **Encoder-decoder**: the encoder reads the source bidirectionally;
+  the decoder is causal over the target and adds a **cross-attention**
+  sublayer whose Queries come from the decoder while Keys and Values
+  come from the encoder output. The source is read in full while the
+  target is produced one token at a time.
+
+## When it breaks
+
+- **Encoder-only models can't generate.** Prompting BERT for free text
+  is a category error — there is no next-token head to sample from.
+- **Cross-attention doubles the plumbing.** Encoder-decoder
+  [inference](/reference/inference) keeps two caches, the encoder
+  output computed once and the decoder's own
+  [KV cache](/reference/kv-cache); confusing them is a common source of
+  wrong outputs on batched inputs.
+- **Decoder-only embeddings are lopsided.** Under causal attention the
+  last token has seen everything and the first has seen nothing, so
+  naive mean-pooling for retrieval underperforms an encoder.
+
 **See also:** [Transformer](/reference/transformer),
 [Causal Masking](/reference/causal-masking)
 

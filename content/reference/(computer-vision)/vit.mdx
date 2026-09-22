@@ -12,6 +12,36 @@ locality assumption built in; the model learns spatial relationships
 purely from data. It's evidence that attention is a genuinely
 general-purpose mechanism, not a language-specific trick.
 
+## How it works
+
+The image is cut into non-overlapping patches — `16x16` pixels in the
+original model, giving 196 patches for a `224x224` input. Each patch is
+flattened and pushed through a single linear projection to produce a
+token embedding, a learned classification token is prepended, and a
+[positional encoding](/reference/positional-encoding) is added, since
+attention on its own has no notion of where a patch sat in the grid.
+From that point it is a standard transformer encoder: alternating
+self-attention and MLP blocks with residual connections and layer
+normalization. The classification head reads the final representation
+of the prepended token. That patch projection is the only
+image-specific component in the entire architecture.
+
+## When it breaks
+
+- Trained from scratch on ImageNet-scale data alone, ViT *underperforms*
+  a comparable CNN. It only pulls ahead after
+  [pretraining](/reference/pretraining) on a much larger corpus, since
+  it has to learn from data the locality that convolution gets for free.
+- Attention cost grows quadratically with patch count, so halving the
+  patch size roughly quadruples compute — high-resolution inputs get
+  expensive quickly.
+- Positional encodings are tied to the training resolution; running at a
+  different input size requires interpolating them.
+- The training recipe is load-bearing rather than incidental. Strong
+  [augmentation](/reference/data-augmentation), long schedules, and
+  careful optimizer and warmup settings are all required to reproduce
+  reported results.
+
 **See also:** [Attention](/reference/attention), [CNN](/reference/cnn),
 [Transformer](/reference/transformer)
 

@@ -15,6 +15,45 @@ efficiently. A basic fully-connected network is called an **MLP**
 [transformers](/reference/transformer) are neural networks with
 additional structure suited to images and sequences respectively.
 
+## How it works
+
+A fully-connected layer is one matrix multiply plus a bias plus a
+nonlinearity: `h = f(x @ W + b)`, with `W` of shape
+`(in_features, out_features)`. An MLP is just several of these composed,
+so the whole network is a single differentiable function from input to
+output.
+
+Training runs in three phases per step:
+
+- **Forward**: push a batch through the layers to get predictions and a
+  [loss](/reference/loss-function).
+- **Backward**: [backpropagation](/reference/backpropagation) walks the
+  graph in reverse to get `dL/dW` for every weight.
+- **Update**: the optimizer applies `W := W - lr * dL/dW`.
+
+Width (neurons per layer) and depth (number of layers) both add capacity,
+but depth is what lets features compose — see the
+[universal approximation theorem](/reference/universal-approximation-theorem)
+for why width alone is theoretically sufficient yet practically
+insufficient.
+
+## When it breaks
+
+- **Shape and dtype errors dominate early debugging.** A transposed
+  matrix or a silently broadcast `(N, 1)` against `(N,)` produces a
+  loss that trains but means nothing.
+- **Unscaled inputs.** Features spanning wildly different magnitudes
+  make the loss surface badly conditioned; standardize inputs before
+  training.
+- **Depth without support structure.** Past roughly a dozen plain layers
+  training stalls from
+  [vanishing gradients](/reference/vanishing-gradients) unless you add
+  [residual connections](/reference/residual-connection) and
+  normalization.
+- **Capacity mistaken for skill.** A network large enough to memorize
+  the training set will do exactly that; watch validation loss, not
+  training loss.
+
 **See also:** [Backpropagation](/reference/backpropagation),
 [Gradient Descent](/reference/gradient-descent),
 [Deep Learning](/reference/deep-learning)

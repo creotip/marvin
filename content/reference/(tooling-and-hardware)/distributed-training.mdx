@@ -13,6 +13,43 @@ efficiently at scale. Most developers fine-tuning or experimenting won't
 touch these directly — they matter once a project outgrows a single
 machine.
 
+## How it works
+
+Three kinds of parallelism get combined, often all at once:
+
+- **Data parallel** — every device holds a full copy of the model and
+  processes a different slice of the batch. Gradients are averaged with
+  an `all-reduce` collective before the optimizer step, so all replicas
+  stay identical.
+- **Sharded data parallel** — FSDP and DeepSpeed ZeRO keep only a shard
+  of parameters, gradients, and optimizer state on each device,
+  `all-gather`ing a layer's weights just before its forward pass and
+  freeing them afterward. This trades extra communication for a much
+  lower per-device memory footprint.
+- **Model parallel** — [tensor parallelism](/reference/tensor-parallelism)
+  splits individual matrices across devices, while pipeline parallelism
+  assigns different layers to different stages.
+
+Underneath, collectives run over `NCCL` on [CUDA](/reference/cuda)
+devices, using NVLink within a node and the network fabric between
+nodes.
+
+## When it breaks
+
+- **The slowest rank sets the pace.** Collectives are synchronous, so
+  one straggler — a thermally throttled device, an uneven data shard —
+  stalls every other rank at the barrier.
+- **Communication swamps compute.** Sharding across nodes on ordinary
+  Ethernet can spend more time moving weights than doing math. Keeping
+  tensor parallelism inside a single node is the usual fix.
+- **Hangs instead of errors.** If ranks disagree on how many collectives
+  to run — a conditional branch, a rank-dependent early exit — the job
+  blocks until a timeout rather than raising.
+- **Checkpoints are layout-bound.** A sharded checkpoint often will not
+  load under a different world size or sharding strategy without an
+  explicit consolidation step, which bites when resuming or
+  [fine-tuning](/reference/fine-tuning) on a smaller cluster.
+
 **See also:** [GPU](/reference/gpu), [PyTorch](/reference/pytorch)
 
 **Learn more:** [Tooling & The Dev Stack](/docs/tooling-and-the-dev-stack)

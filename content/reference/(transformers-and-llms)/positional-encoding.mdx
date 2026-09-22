@@ -12,6 +12,37 @@ positional embeddings directly from data instead. Most current
 [LLMs](/reference/llm) use **[RoPE](/reference/rope)**, a newer scheme
 that tends to generalize better to sequence lengths longer than training.
 
+## How it works
+
+Sinusoidal encoding builds a fixed matrix of shape
+`(max_seq, d_model)` in which each dimension is a sine or cosine of
+position at a different frequency, then adds it to the token
+[embeddings](/reference/embedding). The geometric spread of frequencies
+means nearby positions get similar vectors while distant ones stay
+distinguishable. Learned absolute encodings replace that matrix with a
+trainable table of the same shape.
+
+Both are *absolute*: they tag each position with an identity. Later
+schemes encode *relative* distance instead, biasing the attention score
+between positions `i` and `j` by a function of `i - j`. That is usually
+what you want, since language depends on how far apart two tokens are
+rather than where they sit in the buffer.
+
+## When it breaks
+
+- **Extrapolation fails.** Learned tables have no entry beyond
+  `max_seq`, and sinusoidal encodings, though defined everywhere,
+  produce out-of-distribution inputs past the trained length — quality
+  collapses rather than degrading gently.
+- **Added, not concatenated.** Absolute encodings share dimensions with
+  the token signal, so the two compete for the same capacity.
+- **Off-by-one on the offset.** With a [KV cache](/reference/kv-cache),
+  each new token must be encoded at its index in the full sequence, not
+  at index 0 of the current step. Getting this wrong yields fluent text
+  that ignores the prompt.
+- **Padding shifts positions.** Left-padding a batch offsets every real
+  token unless positions are derived from the attention mask.
+
 **See also:** [RoPE](/reference/rope), [Transformer](/reference/transformer)
 
 **Learn more:** [Attention & Transformers](/docs/attention-and-transformers)

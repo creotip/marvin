@@ -13,6 +13,36 @@ tokens; **top-p (nucleus) sampling** keeps the smallest set of tokens
 whose cumulative probability exceeds *p*, adapting to model confidence at
 each step.
 
+## How it works
+
+Each step produces a logit vector of size `vocab_size`. Temperature
+divides the logits before the softmax: `softmax(logits / T)`. `T < 1`
+sharpens the distribution toward the argmax, `T > 1` flattens it, and
+`T → 0` is greedy decoding. Top-k keeps the `k` highest logits and
+renormalizes; top-p sorts descending, takes the shortest prefix whose
+cumulative probability exceeds `p`, and renormalizes that. The filters
+stack — most APIs expose `temperature`, `top_k`, and `top_p` together —
+and repetition or frequency penalties subtract directly from the logits
+of already-emitted tokens. **Beam search** is different in kind: it
+keeps several partial sequences alive and ranks them by total
+log-probability rather than sampling one token at a time.
+
+## When it breaks
+
+- **Degenerate repetition.** Greedy and low-temperature decoding fall
+  into loops, because a repeated phrase keeps raising its own
+  probability. Top-p or a repetition penalty is the usual fix.
+- **Temperature is not confidence.** Raising `T` adds noise, not
+  knowledge; it widens the tail that produces
+  [hallucinations](/reference/hallucination) rather than improving
+  coverage of correct answers.
+- **Beam search hurts open-ended text.** Maximizing total
+  log-probability favors short, bland continuations — useful for
+  translation, bad for chat.
+- **"Deterministic" isn't.** Greedy decoding still varies across batch
+  sizes and hardware, because floating-point reduction order changes
+  with [batching](/reference/batching) and kernel selection.
+
 **See also:** [LLM](/reference/llm), [Inference](/reference/inference)
 
 **Learn more:** [LLMs](/docs/llms)

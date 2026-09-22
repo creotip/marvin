@@ -12,6 +12,35 @@ classical algorithms are hand-engineered, not learned, though it's
 commonly used alongside deep learning models for preprocessing images
 (resizing, color conversion) or running inference.
 
+## How it works
+
+The library is a C++ core with thin language bindings; in Python
+everything hangs off `cv2` and images are plain NumPy arrays. Two
+details trip up nearly everyone: `cv2.imread` returns channels in
+**BGR** order rather than RGB, and arrays are indexed
+`(height, width, channels)` while most function arguments take sizes as
+`(width, height)`. The algorithms themselves are deterministic and
+hand-designed — `cv2.Canny` for edges, `cv2.warpAffine` for geometric
+transforms, ORB or SIFT for keypoint matching, `cv2.VideoCapture` for
+stream I/O. The `dnn` module additionally loads trained models from ONNX
+and similar formats, which makes OpenCV a dependency-light path to
+[inference](/reference/inference) when a full
+[PyTorch](/reference/pytorch) install is unwarranted.
+
+## When it breaks
+
+- Color-space bugs are silent: feeding BGR arrays to a model trained on
+  RGB costs accuracy without raising anything.
+- Failures surface late. `cv2.imread` returns `None` for a missing or
+  unreadable file instead of raising, so the real error appears
+  downstream as a confusing `NoneType` crash.
+- Classical feature detection and matching degrade sharply under
+  lighting changes, motion blur, and low-texture surfaces — exactly the
+  cases learned features handle better.
+- The `dnn` module trails mainstream frameworks in operator coverage and
+  [GPU](/reference/gpu) support; treat it as a deployment convenience,
+  not a training stack.
+
 **See also:** [CNN](/reference/cnn)
 
 **Learn more:** [Computer Vision](/docs/computer-vision) ·

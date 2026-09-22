@@ -12,6 +12,37 @@ parameters injected alongside them. This makes fine-tuning large
 fine-tuning today doesn't require updating billions of parameters
 directly.
 
+## How it works
+
+For a frozen weight matrix `W` of shape `(d, k)`, LoRA learns two small
+matrices `A` of shape `(r, k)` and `B` of shape `(d, r)`, and computes
+the layer as `W x + (alpha / r) * B A x`. The rank `r` is small —
+commonly 8 to 64 — so trainable parameters number `r * (d + k)` instead
+of `d * k`. `A` is initialized randomly and `B` to zeros, so the
+adapter starts as an exact no-op and training begins from the base
+model's behavior unchanged.
+
+Adapters are usually attached to the [attention](/reference/attention)
+projections, sometimes the feed-forward layers as well. Because the
+update is a plain matrix product, `B A` can be folded back into `W`
+after training, leaving [inference](/reference/inference) cost
+identical to the base model.
+
+## When it breaks
+
+- **Rank caps capacity.** Low `r` handles style and format adaptation
+  well but struggles when the task needs genuinely new knowledge or a
+  new language.
+- **`alpha` and `r` are coupled.** The effective scale is `alpha / r`,
+  so raising `r` while holding `alpha` fixed quietly weakens the
+  update — a frequent cause of "the LoRA did nothing" runs.
+- **Merging interacts with quantization.** Adapters trained against a
+  [quantized](/reference/quantization) base can shift behavior when
+  merged back into full-precision weights.
+- **Coverage matters.** Targeting only the query and value projections
+  is the common default, but some tasks need the MLP layers included to
+  move at all.
+
 **See also:** [Fine-tuning](/reference/fine-tuning),
 [Hugging Face](/reference/hugging-face)
 

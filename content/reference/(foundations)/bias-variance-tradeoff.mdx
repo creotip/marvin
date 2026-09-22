@@ -11,6 +11,40 @@ training data it saw, overfitting). The practical goal in
 [machine learning](/reference/machine-learning) is the sweet spot between
 the two, not the maximum-capacity model.
 
+## How it works
+
+Expected prediction error on a new point decomposes into three parts:
+**bias²** (how far the average model is from the truth), **variance**
+(how much the fitted model changes if you resample the training set), and
+**irreducible noise** (the floor set by the data itself, which no model
+can beat).
+
+Capacity moves bias and variance in opposite directions. A degree-1
+polynomial fit to a curved relationship has high bias and near-zero
+variance; a degree-20 fit traces the noise exactly, giving low bias and
+high variance. You diagnose which side you are on by comparing training
+and validation error on a
+[train/validation/test split](/reference/train-val-test-split): both high
+means bias, a wide gap means variance.
+[Regularization](/reference/regularization) buys variance reduction at
+the cost of a little bias.
+
+## When it breaks
+
+- **The clean U-curve does not always hold.** Very large
+  overparameterized networks often improve again past the interpolation
+  point ("double descent"), so "more parameters means more variance" is
+  not a reliable rule for
+  [deep learning](/reference/deep-learning).
+- **Misreading the gap.** A small train/validation gap with high error
+  on both is an underfitting problem; adding dropout or weight decay
+  makes it worse, not better.
+- **Leaked or non-representative validation data.** The decomposition
+  only guides you if validation error actually estimates generalization;
+  duplicates across splits hide variance entirely.
+- **Distribution shift.** Neither term accounts for test data drawn from
+  a different distribution than training data.
+
 **See also:** [Overfitting](/reference/overfitting),
 [Regularization](/reference/regularization)
 

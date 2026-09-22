@@ -11,6 +11,40 @@ continuous values; **cross-entropy loss** is standard for classification
 penalizes confidently wrong predictions heavily. The choice of loss
 function directly encodes what the model is actually optimized to do.
 
+## How it works
+
+The loss maps a prediction and a target to a scalar, and must be
+differentiable with respect to the model's outputs so that
+[backpropagation](/reference/backpropagation) has something to
+differentiate.
+
+- **MSE**: `mean((y_pred - y)**2)` — penalizes large errors
+  quadratically, so it is sensitive to outliers. `L1`/Huber are the
+  robust alternatives.
+- **Cross-entropy**: `-log(p_correct)`. It is unbounded above, so a
+  prediction that is both confident and wrong contributes an enormous
+  gradient, while a confident correct prediction contributes almost
+  none.
+
+In practice the model emits raw **logits** and the loss applies softmax
+or sigmoid internally, because the fused form is numerically stable. The
+reported loss is averaged over the batch, which is why it is comparable
+across batch sizes.
+
+## When it breaks
+
+- **Loss and the metric you care about diverge.** Cross-entropy can
+  improve while accuracy, F1, or user-visible quality does not — the
+  loss is a differentiable proxy, not the objective.
+- **Double softmax.** Passing already-normalized probabilities into a
+  loss that expects logits (PyTorch's `CrossEntropyLoss`,
+  `BCEWithLogitsLoss`) silently flattens gradients.
+- **Class imbalance.** With 99% negatives, the minimum-loss solution is
+  to predict the majority class always. Class weights or focal loss are
+  the usual corrections.
+- **Numerical blowups.** Hand-rolled `log(p)` hits `-inf` when `p` is
+  exactly `0`; use the library's fused logit version or add an epsilon.
+
 **See also:** [Gradient Descent](/reference/gradient-descent),
 [Overfitting](/reference/overfitting)
 

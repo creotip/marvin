@@ -13,6 +13,36 @@ maintain by hand — the bottleneck that
 [machine learning](/reference/machine-learning) later solved by learning
 patterns from data instead of encoding them manually.
 
+## How it works
+
+An expert system separates two components. The **knowledge base** holds
+declarative rules — `IF fever AND stiff-neck THEN suspect meningitis` —
+and the **inference engine** applies them. Chaining runs in one of two
+directions: *forward chaining* starts from known facts and derives
+whatever conclusions they support, while *backward chaining* starts
+from a hypothesis and searches for rules whose conclusions would
+establish it, recursively asking the user for facts it's missing. Rules
+often carry confidence weights so competing conclusions can be ranked,
+and a conflict-resolution strategy decides which of several matching
+rules fires first. Because every step is an explicit rule, the system
+can print the chain that produced an answer — an explainability
+property [deep learning](/reference/deep-learning) models lack.
+
+## When it breaks
+
+- **Knowledge acquisition is the bottleneck.** Every rule has to be
+  extracted by interviewing an expert, and experts are poor at
+  articulating judgment they apply unconsciously.
+- Rule bases turn brittle past a few hundred rules. New rules interact
+  with old ones in ways nobody anticipated, and no maintainer can hold
+  the full interaction surface in their head.
+- Coverage is exactly the enumerated cases. Anything outside them
+  yields no answer rather than a degraded one.
+- The approach survives where inputs are structured and decisions must
+  be auditable — tax and compliance engines, underwriting, clinical
+  decision support — and increasingly as guardrails constraining
+  [LLM](/reference/llm) output rather than as a replacement for it.
+
 **See also:** [AI](/reference/ai), [Machine Learning](/reference/machine-learning)
 
 **Learn more:** [History & Landscape](/docs/history-and-landscape) ·

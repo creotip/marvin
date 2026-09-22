@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 interface MdastNode {
@@ -6,6 +6,7 @@ interface MdastNode {
   value?: string;
   url?: string;
   children?: MdastNode[];
+  data?: { hProperties?: Record<string, string> };
 }
 
 export interface ReferenceTerm {
@@ -13,6 +14,7 @@ export interface ReferenceTerm {
   url: string;
   /** Acronym titles ("RAG", "GPU") only match when the casing matches too. */
   caseSensitive: boolean;
+  description?: string;
 }
 
 /** Node types whose text must never be rewritten into a link. */
@@ -32,12 +34,21 @@ const SKIPPED = new Set([
   'yaml',
 ]);
 
-function readFrontmatterTitle(source: string): string | undefined {
+function readFrontmatterField(
+  source: string,
+  field: string,
+): string | undefined {
   const frontmatter = /^---\r?\n([\s\S]*?)\r?\n---/.exec(source);
   if (!frontmatter) return undefined;
 
-  const title = /^title:\s*(.+)$/m.exec(frontmatter[1]);
-  return title?.[1].trim().replace(/^["']|["']$/g, '');
+  // Values may wrap onto following indented lines.
+  const value = new RegExp(`^${field}:\\s*(.+(?:\\n\\s+\\S.*)*)$`, 'm').exec(
+    frontmatter[1],
+  );
+  return value?.[1]
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/^["']|["']$/g, '');
 }
 
 export function collectReferenceTerms(
@@ -62,13 +73,15 @@ export function collectReferenceTerms(
 
     if (segments.at(-1) === 'index') continue;
 
-    const title = readFrontmatterTitle(readFileSync(filePath, 'utf8'));
+    const source = readFileSync(filePath, 'utf8');
+    const title = readFrontmatterField(source, 'title');
     if (!title) continue;
 
     terms.push({
       term: title,
       url: [baseUrl, ...segments].join('/'),
       caseSensitive: /[A-Z]{2,}/.test(title),
+      description: readFrontmatterField(source, 'description'),
     });
   }
 
@@ -83,6 +96,39 @@ function escapeRegExp(value: string): string {
 function collectExistingLinks(node: MdastNode, into: Set<string>): void {
   if (node.type === 'link' && node.url) into.add(node.url);
   for (const child of node.children ?? []) collectExistingLinks(child, into);
+}
+
+/**
+ * Annotates every link pointing at a reference page — hand-written ones as well
+ * as the auto-generated ones — so the client can show a hover preview. Lives in
+ * `data.hProperties`, which the markdown serialiser ignores.
+ */
+export function remarkReferencePreviews(terms: ReferenceTerm[]) {
+  const byUrl = new Map(
+    terms
+      .filter((term) => term.description)
+      .map((term) => [term.url, term] as const),
+  );
+
+  return function transform(tree: MdastNode): void {
+    function walk(node: MdastNode): void {
+      if (node.type === 'link' && node.url) {
+        const term = byUrl.get(node.url);
+        if (term) {
+          node.data ??= {};
+          node.data.hProperties = {
+            ...node.data.hProperties,
+            'data-preview-title': term.term,
+            'data-preview': term.description!,
+          };
+        }
+      }
+
+      for (const child of node.children ?? []) walk(child);
+    }
+
+    walk(tree);
+  };
 }
 
 export function remarkReferenceLinks(terms: ReferenceTerm[]) {

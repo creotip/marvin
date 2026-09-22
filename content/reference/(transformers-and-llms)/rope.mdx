@@ -12,6 +12,37 @@ depending on their position in the sequence. It tends to generalize
 better to sequence lengths longer than what the model was trained on,
 which matters for long-context models.
 
+## How it works
+
+RoPE treats each Query and Key vector as `d_head / 2` two-dimensional
+pairs and rotates pair `m` by an angle `pos * theta_m`, where the
+frequencies `theta_m` decrease geometrically across pairs — fast
+rotation in early dimensions, slow in later ones. Because the dot
+product of two rotated vectors depends only on the *difference* of
+their angles, the resulting attention score is a function of `i - j`:
+absolute positions go in, relative distance comes out.
+
+The rotation is applied to Q and K after their projections but before
+scores are computed, and never to V. It adds no parameters and no
+[KV cache](/reference/kv-cache) overhead, since keys are stored already
+rotated at their absolute index.
+
+## When it breaks
+
+- **Still bounded by training length.** RoPE degrades more gracefully
+  than a learned table but does not extrapolate for free; going past
+  the trained window needs frequency rescaling such as position
+  interpolation or YaRN, usually with a short
+  [fine-tune](/reference/fine-tuning).
+- **The base frequency is part of the contract.** Changing the base
+  (commonly `10000`) without retraining invalidates every cached key
+  and scrambles relative positions.
+- **The cache index must be absolute.** Rotating a resumed token by its
+  offset within the current chunk rather than the full sequence
+  produces coherent output that ignores the prompt.
+- **Long-range decay.** Attention logits attenuate with distance, which
+  helps locality but weakens genuinely long dependencies.
+
 **See also:** [Positional Encoding](/reference/positional-encoding),
 [Attention](/reference/attention)
 

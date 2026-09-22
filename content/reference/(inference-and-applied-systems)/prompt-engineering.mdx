@@ -13,6 +13,41 @@ tasks, since each output token can condition on the reasoning already
 generated. **System prompts** configure a model's persona and constraints
 for an entire conversation, separate from user input.
 
+## How it works
+
+Nothing about the weights changes. The prompt is just the prefix the
+model conditions on, and every technique is a way of steering the
+conditional distribution over the next token toward a better region.
+
+- **Few-shot examples** pin down format and label space far more
+  reliably than an instruction does, because the model matches the
+  pattern already present in its context.
+- **Chain-of-thought** works because each generated token becomes input
+  for the next, so intermediate steps give later tokens something
+  concrete to condition on — effectively more compute per answer.
+- **System prompts** occupy the earliest positions and are typically
+  given a distinct role in the chat template, which
+  [fine-tuning](/reference/fine-tuning) has taught the model to weight
+  heavily.
+
+Structure matters too: delimiters separating instructions from data, and
+putting the task after long context, both measurably help.
+
+## When it breaks
+
+- **Prompts are model-specific and version-fragile.** A prompt tuned on
+  one checkpoint can regress on the next release of the same model,
+  with no warning and no diff to inspect.
+- **Instructions and data are the same channel.** Anything retrieved by
+  [RAG](/reference/rag) or returned by a tool can carry instructions the
+  model follows — the root of prompt injection, which delimiters
+  mitigate but do not solve.
+- **Stated reasoning is not actual reasoning.** Chain-of-thought text is
+  a plausible-sounding narrative, and a confident one can accompany a
+  wrong answer.
+- **Position effects.** Models attend unevenly across long prompts,
+  often neglecting the middle, so burying a constraint there loses it.
+
 **See also:** [LLM](/reference/llm), [Agent](/reference/agent)
 
 **Learn more:** [Applied & Agentic Systems](/docs/applied-and-agentic-systems)

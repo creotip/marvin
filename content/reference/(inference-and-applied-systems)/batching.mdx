@@ -12,6 +12,38 @@ an in-flight batch as earlier ones finish, capturing most of the
 throughput benefit of large batches without forcing every request to wait
 for a whole batch to complete.
 
+## How it works
+
+Decoding one token for one request multiplies a weight matrix by a
+single row of activations. The GPU spends most of that
+time reading weights from memory, not doing arithmetic, so stacking `B`
+requests into a matrix of shape `[B, hidden]` reuses each weight read
+`B` times and costs barely more wall-clock time. That is the whole
+trick: decode is memory-bandwidth-bound, and batching converts it
+toward compute-bound.
+
+Static batching stalls because requests finish at different lengths —
+the batch waits for its slowest member. Continuous batching (also
+called *in-flight* batching) schedules per decode step instead: when a
+sequence emits its stop token, its slot is freed and a queued request
+takes it on the next step, with its own [KV cache](/reference/kv-cache)
+entry.
+
+## When it breaks
+
+- **KV cache, not compute, is the ceiling.** Each concurrent sequence
+  holds its own cache, so memory per request grows with context length.
+  Long-context traffic collapses the feasible batch size.
+- **Prefill blocks decode.** A newly admitted request's prompt pass is
+  compute-heavy and stalls every decoding sequence in the batch, showing
+  up as inter-token latency spikes for users already streaming. Chunked
+  prefill exists to limit this.
+- **Throughput and latency trade off.** Bigger batches raise tokens per
+  second for the fleet while raising time-to-first-token for each user.
+  Tuning to peak throughput will violate a p99 latency SLO.
+- **Preemption thrash.** Under memory pressure servers evict and later
+  recompute a sequence's cache, wasting the work already done.
+
 **See also:** [Inference](/reference/inference), [GPU](/reference/gpu)
 
 **Learn more:** [Inference & Serving](/docs/inference-and-serving)

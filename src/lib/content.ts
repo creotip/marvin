@@ -12,13 +12,18 @@ const docsCollection = defineDocs({
     // Dynamic imports keep the build-only glossary scanner out of the app bundle.
     mdxOptions: async (environment) => {
       const { createMdxOptions } = await import('./mdx-options');
-      const { collectReferenceTerms, remarkReferenceLinks } =
-        await import('./remark-reference-links');
+      const glossary = await import('./remark-reference-links');
 
-      const terms = collectReferenceTerms('content/reference', '/reference');
+      const terms = glossary.collectReferenceTerms(
+        'content/reference',
+        '/reference',
+      );
 
       return createMdxOptions(environment, {
-        remarkPlugins: [[remarkReferenceLinks, terms]],
+        remarkPlugins: [
+          [glossary.remarkReferenceLinks, terms],
+          [glossary.remarkReferencePreviews, terms],
+        ],
       });
     },
   },
@@ -32,7 +37,16 @@ const referenceCollection = defineDocs({
     postprocess: { includeProcessedMarkdown: true },
     mdxOptions: async (environment) => {
       const { createMdxOptions } = await import('./mdx-options');
-      return createMdxOptions(environment);
+      const glossary = await import('./remark-reference-links');
+
+      const terms = glossary.collectReferenceTerms(
+        'content/reference',
+        '/reference',
+      );
+
+      return createMdxOptions(environment, {
+        remarkPlugins: [[glossary.remarkReferencePreviews, terms]],
+      });
     },
   },
   meta: { schema: metaSchema },
