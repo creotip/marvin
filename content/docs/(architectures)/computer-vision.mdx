@@ -13,6 +13,19 @@ position, with no way to recognize "this is an edge" regardless of where
 in the image the edge appears. **Convolutional neural networks (CNNs)**
 fix this by building spatial structure into the architecture itself.
 
+The whole architecture is one pipeline repeated a few times, so it is
+worth having the shape of it in mind before the pieces:
+
+<Mermaid chart={`flowchart LR
+  A[Raw pixels] --> B[Convolution<br/>feature maps]
+  B --> C[Nonlinearity<br/>ReLU]
+  C --> D[Pooling<br/>downsample]
+  D --> E[Repeated blocks<br/>higher-level features]
+  E --> F[Flatten or<br/>global pool]
+  F --> G[Classifier head]
+  G --> H[Class scores]
+`} />
+
 ## The convolution operation
 
 A convolution slides a small grid of learnable numbers — a **kernel** (or
@@ -41,6 +54,40 @@ The output of applying a kernel across an image is called a **feature
 map** — a new grid where each value indicates how strongly that pattern
 (whatever the kernel learned to detect) appeared at that location.
 
+<Deeper title="The convolution, written out">
+
+A convolutional layer maps an input with $C$ channels to an output with
+$O$ channels. For a $k \times k$ kernel, output channel $o$ at position
+$(i, j)$ is:
+
+$$
+y[i, j, o] = b_o + \sum_{c=1}^{C} \sum_{u=0}^{k-1} \sum_{v=0}^{k-1} w[u, v, c, o] \; x[i + u,\, j + v,\, c]
+$$
+
+Three things fall out of this expression. The indices $i$ and $j$ appear
+*only* in $x$, never in $w$ — that is parameter sharing written down: the
+same weights are used at every spatial position. The sums over $u$ and $v$
+are bounded by $k$, which is local connectivity. And the sum over $c$ runs
+over *all* input channels, so a kernel is never really $3 \times 3$ — it is
+$3 \times 3 \times C$, and a layer holds $k^2 C O$ weights plus $O$ biases
+regardless of how large the image is.
+
+One pedantic note: this is technically **cross-correlation**, not
+convolution, which would flip the kernel to $w[-u, -v, \cdot, \cdot]$.
+Since $w$ is learned, the flip is irrelevant — the layer would just learn
+the mirrored kernel — and every deep learning framework calls the
+unflipped version `conv`.
+
+</Deeper>
+
+<Misconception claim="a convolution makes the network blind to where things are.">
+  A convolution is **equivariant**, not invariant: shift the input and the
+  feature map shifts by the same amount rather than staying put. The
+  spatial information is entirely preserved — it has just moved. Invariance,
+  if a CNN has any, comes later and separately, from pooling, strided
+  downsampling, and a global pool or flatten before the classifier head.
+</Misconception>
+
 Slide a few classic hand-designed kernels over a test image below and
 watch the feature map build up, cell by cell, exactly as the sliding
 window described above:
@@ -52,6 +99,25 @@ dozens to hundreds), each producing its own feature map — one might learn
 to detect vertical edges, another horizontal edges, another a particular
 color transition — stacked together into a multi-channel output that the
 next layer takes as input.
+
+<NapkinMath title="Conv layer vs. dense layer, same image">
+
+Take a 224×224 RGB image and a layer producing 64 feature maps at the same
+resolution.
+
+**As a convolution**, 3×3 kernels over 3 input channels:
+3 × 3 × 3 × 64 ≈ **1,700 weights** (plus 64 biases).
+
+**As a fully connected layer** over the same input and output:
+(224 × 224 × 3) × (224 × 224 × 64) ≈ 150,000 × 3,200,000 ≈ **5 × 10¹¹
+weights** — roughly half a trillion, around 2 TB in 32-bit floats.
+
+That is a factor of about 10⁸, for a layer computing something broadly
+similar. And the conv layer's count does not depend on image size at all:
+feed it a 1024×1024 photo and it still has 1,700 weights, while the dense
+version grows with the *fourth* power of resolution.
+
+</NapkinMath>
 
 ### Strides and padding
 
@@ -71,6 +137,32 @@ The output size of a convolution follows directly from these:
 You won't compute this by hand in practice — frameworks handle it — but
 it's worth being able to sanity-check why a feature map came out the
 size it did.
+
+<Deeper title="Output size, and why 3x3 with padding 1 is everywhere">
+
+For input size $n$, kernel size $k$, padding $p$ and stride $s$, the output
+size along each spatial dimension is:
+
+$$
+n_{\text{out}} = \left\lfloor \frac{n + 2p - k}{s} \right\rfloor + 1
+$$
+
+The floor matters: when the stride doesn't divide evenly, the final window
+simply doesn't fit and gets dropped.
+
+Setting $s = 1$ and $p = (k-1)/2$ gives $n_{\text{out}} = n$ exactly — the
+"same" padding mode. For odd $k$ this is an integer, which is most of why
+kernel sizes are odd in practice, and with $k = 3$ it costs a one-pixel
+border. That is the combination VGG-style stacks use throughout: spatial
+size is held fixed by the convolutions and changed *only* at the
+downsampling steps, so the architecture's resolution schedule stays easy
+to reason about.
+
+With $k = s$ and $p = 0$ the formula collapses to $n_{\text{out}} = n/s$ —
+the non-overlapping case used by 2×2 stride-2 max pooling, and, as it
+happens, by a Vision Transformer's patch embedding.
+
+</Deeper>
 
 ## Pooling
 
@@ -105,6 +197,30 @@ Nobody hand-designs this hierarchy — it emerges from training, which is
 exactly the feature-engineering bottleneck from
 [History & Landscape](/docs/history-and-landscape) being solved
 automatically.
+
+<Deeper title="How far back a neuron can see">
+
+The **receptive field** of a unit is the region of the *original image*
+that can influence it. For a stack of layers with kernel sizes $k_l$ and
+strides $s_l$, it grows as:
+
+$$
+r_l = r_{l-1} + (k_l - 1) \prod_{i=1}^{l-1} s_i, \qquad r_0 = 1
+$$
+
+With stride-1 3×3 convolutions every term is $+2$, so $r_l = 2l + 1$: the
+receptive field grows only *linearly* with depth, and 50 layers would still
+see just a 101-pixel window. Downsampling is what fixes this. Each stride-2
+step doubles the product term, so every later layer's $+2$ becomes $+4$,
+$+8$, $+16$ — the growth turns *geometric*, and a handful of blocks is
+enough to cover an entire image.
+
+So pooling and strided convolution are not only a compute optimisation.
+They are how a CNN reaches a global view at all, which is also why a single
+self-attention layer is such a different proposition: its receptive field
+is the whole input from layer one.
+
+</Deeper>
 
 ## Named architectures: a brief tour
 
@@ -208,6 +324,21 @@ match or beat CNNs given enough training data, without locality built in
 at all; the model learns spatial relationships from data instead. This is
 a preview of a broader theme: attention has proven to be a genuinely
 general-purpose mechanism, not just a language-specific trick.
+
+| | CNN | Vision Transformer |
+| --- | --- | --- |
+| Inductive bias | Locality and translation equivariance built in | Almost none; learned from data |
+| Data hunger | Works from modest datasets | Needs large-scale pretraining to match CNNs |
+| Receptive field | Local at first, global only with depth | Global from the first layer |
+
+<Misconception claim="vision transformers won because attention is simply a better operation than convolution.">
+  The trade is structural, not a straight upgrade. A CNN is handed locality
+  and translation equivariance for free; a ViT has to *learn* them, which it
+  can only afford to do when there is enough data to learn them from. Given
+  a few thousand images, the architecture carrying the right assumptions
+  usually wins — which is exactly why pretrained backbones and transfer
+  learning still matter so much in practice.
+</Misconception>
 
 The next lesson looks at a different structural problem — sequences,
 where order and long-range relationships matter — and the architecture

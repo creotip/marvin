@@ -8,6 +8,15 @@ sequence of ideas — and why each one hit a wall — makes the current moment
 (large language models) look less like magic and more like the next step
 in a long argument about what "intelligence" even is, computationally.
 
+Four eras, and what pushed the field out of each one:
+
+<Mermaid chart={`flowchart LR
+  A[Symbolic AI<br/>hand-written rules] -- rules did not<br/>generalize --> B[Expert systems<br/>if-then knowledge bases]
+  B -- knowledge bottleneck<br/>and AI winters --> C[Statistical ML<br/>fit functions to data]
+  C -- hand-made features<br/>capped accuracy --> D[Deep learning<br/>learned features]
+  D -- attention scales<br/>predictably --> E[Transformers<br/>and LLMs]
+`} />
+
 ## Before "AI" had a name: 1940s–1950s origins
 
 Two threads that the rest of this history keeps returning to both start
@@ -62,6 +71,37 @@ was widely read as a case against neural networks generally, and
 connectionist research funding collapsed for over a decade — the field's
 center of gravity swung firmly back to symbolic AI.
 
+<Deeper title="Why one layer cannot do XOR">
+
+A single-layer perceptron computes a thresholded weighted sum of its
+inputs:
+
+$$
+\hat{y} = \mathbb{1}\left[\, w^\top x + b > 0 \,\right]
+$$
+
+The set of inputs it maps to 1 is therefore always one side of a
+hyperplane — in two dimensions, one side of a straight line. A perceptron
+can only represent **linearly separable** functions.
+
+XOR is not one. With inputs $x \in \{0,1\}^2$ and weights $w_1, w_2, b$,
+the four required outputs give four inequalities:
+
+$$
+b \le 0, \quad w_1 + b > 0, \quad w_2 + b > 0, \quad w_1 + w_2 + b \le 0
+$$
+
+Adding the middle two gives $w_1 + w_2 + 2b > 0$, and since $b \le 0$ this
+forces $w_1 + w_2 > 0$ — contradicting the last inequality. No choice of
+weights works.
+
+The fix is a second layer: one hidden unit detecting $x_1 + x_2 \ge 1$ and
+another detecting $x_1 + x_2 \ge 2$ make XOR linearly separable in the
+hidden layer's coordinates. The representational gap was never the
+problem — *training* the extra layer was.
+
+</Deeper>
+
 The irony worth sitting with: the fix (stacking multiple layers, trained
 via backpropagation) existed in principle within another couple of
 decades, and this same connectionist thread — not symbolic AI — is what
@@ -83,6 +123,16 @@ funding pullbacks now called the **AI winters** (mid-1970s, late 1980s–90s;
 the *Perceptrons* fallout above was effectively the first one, for
 connectionism specifically).
 
+<Misconception claim="the AI winters meant the ideas were wrong.">
+  Mostly they meant the ideas were *early*. Backpropagation, convolutional
+  networks, and recurrent networks all existed in usable form during the
+  second winter and were quietly abandoned as impractical. What changed
+  afterwards was not the mathematics but the inputs to it — labeled data at
+  internet scale and hardware that made the matrix multiplications cheap.
+  The winters were funding events triggered by overpromising, not
+  refutations.
+</Misconception>
+
 Connectionism itself got a working fix during this same period, even
 though it took years to gain traction: a 1986 paper by David Rumelhart,
 Geoffrey Hinton, and Ronald Williams popularized **backpropagation** (the
@@ -93,6 +143,31 @@ single-layer limitation Minsky and Papert had proven. It would still take
 another two and a half decades, and the arrival of large datasets and GPU
 compute, for multi-layer networks to decisively outperform other
 approaches in practice.
+
+<Deeper title="Backpropagation was invented more than once">
+
+The 1986 Rumelhart–Hinton–Williams paper *popularized* backpropagation; it
+did not invent it. The underlying method — reverse-mode automatic
+differentiation — was published by Seppo Linnainmaa in 1970, and Paul
+Werbos proposed applying it to neural networks in his 1974 PhD thesis.
+
+What the method exploits is an asymmetry in the chain rule. For a network
+with $m$ parameters and a scalar loss, computing every partial derivative
+$\partial L / \partial \theta_i$ by perturbing one parameter at a time
+costs $O(m)$ forward passes. Reverse-mode instead sweeps backwards once,
+reusing shared subexpressions, and gets **all** $m$ gradients for a cost
+proportional to a single forward pass:
+
+$$
+\frac{\partial L}{\partial \theta} \;\text{in}\; O(1) \;\text{passes, not}\; O(m)
+$$
+
+For a model with $10^{11}$ parameters, that is the difference between
+trainable and impossible. The repeated rediscoveries are a recurring
+pattern in this history: the idea existed years before the field had the
+data and compute to make it pay off.
+
+</Deeper>
 
 ## 1990s–2000s: Statistical Machine Learning
 
@@ -158,6 +233,34 @@ turned out to scale unusually well: bigger models, trained on more text,
 kept getting better in fairly predictable ways — an observation formalized
 as **scaling laws**.
 
+<Deeper title="What a scaling law actually says">
+
+Kaplan et al. (2020) found that transformer language-model loss falls as a
+**power law** in each of model size $N$, dataset size $D$, and training
+compute $C$, provided the other two are not the bottleneck:
+
+$$
+L(N) \approx \left(\frac{N_c}{N}\right)^{\alpha_N}
+$$
+
+with small exponents — roughly $\alpha_N \approx 0.076$ for parameters.
+A power law plots as a straight line on log–log axes, which is what makes
+it useful: measure a few small runs, extrapolate the line, and predict the
+loss of a run you have not yet paid for.
+
+The small exponent is also the catch. Because $L$ falls with $N^{-0.076}$,
+halving the loss gap requires increasing $N$ by a factor of
+$2^{1/0.076} \approx 10^{4}$. Progress is predictable and brutally
+expensive at the same time — which is exactly the bet the LLM era is
+making.
+
+Hoffmann et al. (2022) later revised the *allocation* advice: for a fixed
+compute budget, earlier models were far too large for the amount of data
+they were trained on, and parameters and tokens should be scaled roughly in
+proportion.
+
+</Deeper>
+
 That predictability is what justified training ever-larger language
 models, culminating in the systems now called **LLMs** (large language
 models) — GPT, Claude, Gemini, Llama, and others. The recipe that
@@ -185,6 +288,26 @@ scaling-laws bet: each generation was substantially larger and trained on
 more data than the last, with capability increasing in tandem more
 reliably than most researchers expected going in.
 
+<NapkinMath title="Six decades of parameter count">
+
+The Mark I Perceptron (1958) adjusted its weights with physical
+potentiometers — on the order of **10²** tunable numbers. GPT-3 (2020) has
+**1.75 × 10¹¹** parameters.
+
+$$
+\frac{1.75 \times 10^{11}}{10^{2}} \approx 2 \times 10^{9}
+$$
+
+Roughly a **billion-fold** increase across 62 years. Spread evenly, that is
+a doubling roughly every two years — which is to say the field's headline
+number tracked Moore's law for six decades, and the visible capability
+jumps came when that curve crossed thresholds, not when it changed slope.
+
+The dataset side moved similarly: the Perceptron learned from hundreds of
+hand-fed images, ImageNet from ~10⁶, and GPT-3 from ~10¹¹ tokens.
+
+</NapkinMath>
+
 ## Where this leaves us
 
 Each era didn't so much get "replaced" as get **subsumed**: statistical ML
@@ -194,3 +317,23 @@ underlies vision and speech; transformers now dominate language and
 increasingly other modalities too. The rest of this course follows that
 stack bottom-up — starting with the statistical-learning foundations
 everything else builds on.
+
+The through-line is a steady retreat of hand-written work: each era moves
+one more thing from *specified by a person* to *learned from data*.
+
+| Era | Human supplies | System learns |
+| --- | --- | --- |
+| Symbolic AI | Rules and representations | Nothing |
+| Expert systems | Domain rule base | Which rules to chain |
+| Statistical ML | Features and model class | Parameters |
+| Deep learning | Architecture and labels | Features and parameters |
+| LLMs | Architecture and objective | Features, parameters, tasks |
+
+<Misconception claim="each era simply replaced the one before it.">
+  Nothing on that list actually died. Rule engines still gate credit
+  decisions and business logic; gradient-boosted trees still beat neural
+  networks on most tabular data in production; convolutional networks still
+  run on-device vision. The eras describe where the *frontier* moved, not
+  what practitioners use — and picking the era that fits the problem is a
+  large part of applied ML judgment.
+</Misconception>

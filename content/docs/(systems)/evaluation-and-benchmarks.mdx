@@ -11,6 +11,78 @@ through math, and hold a conversation, is a much harder and more
 contested problem. This lesson covers how it's actually done, and where
 it goes wrong.
 
+## Picking an evaluation method
+
+Before reaching for a specific benchmark, it helps to ask one question:
+**does the task have a single answer you can check by machine?** Almost
+every evaluation method in this lesson is an answer to some version of
+that question, and the further "no" you go, the more the evaluation
+starts to cost.
+
+<Mermaid chart={`flowchart TD
+  S{Single verifiable<br/>answer}
+  S -- Yes --> A[Exact match<br/>or unit tests]
+  S -- No --> R{Reference answer<br/>available}
+  R -- Yes --> M[Reference-based<br/>overlap metrics]
+  R -- No --> Q{Need cheap scale}
+  Q -- Yes --> J[Model-graded<br/>judging]
+  Q -- No --> H[Human preference<br/>comparison]
+`} />
+
+The left branch is the comfortable one. If the answer is `B`, or the
+generated function either passes the unit tests or it doesn't, scoring is
+exact, free, and reproducible — which is exactly why the best-known
+benchmarks live there. The right branch is where most of what people
+actually use LLMs for lives, and where every option is a compromise.
+
+When a task *does* have checkable answers, the metrics from
+[ML Fundamentals](/docs/ml-fundamentals) apply unchanged: accuracy when
+the classes are balanced, and precision and recall when they aren't or
+when the two kinds of mistake cost different amounts. A safety filter
+that blocks harmful requests, for instance, is judged almost entirely on
+the precision/recall balance rather than on raw accuracy.
+
+<Deeper title="Precision, recall, and F1, written out">
+
+Count the four outcomes of a binary decision: true positives $TP$, false
+positives $FP$, true negatives $TN$, and false negatives $FN$. Then:
+
+$$
+\text{Precision} = \frac{TP}{TP + FP}, \qquad
+\text{Recall} = \frac{TP}{TP + FN}
+$$
+
+Precision asks *of everything I flagged, how much should I have flagged* —
+its denominator counts the model's positive predictions. Recall asks *of
+everything I should have flagged, how much did I catch* — its denominator
+counts the true positives that exist in the data. Neither one references
+$TN$, which is why both stay informative when negatives vastly outnumber
+positives.
+
+The $F_1$ score is their harmonic mean:
+
+$$
+F_1 = 2 \cdot \frac{\text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}}
+$$
+
+The harmonic mean, unlike the arithmetic mean, is dragged down hard by the
+smaller of the two: a model with precision $1.0$ and recall $0.01$ has an
+arithmetic mean of $0.505$ but an $F_1$ of about $0.02$. That is the point —
+$F_1$ refuses to reward a model that wins one metric by abandoning the
+other.
+
+Which to optimise is a product decision, not a statistical one. Weighting
+recall $\beta$ times as important as precision generalises $F_1$ to:
+
+$$
+F_\beta = (1 + \beta^2) \cdot \frac{\text{Precision} \cdot \text{Recall}}{\beta^2 \cdot \text{Precision} + \text{Recall}}
+$$
+
+with $\beta > 1$ favouring recall (missing a case is worse) and $\beta < 1$
+favouring precision (a false alarm is worse).
+
+</Deeper>
+
 ## Benchmark suites: standardized exams for models
 
 A **benchmark** is a fixed, standardized set of test questions used to
@@ -32,6 +104,61 @@ Model releases routinely report scores on suites like these, and
 benchmarks at once. This gives a standardized, reproducible way to
 compare models — the same appeal standardized tests have for comparing
 students.
+
+One thing leaderboards rarely show is how *precise* those scores are.
+Benchmarks contain a finite number of questions, so a reported score is an
+estimate from a sample, and like any sample estimate it comes with noise.
+With a few hundred items, that noise is larger than most of the gaps being
+argued about.
+
+<NapkinMath title="How big a gap is real?">
+
+Take a benchmark with **400 questions** and a model scoring **80%**. The
+standard error of a proportion is $\sqrt{p(1-p)/n}$:
+
+- $\sqrt{0.8 \times 0.2 / 400} = \sqrt{0.0004} = 0.02$ → **2 points**
+
+So a single score of 80% is really "80% give or take about 4 points" at
+95% confidence. Comparing two models on *different* samples roughly
+multiplies the uncertainty by $\sqrt{2}$: the gap between them carries a
+95% interval of about **±5.5 points**.
+
+A headline like "81.2% vs 79.8%" is, on 400 items, indistinguishable from
+a tie.
+
+</NapkinMath>
+
+<Deeper title="Confidence intervals on a benchmark score">
+
+Treat each question as a Bernoulli trial the model passes with probability
+$p$. The observed score $\hat{p}$ on $n$ items has standard error:
+
+$$
+\mathrm{SE}(\hat{p}) = \sqrt{\frac{\hat{p}(1 - \hat{p})}{n}}
+$$
+
+and an approximate 95% confidence interval of $\hat{p} \pm 1.96\,\mathrm{SE}$.
+The $\sqrt{n}$ in the denominator is the expensive part: **halving the
+uncertainty requires four times the questions**.
+
+To resolve a genuine one-point difference — a margin of $0.01$ around
+$\hat p \approx 0.8$ — you need roughly
+
+$$
+n \approx \frac{1.96^2 \times 0.8 \times 0.2}{0.01^2} \approx 6{,}100
+$$
+
+items, an order of magnitude more than many popular benchmarks contain.
+
+There is one large caveat in the useful direction. The estimate above
+assumes the two models were measured independently, but benchmark
+comparisons are *paired*: both models answer the same questions. Because
+model scores are strongly correlated across items — hard questions are hard
+for everyone — a paired test (McNemar's test, or a bootstrap over items)
+looks only at the questions where the two models *disagree* and is
+substantially more sensitive than comparing two independent intervals.
+
+</Deeper>
 
 ## Why benchmark scores can mislead
 
@@ -61,6 +188,37 @@ which creates several specific failure modes worth naming.
   between models — a recurring pattern that drives the field to
   continually design harder benchmarks.
 
+<Misconception claim="contamination can be ruled out by searching the training data for the test questions.">
+  Exact string search catches only the easiest case. Benchmark items get
+  paraphrased, translated, reformatted, discussed in blog posts and forum
+  threads, and regurgitated into synthetic training data — all of which leak
+  the answer without matching the original text. And for most released
+  models the training corpus isn't public, so the check can't even be run
+  from outside.
+
+  What practitioners do instead is look for *symptoms*: does the model score
+  far better on a benchmark's public split than on a freshly written private
+  set of equivalent difficulty? Can it reproduce a test item verbatim when
+  prompted with only its first few words? Does its score collapse when the
+  questions are reworded or the multiple-choice options reordered? None of
+  these proves cleanliness — they only ever raise or lower suspicion.
+</Misconception>
+
+<Misconception claim="a benchmark keeps measuring the same thing once everyone is optimizing for it.">
+  This is **Goodhart's law**: when a measure becomes a target, it ceases to
+  be a good measure. A benchmark works as a proxy precisely *because* it
+  correlates with general capability on data nobody was aiming at. Once labs
+  filter pretraining data for benchmark-adjacent content, tune prompts
+  against the test format, and pick checkpoints by leaderboard rank, that
+  correlation is no longer safe to assume — the score keeps climbing while
+  the thing it was standing in for may not.
+
+  It is the same mechanism as [overfitting](/reference/overfitting) to a
+  validation set, just distributed across an entire industry, and it's the
+  main argument for private held-out sets and continuously refreshed
+  benchmarks.
+</Misconception>
+
 ## LLM-as-judge: evaluating open-ended output
 
 Multiple-choice benchmarks are easy to score automatically, but a lot of
@@ -89,6 +247,52 @@ practice:
   [RLHF](/docs/llms) trains on. It's the closest proxy to real user
   experience, but is slow, expensive, and doesn't scale to the pace of
   model iteration the way automated benchmarks do.
+
+Human evaluation is usually collected as **pairwise comparisons** rather
+than absolute scores: show a rater two responses to the same prompt and ask
+which is better. People are far more consistent at ranking two things than
+at assigning a number to one thing, and the resulting votes can be
+aggregated into a single rating per model.
+
+<Deeper title="From pairwise votes to a single rating">
+
+The standard aggregation is the **Bradley–Terry** model, usually reported
+in Elo units borrowed from chess. Each model $i$ gets a latent strength
+$R_i$, and the probability that $A$ beats $B$ is assumed to be:
+
+$$
+P(A \succ B) = \frac{1}{1 + 10^{(R_B - R_A)/400}}
+$$
+
+The constant $400$ is pure convention: it sets a 400-point gap to mean
+about a 10-to-1 win rate, and a 100-point gap to mean roughly 64%.
+
+Given a pile of recorded comparisons, the ratings are whatever values make
+the observed outcomes most likely — a logistic regression whose features
+are *which two models played*. Live leaderboards often use the online Elo
+update instead, adjusting after each vote:
+
+$$
+R_A \leftarrow R_A + K\left(S_A - \mathbb{E}[S_A]\right)
+$$
+
+where $S_A \in \{0, 0.5, 1\}$ is the actual result and $K$ controls how
+fast ratings move. This is convenient but order-dependent; the batch
+maximum-likelihood fit is more stable when all the votes are already in.
+
+Two assumptions are doing real work here. First, that a single number per
+model suffices — Bradley–Terry cannot represent non-transitive preferences,
+where $A$ beats $B$, $B$ beats $C$, and $C$ beats $A$. Second, that ratings
+are comparable across the prompt mix voters happened to submit; change the
+distribution of questions and the ranking can change with it.
+
+</Deeper>
+
+| Method | Cost & speed | What it misses |
+| --- | --- | --- |
+| Automatic benchmarks | Near-free, seconds | Anything without a checkable answer; vulnerable to contamination |
+| Model-graded judging | Cheap, minutes | The judge's own biases and blind spots become the criteria |
+| Human preference | Expensive, days | Slow enough that it lags model iteration; raters disagree |
 
 In practice, serious model evaluation combines several of these — broad
 automated benchmarks for quick, cheap signal; held-out and

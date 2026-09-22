@@ -49,6 +49,38 @@ for state-of-the-art image generation partly because their training is
 far more stable.
 </Callout>
 
+<Deeper title="Why adversarial training is a minimax game">
+
+A GAN has no single loss to minimise. The generator $G$ and discriminator
+$D$ play against each other over one shared objective:
+
+$$
+\min_G \max_D \; \mathbb{E}_{x \sim p_{\text{data}}}\left[\log D(x)\right] + \mathbb{E}_{z \sim p_z}\left[\log\left(1 - D(G(z))\right)\right]
+$$
+
+$D$ wants to push $D(x)$ toward 1 on real data and $D(G(z))$ toward 0 on
+fakes; $G$ wants the opposite. The target is not a minimum but a **Nash
+equilibrium** — a point where neither network can improve unilaterally.
+
+That difference is the source of the instability. Ordinary training
+descends a fixed landscape; here the landscape moves every time the
+opponent updates, so the pair can oscillate or drift without converging.
+It also explains mode collapse directly: the objective only asks $G$ to
+produce samples $D$ cannot distinguish from real. Nothing in it rewards
+*covering* the data distribution, so emitting one very convincing cat
+forever is a perfectly good solution to the equation — just not to the
+problem.
+
+</Deeper>
+
+<Misconception claim="the discriminator is the part you eventually keep.">
+  It is thrown away. The discriminator exists only to manufacture a training
+  signal for the generator — it is a learned, continuously improving loss
+  function rather than a component of the final system. Once training ends,
+  generation runs entirely through the generator, and the discriminator has
+  no role at inference time.
+</Misconception>
+
 ## VAEs: learning a compressed, generative latent space
 
 A **VAE (Variational Autoencoder)** takes a different approach: an
@@ -75,6 +107,19 @@ approach for high-fidelity image generation.
 image generators — take a strikingly different strategy: train a model
 to *reverse* a process of gradually adding random noise to an image.
 
+The forward direction is fixed arithmetic that needs no learning at all.
+Only the reverse direction is a network, and it is trained to answer one
+narrow question at every noise level: *what noise is in this image?*
+
+<Mermaid chart={`flowchart LR
+  X0[Clean image] -- add noise --> X1[Slightly noisy]
+  X1 -- add noise --> X2[Very noisy]
+  X2 -- add noise --> XT[Pure noise]
+  XT -- network removes noise --> Y2[Vague shapes]
+  Y2 -- network removes noise --> Y1[Almost an image]
+  Y1 -- network removes noise --> Y0[New sample]
+`} />
+
 <Steps>
 <Step>
 **Forward process (fixed, not learned)**: take a real training image and
@@ -94,6 +139,59 @@ into a coherent image over many iterations.
 </Step>
 </Steps>
 
+<Deeper title="The forward process, and why any timestep is one step away">
+
+The forward process adds Gaussian noise on a fixed schedule
+$\beta_1, \dots, \beta_T$, each step slightly shrinking the image and
+mixing in noise:
+
+$$
+x_t = \sqrt{1 - \beta_t}\; x_{t-1} + \sqrt{\beta_t}\; \epsilon, \qquad \epsilon \sim \mathcal{N}(0, I)
+$$
+
+Taken literally, producing $x_t$ would mean running $t$ sequential steps —
+unworkable when $T$ is in the hundreds or thousands and you need a fresh
+sample for every training example. But because the sum of independent
+Gaussians is Gaussian, the whole chain collapses. Writing
+$\alpha_t = 1 - \beta_t$ and $\bar{\alpha}_t = \prod_{s=1}^{t} \alpha_s$:
+
+$$
+x_t = \sqrt{\bar{\alpha}_t}\; x_0 + \sqrt{1 - \bar{\alpha}_t}\; \epsilon
+$$
+
+One draw of $\epsilon$ and one interpolation gives you the image at *any*
+noise level directly from the clean image. This is what makes training
+cheap and fully parallel: sample a random $t$, jump straight there, and
+train on that one noise level. The schedule is chosen so $\bar{\alpha}_T
+\approx 0$, which is exactly the statement that $x_T$ is indistinguishable
+from pure noise — the distribution you can sample from for free at
+generation time.
+
+</Deeper>
+
+<Deeper title="The training objective is plain regression">
+
+The closed form above hands you a labelled example for free. You know
+$x_t$ because you built it, and you know $\epsilon$ because you drew it —
+so the noise itself is the target, and the network $\epsilon_\theta$ is
+trained with mean squared error:
+
+$$
+L = \mathbb{E}_{x_0,\, \epsilon,\, t} \left[ \left\lVert \epsilon - \epsilon_\theta(x_t, t) \right\rVert^2 \right]
+$$
+
+That is it — the same MSE from [ML Fundamentals](/docs/ml-fundamentals),
+with $t$ sampled uniformly so every noise level gets trained. No
+adversary, no likelihood bound, no sampling during training.
+
+The subtlety is that a *noise* prediction is equivalent to an *image*
+prediction: rearranging the forward equation recovers
+$\hat{x}_0 = (x_t - \sqrt{1 - \bar{\alpha}_t}\, \epsilon_\theta) / \sqrt{\bar{\alpha}_t}$.
+Predicting $\epsilon$ is the better-conditioned choice because the target
+has unit variance at every $t$, so no noise level dominates the loss.
+
+</Deeper>
+
 This reframes "generate a realistic image" as a long sequence of much
 simpler "remove a little noise" prediction problems — each individually
 easy to train with an ordinary supervised loss, with no adversarial
@@ -112,6 +210,45 @@ covered in this lesson — and increasingly use
 [transformer](/reference/transformer)-based denoising networks instead of
 pure CNNs, another instance of attention proving to be a general-purpose
 mechanism rather than a language-specific one.
+
+<NapkinMath title="Why latent diffusion instead of pixels">
+
+A 512×512 RGB image is 512 × 512 × 3 ≈ **786,000** values. Stable
+Diffusion's VAE downsamples by 8 per side into a 64 × 64 × 4 latent:
+64 × 64 × 4 ≈ **16,400** values — roughly **48× smaller**.
+
+The spatial grid shrinks harder still: 512² = 262,144 positions become
+64² = 4,096, a **64× reduction**. Since attention cost grows with the
+*square* of the number of positions, an attention layer over the latent
+grid is ~64² ≈ **4,000×** cheaper than the same layer over pixels.
+
+And that saving is paid on every denoising step. At 50 steps, the
+difference between running a heavy network 50 times on 786,000 values
+versus 16,400 is the difference between a research cluster and a
+consumer GPU.
+
+</NapkinMath>
+
+<Misconception claim="diffusion generates an image by painting it in gradually.">
+  Each step predicts the noise in the *entire* image at once, not a region of
+  it. Early steps do commit the coarse layout and late steps refine texture,
+  but that is a consequence of which frequencies survive at each noise level —
+  not a canvas being filled in piece by piece. Every step touches every pixel.
+</Misconception>
+
+## The four families side by side
+
+| Approach | Sample quality | Diversity | Training stability | Sampling speed |
+| --- | --- | --- | --- | --- |
+| GAN | Sharp | Prone to mode collapse | Fragile, adversarial | One pass — fastest |
+| VAE | Historically blurry | Good coverage | Stable, single loss | One pass — fast |
+| Diffusion | State of the art | Good coverage | Stable, plain regression | Many passes — slow |
+| Autoregressive | Strong | Good coverage | Stable, next-token loss | One pass per element |
+
+The pattern worth noticing: the two stable, well-covering approaches pay
+for it in sampling cost, and the fastest approach pays for it in training
+fragility. Latent diffusion and reduced-step samplers are both attempts to
+keep diffusion's training properties while clawing back its sampling bill.
 
 ## Recap and what's next
 

@@ -15,6 +15,25 @@ long-range relationships hard to learn and impossible to parallelize
 during training. The **transformer** architecture solved both problems
 with one mechanism: **self-attention**.
 
+Here is the shape of the thing before we take it apart. A transformer is
+the same block repeated dozens of times, and one block looks like this:
+
+<Mermaid chart={`flowchart TD
+  E[Token embeddings<br/>plus positional info] --> N1[Layer norm]
+  N1 --> A[Multi-head<br/>self-attention]
+  A --> R1[Add residual]
+  E --> R1
+  R1 --> N2[Layer norm]
+  N2 --> F[Feed-forward MLP]
+  F --> R2[Add residual]
+  R1 --> R2
+  R2 --> O[Output to<br/>next block]
+`} />
+
+The two arrows that skip past attention and past the MLP are the
+**residual connections** — the block *adds* to its input rather than
+replacing it. Everything below fills in those boxes.
+
 ## The core idea: attention as weighted lookup
 
 Self-attention lets every position in a sequence directly look at every
@@ -45,6 +64,38 @@ the important part is `softmax(Q · Kᵀ)`: a matrix of "how much should
 token *i* attend to token *j*" for every pair of tokens, learned entirely
 from data, not hand-specified.
 
+<Deeper title="Scaled dot-product attention, written out">
+
+For a sequence of $n$ tokens, stack the per-token queries, keys and values
+into matrices $Q, K \in \mathbb{R}^{n \times d_k}$ and
+$V \in \mathbb{R}^{n \times d_v}$. Then:
+
+$$
+\text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^{\top}}{\sqrt{d_k}}\right) V
+$$
+
+The product $QK^{\top}$ is an $n \times n$ matrix whose entry $(i, j)$ is the
+raw score $q_i \cdot k_j$. The softmax is applied **per row**, so each row
+$i$ becomes a probability distribution over all $j$:
+
+$$
+\alpha_{ij} = \frac{\exp(q_i \cdot k_j / \sqrt{d_k})}{\sum_{j'} \exp(q_i \cdot k_{j'} / \sqrt{d_k})}
+$$
+
+and the output for token $i$ is $\sum_j \alpha_{ij} v_j$ — a weighted average
+of value vectors, with weights summing to 1.
+
+The $1/\sqrt{d_k}$ is not cosmetic. If the entries of $q_i$ and $k_j$ are
+roughly independent with unit variance, their dot product is a sum of $d_k$
+such terms and so has variance $\approx d_k$ — meaning typical scores grow
+like $\sqrt{d_k}$. With $d_k = 64$ that is already an eightfold stretch, and
+softmax on widely separated inputs saturates: one weight goes to ~1, the rest
+to ~0, and the gradient through the softmax goes to nearly zero. Dividing by
+$\sqrt{d_k}$ puts the scores back at roughly unit variance so the softmax
+stays in a region where it still has useful gradients.
+
+</Deeper>
+
 Click through a few example sentences below to build intuition for what
 that attention matrix actually looks like. These weights are
 hand-set to illustrate the pattern a trained model learns, not live
@@ -52,6 +103,15 @@ model output — but they show the same kind of long-range dependency real
 attention heads pick up on:
 
 <AttentionVisualizer />
+
+<Misconception claim="a high attention weight means the model is using that word.">
+  Attention weights say where information was *read from* on one head in one
+  layer — not what the network ultimately relied on to make its prediction.
+  Information also flows through the residual stream and the feedforward
+  layers, and dozens of layers of heads compose on top of each other. Heads
+  that look beautifully interpretable in a visualization are a real pattern,
+  but they are not a faithful explanation of the model's output.
+</Misconception>
 
 ## Why "self"-attention, and why "multi-head"
 
@@ -67,6 +127,35 @@ subject-verb agreement, another might track coreference (like "it" →
 "trophy"), another might track adjacent-word syntax. No one designs these
 specializations; they emerge from training, similar to how CNN layers
 learn their own feature hierarchy.
+
+<Deeper title="How the heads are split, concatenated, and projected">
+
+Multi-head attention does not make the model wider. With model dimension
+$d_{\text{model}}$ and $h$ heads, each head works in a *smaller* subspace,
+typically $d_k = d_v = d_{\text{model}} / h$. Head $i$ has its own learned
+projections $W_i^Q, W_i^K, W_i^V$:
+
+$$
+\text{head}_i = \text{Attention}(XW_i^Q,\; XW_i^K,\; XW_i^V)
+$$
+
+The $h$ outputs — each $n \times d_v$ — are concatenated back to width
+$d_{\text{model}}$ and passed through one more learned matrix $W^O$:
+
+$$
+\text{MultiHead}(X) = \text{Concat}(\text{head}_1, \dots, \text{head}_h)\, W^O
+$$
+
+Two things follow. First, the parameter count is essentially unchanged
+versus a single head of full width, so multiple heads are close to free —
+they buy specialization rather than capacity. Second, the reason you want
+them is that a single softmax row must spend its total weight of 1 on one
+blend of positions; it cannot simultaneously attend to the subject of the
+sentence *and* the previous token. Splitting into $h$ independent softmaxes
+lets the block attend to $h$ different things at once, and $W^O$ learns how
+to mix those results back together.
+
+</Deeper>
 
 ## The rest of the transformer block
 
@@ -117,6 +206,58 @@ generation — the token-by-token process covered in
 model is trained on the exact task it will perform at generation time,
 predicting each next token from only what came before it.
 
+Masking is also where attention's main cost shows up. Because every token
+compares itself against every other token, the score matrix has one entry
+per *pair* of positions — so the work grows with the **square** of the
+sequence length, not linearly with it.
+
+<NapkinMath title="Why long context is expensive">
+
+One attention head builds an $n \times n$ score matrix, one float per pair
+of tokens. At 2 bytes per entry:
+
+- 1K tokens → 1M entries → **~2 MB** per head
+- 8K tokens → 64M entries → **~128 MB** per head
+- 128K tokens → 16.4B entries → **~33 GB** per head
+
+Eight times the context, **64 times** the score matrix. And that is *one*
+head — a model with 32 heads across 80 layers would need that many times
+over if it ever held them all at once. This single quadratic is why long
+context was a research problem rather than a configuration flag, and why
+real implementations never materialize the full matrix.
+
+</NapkinMath>
+
+<Deeper title="The quadratic, and what the mask actually does">
+
+For sequence length $n$ and head dimension $d$, forming $QK^{\top}$ costs
+$O(n^2 d)$ operations and, done naively, $O(n^2)$ memory. Compare that to an
+RNN's $O(n d^2)$ — linear in $n$. Attention wins whenever $n \ll d$ and loses
+badly once $n$ grows large, which is exactly the regime long-context models
+live in.
+
+Causal masking is implemented inside the softmax rather than after it. Define
+the masked scores
+
+$$
+s_{ij} = \begin{cases} \dfrac{q_i \cdot k_j}{\sqrt{d_k}} & j \le i \\[6pt] -\infty & j > i \end{cases}
+$$
+
+Since $\exp(-\infty) = 0$, future positions contribute nothing to the
+normalizing sum, and each row still sums to 1 over the positions it is
+allowed to see. Zeroing the weights *after* the softmax would not work — the
+remaining weights would no longer sum to 1.
+
+This triangular structure has a second consequence: token $i$'s output never
+depends on anything after $i$, so a single forward pass over a sequence of
+length $n$ yields a valid next-token prediction at *every* position at once.
+That is what makes training parallel over the sequence even though generation
+is inherently sequential. It is also what makes the KV cache described in
+[Inference & Serving](/docs/inference-and-serving) correct: past keys and
+values can never change, so they can be computed once and reused.
+
+</Deeper>
+
 ## Encoder, decoder, and encoder-decoder transformers
 
 The original transformer paper actually describes two halves working
@@ -164,6 +305,27 @@ sequence modeling:
    [History & Landscape](/docs/history-and-landscape)) — a property that
    directly justified building the huge models covered later in
    [LLMs](/docs/llms).
+
+| | RNN / LSTM | Self-attention |
+| --- | --- | --- |
+| Path between two tokens | Up to $n$ steps | 1 step |
+| Training over a sequence | Sequential | Parallel |
+| Cost in sequence length | Linear | Quadratic |
+
+Note the trade that was actually made: transformers bought a shorter path
+and parallel training by accepting a *worse* asymptotic cost in sequence
+length. That was the right call on hardware built for big parallel matrix
+multiplies — and it is also why nearly every long-context technique since
+has been an attempt to claw that quadratic back.
+
+<Misconception claim="transformers removed the need for recurrence because attention is more powerful.">
+  Attention is not strictly more expressive — it is more *trainable*. An RNN
+  can in principle carry information across a sequence, but the signal has to
+  survive being relayed through every intermediate step, and the gradient has
+  to survive the same trip backwards. Attention's advantage is that any two
+  positions are one hop apart and that the whole sequence can be processed at
+  once, so the same compute budget buys far more learning.
+</Misconception>
 
 ## Recap
 

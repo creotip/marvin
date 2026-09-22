@@ -41,11 +41,63 @@ performance characteristics:
   This phase is **memory-bandwidth-bound**: the bottleneck is how fast
   data can move, not how much math the GPU can do.
 
+Put end to end, a single request moves through a fixed pipeline — one
+prefill pass, then a loop that runs once per generated token:
+
+<Mermaid chart={`flowchart TD
+  A[Prompt arrives] --> B[Tokenize]
+  B --> C[Queue and join a batch]
+  C --> D[Prefill<br/>whole prompt in parallel<br/>fills the KV cache]
+  D --> E[Decode step<br/>predict one token]
+  E --> F[Append new K and V<br/>to the cache]
+  F --> G{Stop token or limit}
+  G -- no --> E
+  G -- yes --> H[Detokenize and<br/>stream to the user]
+`} />
+
 This distinction is why **time to first token** and **tokens per second**
 (below) behave so differently and are optimized somewhat separately: a
 long prompt mostly costs prefill time; a long generated response mostly
 costs decode time, dominated by repeatedly reading an ever-growing KV
 cache.
+
+| | Prefill | Decode |
+| --- | --- | --- |
+| Tokens per pass | The whole prompt | Exactly one |
+| Parallelism | Across all prompt positions | None across time |
+| Bottleneck | GPU compute | Memory bandwidth |
+| Metric it governs | Time to first token | Tokens per second |
+
+<Deeper title="Why decode is bandwidth-bound, not compute-bound">
+
+The useful quantity is **arithmetic intensity**: how many floating-point
+operations a kernel performs per byte it has to read from memory.
+
+A decode step with batch size $B$ over a model with $N$ parameters does
+roughly $2NB$ FLOPs — two operations (a multiply and an add) per parameter
+per sequence. But it must read every weight once regardless of $B$, so at
+$b$ bytes per weight it moves about $Nb$ bytes. The intensity is therefore:
+
+$$
+I_{\text{decode}} \approx \frac{2NB}{Nb} = \frac{2B}{b}
+$$
+
+The model size cancels. With 2-byte weights, intensity is just $B$ — around
+**1 FLOP per byte** for a single request. Current accelerators need several
+hundred FLOPs per byte before compute becomes the limiting factor, so decode
+at small batch sizes leaves the arithmetic units almost entirely idle while
+the memory system runs flat out.
+
+Prefill is the opposite case. A prompt of $P$ tokens reuses each weight
+$P$ times in the same pass, giving intensity $\approx 2P/b$ — comfortably
+compute-bound for any prompt of realistic length.
+
+Two consequences follow directly. Raising the batch size is the main lever
+for making decode efficient, because it raises intensity without reading any
+more weights. And speculative decoding (below) works precisely because that
+idle compute is free to spend on verifying guesses.
+
+</Deeper>
 
 ## KV caching: don't recompute what hasn't changed
 
@@ -68,6 +120,51 @@ The tradeoff: the KV cache consumes GPU memory proportional to sequence
 length and batch size, and at long context lengths or high concurrent
 request counts, KV cache memory — not raw compute — is often the binding
 constraint on how many requests a server can handle at once.
+
+<Deeper title="How large the cache actually gets">
+
+Every layer stores one Key and one Value vector per attention head per
+token. For a model with $L$ layers, $h$ key/value heads, head dimension
+$d$, and $b$ bytes per number, a single sequence of length $s$ in a batch
+of $B$ occupies:
+
+$$
+\text{bytes} = 2 \cdot L \cdot h \cdot d \cdot b \cdot s \cdot B
+$$
+
+The leading $2$ is the Key and the Value. Note what is *absent*: the
+feed-forward weights, which dominate parameter count, contribute nothing.
+Cache size is driven by depth and attention width, not by total parameters.
+
+Everything except $s$ and $B$ is fixed once the model is trained, so the
+formula is really "a constant number of bytes per token." That constant is
+exactly what **grouped-query attention** attacks: sharing one Key/Value head
+across several Query heads shrinks $h$ — and therefore the cache — by the
+sharing ratio, with no change to $L$ or $d$. It is an inference-time memory
+optimization baked into the architecture at training time.
+
+</Deeper>
+
+<NapkinMath title="When the cache outgrows the GPU">
+
+Take a large model with 80 layers, 8 key/value heads, head dimension 128,
+running in 16-bit precision. Per token:
+
+$$
+2 \times 80 \times 8 \times 128 \times 2\,\text{B} \approx 0.33\ \text{MB}
+$$
+
+That sounds negligible. Now fill a 32,000-token context:
+
+- One request: $0.33\,\text{MB} \times 32{,}000 \approx$ **10.7 GB**
+- Eight concurrent requests: **~86 GB**
+
+Eight users have exhausted an 80 GB accelerator on cache alone — before
+loading a single model weight. This is why long context is expensive to
+*serve*, not just to train, and why serving systems page, evict, and
+compress KV cache as aggressively as operating systems manage RAM.
+
+</NapkinMath>
 
 Generate some tokens both ways below and watch the gap widen — these are
 simulated costs illustrating the shape of the difference, not measured
@@ -101,6 +198,44 @@ finish, rather than waiting for a whole batch to complete together) to get
 much of the throughput benefit of large batches without forcing every
 request to wait for the slowest one in a fixed batch.
 
+<Deeper title="Static vs. continuous batching">
+
+Under **static** batching, a batch of $B$ requests is admitted together and
+returns together. Every slot stays occupied until the longest generation
+finishes, so if request $i$ needs $n_i$ tokens, the useful work is
+$\sum_i n_i$ while the batch is held for $B \cdot \max_i n_i$ token-slots.
+Utilisation is therefore:
+
+$$
+U = \frac{\sum_{i=1}^{B} n_i}{B \cdot \max_i n_i} = \frac{\bar{n}}{\max_i n_i}
+$$
+
+Output lengths in real traffic vary by orders of magnitude — a one-word
+answer shares a batch with a long essay — so $\bar{n} \ll \max_i n_i$ and
+most slots spend most of their time computing padding.
+
+**Continuous** batching schedules at the granularity of a single decode step
+instead of a whole request. When a sequence emits its stop token, its slot is
+returned and a queued request takes it on the very next step. $U$ approaches
+1 regardless of how uneven the length distribution is, and queueing delay
+drops from "wait for the current batch to finish" to "wait for any one slot."
+
+The cost is bookkeeping: slots now hold caches of differing lengths, so the
+attention kernel must handle ragged sequences and the memory allocator must
+hand out cache space in small blocks rather than one contiguous slab per
+request.
+
+</Deeper>
+
+<Misconception claim="a bigger batch makes every individual request slower.">
+  Only the *waiting* part gets slower. Because decode is bandwidth-bound,
+  adding sequences to a batch reuses weights that were going to be read from
+  memory anyway — so a step with 32 sequences takes barely longer than a step
+  with one. Per-user tokens per second stays roughly flat over a wide range of
+  batch sizes, and only degrades once the batch is large enough to make the
+  GPU genuinely compute-bound.
+</Misconception>
+
 ## Quantization: trading precision for speed and memory
 
 Model weights are normally stored as 16-bit or 32-bit floating point
@@ -119,6 +254,14 @@ width drops (4-bit is noticeably riskier than 8-bit), which is why
 quantization level is itself a tuned tradeoff — lower precision saves
 memory and cost, but can measurably degrade output quality if pushed too
 far for a given model and use case.
+
+<Misconception claim="quantization only helps by making the model fit in less memory.">
+  Fitting is the visible benefit, but the *speed* gain is the bigger one and
+  it comes from the same bandwidth argument as above: a decode step has to
+  read every weight, so halving the bytes per weight roughly halves the bytes
+  moved per token. Quantization attacks the actual bottleneck, which is why it
+  speeds up decoding even on a GPU that had plenty of spare memory.
+</Misconception>
 
 ## Speculative decoding: guessing ahead to go faster
 
