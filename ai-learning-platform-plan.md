@@ -62,6 +62,14 @@ Each topic = one lesson page (MDX route). Widgets and quizzes listed above are d
 | Tokenizer playground          | Live — real tokenizer via `gpt-tokenizer` or `tiktoken` (WASM, client-side, no model)                                                |
 | Attention weight visualizer   | **Precomputed** — canned attention-weight JSON for a fixed set of example sentences (avoids shipping a real transformer client-side) |
 | KV-cache latency simulator    | Simulated by design — illustrates the concept, not real hardware timing                                                              |
+| Bayes' theorem calculator     | Live — pure JS. Prior/likelihood sliders update the posterior in real time (bar chart), classic medical-test framing from the Probability & Statistics callout |
+| Grid-world Q-learning visualizer | Live — pure JS tabular Q-learning on a small (e.g. 5×5) grid. Click "train," watch the policy arrows converge episode by episode — the classic RL demo, cheap to actually run client-side |
+| Diffusion denoising visualizer | Live — procedural noise add/remove on a small pixel grid (reuse the convolution visualizer's hollow-square test image). Forward process animates noise in; a synthetic reverse process animates it back out |
+| Embedding similarity search playground | **Precomputed** — a handful of example sentences with hand-set 2D projected embedding coordinates, plotted on a plane; typing/selecting a query highlights nearest neighbors by cosine similarity. Same honesty pattern as the attention visualizer — illustrative, not a live embedding model |
+| Agent trace stepper           | **Precomputed** — pick a goal from a dropdown, step through a scripted Thought → Tool call → Observation → ... → Final answer trace, revealed one step at a time (same spirit as the backprop stepper, for the agent loop instead) |
+| Batching latency/throughput slider | Simulated by design — adjust batch size, watch simulated per-request latency rise and total throughput rise together, visualizing the tradeoff Inference & Serving describes in prose |
+
+Priority order if picked up: Bayes' calculator and the Q-learning grid are the strongest next additions (both fully live, no precomputed-data caveat needed, and land on lessons — Probability & Stats, Reinforcement Learning — that currently have zero widgets).
 
 **Backend (v1: none needed)**
 
@@ -114,6 +122,17 @@ Only build this once localStorage-only progress proves insufficient (e.g. you wa
 - [x] Tokenizer playground (LLMs) — live, real BPE tokenizer via the `gpt-tokenizer` package (cl100k_base), fully client-side, editable text input
 - [x] KV-cache latency simulator (Inference & Serving) — simulated (not measured) per-token cost bars, quadratic without cache vs. linear with cache, live speedup readout
 - [x] All 6 planned widgets shipped. Slotted directly into each lesson's MDX — content structure from Phase 1 didn't need to change, as planned.
+- [ ] 6 more candidates identified, not yet built — see the widget table above. Priority: Bayes' theorem calculator, grid-world Q-learning visualizer (both fully live, both land on lessons with zero widgets today).
+
+**Phase 2.5 — Content quality & SEO (new)**
+
+Prioritized by combined pedagogy + SEO value, not effort:
+
+- [ ] **Comparison tables** via the `TypeTable` component (already registered in `getMDXComponents`, currently unused) — optimizers, vector DBs (Pinecone/Weaviate/Milvus/Qdrant/Chroma/pgvector), tokenization schemes, PyTorch vs. JAX vs. TensorFlow. Comparison-intent search queries are exactly what these tables answer, and Google favors tables for those featured snippets.
+- [ ] **FAQ-style, question-phrased subheadings** sprinkled into lessons and glossary "How it works" sections (e.g. "Why does attention need multiple heads?") — the single most direct SEO lever available: this is what "People Also Ask" boxes and snippet answers are built from.
+- [ ] **Diagrams always paired with a caption/restating sentence**, never standalone — an SVG/Mermaid diagram has no crawlable text, so a diagram that *replaces* prose instead of *accompanying* it is invisible to search engines. Audit existing diagrams for this; enforce it going forward.
+- [ ] **Newbie-readability audit** — read each lesson's baseline text (not the deep-dive expansions) as someone with zero ML background, flag jargon introduced without a plain-language anchor first. Indirect SEO benefit (bounce rate, dwell time) but the bigger reason: beginners and experts search with different vocabulary ("what is attention in AI" vs. "self-attention mechanism"), and a page that naturally answers both captures more long-tail traffic.
+- [ ] Explicitly deprioritized for now: a force-directed concept-map graph of the glossary (auto-generated from the existing "See also" cross-links). Genuinely fun, real UX-delight value — but it's client-side JS with zero crawlable text, so no direct SEO payoff. Revisit after the items above.
 
 **Phase 3 — Progress tracking (deferred, localStorage only)**
 
