@@ -5,27 +5,38 @@ import {
   type Backlink,
 } from '@/lib/reference-backlinks';
 import { collectReferenceTerms } from '@/lib/remark-reference-links';
+import type { Collection } from '@/lib/content';
 
-let cache: Map<string, Backlink[]> | undefined;
+const cache = new Map<string, Map<string, Backlink[]>>();
 
-function backlinks(): Map<string, Backlink[]> {
-  cache ??= collectReferenceBacklinks(
-    'content/docs',
-    '/docs',
-    collectReferenceTerms('content/reference', '/reference'),
-  );
-  return cache;
+function backlinksFor(collection: Collection): Map<string, Backlink[]> {
+  let forCollection = cache.get(collection.name);
+  if (!forCollection) {
+    forCollection = collectReferenceBacklinks(
+      'content/docs',
+      '/docs',
+      collectReferenceTerms(collection.contentDir, collection.route),
+    );
+    cache.set(collection.name, forCollection);
+  }
+  return forCollection;
 }
 
-export function ReferenceBacklinks({ url }: { url: string }) {
-  const lessons = backlinks().get(url);
+export function ReferenceBacklinks({
+  collection,
+  url,
+}: {
+  collection: Collection;
+  url: string;
+}) {
+  const lessons = backlinksFor(collection).get(url);
   if (!lessons?.length) return null;
 
   return (
     <section className="mt-12 border-t pt-6">
       <h2 className="mb-1 text-sm font-medium">Mentioned in</h2>
       <p className="text-fd-muted-foreground mb-4 text-sm">
-        Lessons where this term comes up in context.
+        Lessons where this comes up in context.
       </p>
       <ul className="grid gap-2 sm:grid-cols-2">
         {lessons.map((lesson) => (

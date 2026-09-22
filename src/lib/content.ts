@@ -14,10 +14,10 @@ const docsCollection = defineDocs({
       const { createMdxOptions } = await import('./mdx-options');
       const glossary = await import('./remark-reference-links');
 
-      const terms = glossary.collectReferenceTerms(
-        'content/reference',
-        '/reference',
-      );
+      const terms = [
+        ...glossary.collectReferenceTerms('content/reference', '/reference'),
+        ...glossary.collectReferenceTerms('content/people', '/people'),
+      ];
 
       return createMdxOptions(environment, {
         remarkPlugins: [
@@ -46,6 +46,34 @@ const referenceCollection = defineDocs({
 
       return createMdxOptions(environment, {
         remarkPlugins: [[glossary.remarkReferencePreviews, terms]],
+      });
+    },
+  },
+  meta: { schema: metaSchema },
+});
+
+const peopleCollection = defineDocs({
+  dir: 'content/people',
+  docs: {
+    schema: pageSchema,
+    postprocess: { includeProcessedMarkdown: true },
+    // People bios read like short essays, so — unlike glossary entries — they
+    // get the same auto-linking lessons get: mentions of a term or another
+    // profile turn into links, not just hover previews on hand-written ones.
+    mdxOptions: async (environment) => {
+      const { createMdxOptions } = await import('./mdx-options');
+      const glossary = await import('./remark-reference-links');
+
+      const terms = [
+        ...glossary.collectReferenceTerms('content/reference', '/reference'),
+        ...glossary.collectReferenceTerms('content/people', '/people'),
+      ];
+
+      return createMdxOptions(environment, {
+        remarkPlugins: [
+          [glossary.remarkReferenceLinks, terms],
+          [glossary.remarkReferencePreviews, terms],
+        ],
       });
     },
   },
@@ -99,8 +127,12 @@ export const reference = createCollection(
   'reference',
   referenceCollection.toFumadocsSource(),
 );
+export const people = createCollection(
+  'people',
+  peopleCollection.toFumadocsSource(),
+);
 
-export const collections = [docs, reference];
+export const collections = [docs, reference, people];
 
 export type Collection = (typeof collections)[number];
 

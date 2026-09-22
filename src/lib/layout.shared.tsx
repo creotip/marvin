@@ -18,6 +18,11 @@ export function baseOptions(): BaseLayoutProps {
         url: '/reference',
         active: 'nested-url',
       },
+      {
+        text: 'People',
+        url: '/people',
+        active: 'nested-url',
+      },
     ],
   };
 }

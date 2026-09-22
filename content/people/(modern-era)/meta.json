@@ -1,0 +1,13 @@
+{
+  "title": "Modern Deep Learning & Transformers",
+  "collapsible": true,
+  "defaultOpen": true,
+  "pages": [
+    "fei-fei-li",
+    "ian-goodfellow",
+    "ilya-sutskever",
+    "ashish-vaswani",
+    "noam-shazeer",
+    "andrej-karpathy"
+  ]
+}

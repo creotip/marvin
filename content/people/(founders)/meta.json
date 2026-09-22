@@ -1,0 +1,14 @@
+{
+  "title": "Founding the Field",
+  "collapsible": true,
+  "defaultOpen": true,
+  "pages": [
+    "warren-mcculloch",
+    "alan-turing",
+    "claude-shannon",
+    "walter-pitts",
+    "john-mccarthy",
+    "marvin-minsky",
+    "frank-rosenblatt"
+  ]
+}
