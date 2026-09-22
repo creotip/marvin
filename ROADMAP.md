@@ -43,19 +43,17 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 
 ---
 
+## Recently shipped
+
+- **People content collection** — third `Collection` (alongside `docs`/`reference`), 22 profiles grouped by era (founding theory, connectionist revival, modern deep learning/transformers, current labs). Auto-links from lesson/glossary prose, "Mentioned in" backlinks. ([PR #11](https://github.com/creotip/marvin/pull/11))
+- **History & Landscape timeline** — the "Five eras" overview now uses a custom `<Timeline>`/`<TimelineItem>` component (`src/components/timeline.tsx`, registered in MDX) instead of a `<Mermaid>` flowchart. Reusable for a future People profile career timeline or an in-lesson mini-timeline (e.g. GPT-1→2→3→ChatGPT in LLMs).
+
 ## Flagged content — not yet built
 
 - **AI Safety & Alignment** lesson — model objectives/alignment, a real gap for "university of AI" scope
 - **AI Security** lesson — prompt injection, jailbreaks, adversarial examples, data exfiltration via tool use, red-teaming. Distinct from Safety & Alignment (deployed-system misuse vs. model objectives). Prioritize alongside Safety & Alignment, not after — relevant to the site owner's security background.
 - **Multimodal Models** lesson — vision-language and audio models; course currently only covers single-modality
 - **"Safety & Security" glossary group** — Prompt Injection, Jailbreak, Adversarial Example, Red Teaming, AI Safety, Alignment (RLHF already exists, cross-links from Alignment)
-- **"People" content collection** — third `Collection` (alongside `docs`/`reference`, same abstraction in `src/lib/content.ts`) profiling people who built the field: bio, key contribution, era, cross-links to lessons/glossary terms. Candidates by era:
-  - Founding: Turing, McCulloch, Pitts, Shannon, McCarthy, Minsky, Rosenblatt
-  - Connectionism's second wave: Rumelhart, Hinton, LeCun, Bengio
-  - Modern deep learning / transformers: Sutskever, Vaswani et al., Karpathy, Goodfellow, Fei-Fei Li
-  - Current labs / applied AI: Hassabis, Schmidhuber, the Amodei siblings, Andrew Ng
-  - Aim for as many as reasonably well-documented — breadth is the point. Retrofit existing History & Landscape prose mentions to link to profile pages once they exist (same pattern as glossary auto-linking).
-- **Timeline component for History & Landscape** — replace the current `<Mermaid>` flowchart (generic boxes/arrows, poor fit for chronological content) with a custom vertical timeline (visual pattern inspired by [reui.io's timeline](https://reui.io/components/timeline) — copy-paste source, not an npm dependency). Use for the "Four eras" overview. Reusable later for a People profile's career timeline, or an in-lesson mini-timeline (e.g. GPT-1→2→3→ChatGPT in LLMs).
 
 ---
 

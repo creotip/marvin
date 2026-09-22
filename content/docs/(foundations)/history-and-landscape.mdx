@@ -8,14 +8,36 @@ sequence of ideas — and why each one hit a wall — makes the current moment
 (large language models) look less like magic and more like the next step
 in a long argument about what "intelligence" even is, computationally.
 
-Four eras, and what pushed the field out of each one:
+Five eras, and what pushed the field out of each one:
 
-<Mermaid chart={`flowchart LR
-  A[Symbolic AI<br/>hand-written rules] -- rules did not<br/>generalize --> B[Expert systems<br/>if-then knowledge bases]
-  B -- knowledge bottleneck<br/>and AI winters --> C[Statistical ML<br/>fit functions to data]
-  C -- hand-made features<br/>capped accuracy --> D[Deep learning<br/>learned features]
-  D -- attention scales<br/>predictably --> E[Transformers<br/>and LLMs]
-`} />
+<Timeline>
+  <TimelineItem era="1950s–1960s" title="Symbolic AI">
+    Hand-written rules and logic manipulating hand-written representations
+    of the world. Worked well for narrow, well-defined problems — but the
+    rules didn't generalize beyond them.
+  </TimelineItem>
+  <TimelineItem era="1970s–1980s" title="Expert systems">
+    Scaled the rules up: a human expert's domain knowledge encoded as a
+    large `if-then` knowledge base. Hit a knowledge bottleneck — every new
+    domain needed a new expert and a new rule base — and triggered the AI
+    winters.
+  </TimelineItem>
+  <TimelineItem era="1990s–2000s" title="Statistical ML">
+    A mindset shift: a model is a function fit to data, not a set of rules
+    written by a person. Still needed hand-engineered features, which
+    capped accuracy on messy, high-dimensional data.
+  </TimelineItem>
+  <TimelineItem era="2010s" title="Deep learning">
+    Networks learn their own features directly from raw data, removing the
+    feature-engineering bottleneck — once data, GPU compute, and training
+    refinements arrived together.
+  </TimelineItem>
+  <TimelineItem era="2017–present" title="Transformers & LLMs">
+    Attention-based architectures that scale unusually predictably: bigger
+    models, trained on more text, keep getting better in a measurable,
+    extrapolatable way.
+  </TimelineItem>
+</Timeline>
 
 ## Before "AI" had a name: 1940s–1950s origins
 
