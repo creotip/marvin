@@ -19,6 +19,7 @@
     "rlhf",
     "dpo",
     "scaling-laws",
+    "mixture-of-experts",
     "decoding-strategies",
     "hallucination"
   ]

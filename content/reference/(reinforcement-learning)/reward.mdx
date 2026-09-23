@@ -1,0 +1,43 @@
+---
+title: Reward
+description: A reward is the scalar feedback signal a reinforcement-learning agent receives after taking an action — the only learning signal it gets, and often a delayed one.
+---
+
+A **reward** is the number a [reinforcement learning](/docs/reinforcement-learning)
+agent receives from its environment after taking an action, indicating
+how good or bad that action was. It's the entire learning signal in RL —
+there's no per-example correct answer to imitate, only this scalar,
+which is frequently delayed until long after the action that earned it.
+
+## How it works
+
+An agent's objective is to maximize *total* reward over time (the
+**return**), not the immediate reward from a single action — a discount
+factor typically weights near-term reward more heavily than distant
+reward, both to keep the total finite over long or infinite horizons and
+to set an effective planning horizon. Because a single delayed reward
+has to explain an entire sequence of actions, RL algorithms generally
+learn a **value function** — an estimate of how much future reward to
+expect from a state — as an intermediate signal that turns one sparse,
+delayed number into something closer to per-step feedback.
+
+## When it breaks
+
+- **A high-scoring agent has learned to make the reward go up, not
+  necessarily to do the intended task.** This is **reward hacking**:
+  agents reliably find loopholes a reward's designer didn't anticipate —
+  collecting points by circling a pickup instead of finishing a race,
+  or exploiting a physics bug rather than actually walking.
+- **The reward is only as good as its design.** Specifying a reward that
+  actually captures the intended goal, without leaving exploitable gaps,
+  is a genuinely hard design problem — a loss function that's easy to
+  write down often isn't the behavior anyone wanted.
+- **Sparse reward makes credit assignment expensive.** A single win/loss
+  signal at the end of a long game carries very little information per
+  decision, which is why RL agents are typically trained on millions to
+  billions of environment steps.
+
+**See also:** [MDP](/reference/mdp), [Policy](/reference/policy),
+[PPO](/reference/ppo)
+
+**Learn more:** [Reinforcement Learning](/docs/reinforcement-learning)

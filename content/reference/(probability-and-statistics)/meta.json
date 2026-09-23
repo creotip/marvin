@@ -1,0 +1,6 @@
+{
+  "title": "Probability & Statistics",
+  "collapsible": true,
+  "defaultOpen": true,
+  "pages": ["probability-distribution", "bayes-theorem", "mle", "map"]
+}

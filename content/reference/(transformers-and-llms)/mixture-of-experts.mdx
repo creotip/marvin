@@ -1,0 +1,45 @@
+---
+title: Mixture of Experts
+description: A mixture-of-experts layer routes each input to only a handful of specialized subnetworks, growing a model's total parameter count without a proportional rise in compute per input.
+---
+
+**Mixture of Experts (MoE)** is an architecture where a layer's
+parameters are split into many specialized "expert" subnetworks, and a
+learned router sends each input token to only a handful of them — rather
+than every input flowing through every parameter, as in a dense
+[transformer](/reference/transformer).
+
+## How it works
+
+The core idea: total parameter count and compute cost per input can be
+decoupled. A dense model that doubles its parameters also roughly
+doubles the compute needed per token. An MoE model can add many more
+experts — growing total parameters substantially — while keeping the
+number of experts activated per token fixed, so inference cost per token
+barely changes. Pioneered in modern form by
+[Noam Shazeer](/people/noam-shazeer)'s 2017 "Outrageously Large Neural
+Networks," the technique sat mostly dormant for years before becoming a
+standard architecture choice in frontier-scale [LLMs](/reference/llm),
+where it's a direct lever for growing capacity without a proportional
+rise in serving cost.
+
+## When it breaks
+
+- **Routing has to be learned, and it can be uneven.** Without care, a
+  router can send most inputs to a small subset of experts, leaving
+  others undertrained — production systems add explicit load-balancing
+  terms to the training objective to counter this.
+- **Total parameter count and active parameter count are different
+  numbers, and both matter.** A model's memory footprint scales with
+  total parameters (every expert has to be stored), while its per-token
+  compute scales with active parameters — reporting only one figure
+  obscures the actual cost tradeoff being made.
+- **Communication cost, not just compute, becomes a bottleneck at
+  scale.** Distributing experts across many devices means routing
+  decisions turn into network traffic, an engineering challenge distinct
+  from the model architecture itself.
+
+**See also:** [Transformer](/reference/transformer), [LLM](/reference/llm),
+[Scaling Laws](/reference/scaling-laws)
+
+**Learn more:** [Attention & Transformers](/docs/attention-and-transformers)

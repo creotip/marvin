@@ -1,0 +1,6 @@
+{
+  "title": "Generative Models",
+  "collapsible": true,
+  "defaultOpen": true,
+  "pages": ["gan", "vae", "diffusion-model"]
+}

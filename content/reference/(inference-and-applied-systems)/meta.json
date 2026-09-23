@@ -5,6 +5,7 @@
   "pages": [
     "inference",
     "quantization",
+    "knowledge-distillation",
     "kv-cache",
     "speculative-decoding",
     "tensor-parallelism",

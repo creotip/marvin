@@ -1,0 +1,47 @@
+---
+title: Diffusion Model
+description: A diffusion model learns to reverse a fixed process of gradually adding noise to data, generating new samples by denoising pure noise step by step.
+---
+
+A **diffusion model** generates new content by learning to *reverse* a
+process of gradually adding random noise to training data. It's the
+approach behind most current state-of-the-art image generators, and
+increasingly behind audio and video generation too.
+
+## How it works
+
+The forward process is fixed arithmetic that needs no learning: take a
+real training example and progressively add small amounts of noise over
+many steps until it's indistinguishable from pure noise. Only the
+*reverse* direction is a network, trained to answer one narrow question
+at every noise level — what noise is in this input? — which reframes
+generation as a long sequence of simple, individually easy "remove a
+little noise" prediction problems, trained with an ordinary supervised
+[loss function](/reference/loss-function) rather than an adversarial
+one.
+
+Generation runs the trained network in reverse: start from random noise
+and repeatedly apply the denoising step, gradually turning noise into a
+coherent sample over many iterations — often dozens to hundreds of
+passes through the network.
+
+## When it breaks
+
+- **Slow to sample from.** Unlike a [GAN](/reference/gan)'s single
+  forward pass, generating one output requires running the network many
+  times in sequence — the main cost diffusion models pay for their
+  training stability.
+- **Usually run in a compressed latent space, not on raw data directly.**
+  Modern systems (e.g. Stable Diffusion) denoise inside a [VAE](/reference/vae)
+  latent space rather than raw pixels, since attention cost grows with
+  the square of the number of positions being processed.
+- **Each step touches the whole output, not a region of it.** It's easy
+  to picture diffusion "painting in" an image gradually, but every step
+  predicts noise across the entire input at once — coarse layout emerges
+  early and fine texture late only because of which frequencies survive
+  at each noise level, not because of spatial order.
+
+**See also:** [GAN](/reference/gan), [VAE](/reference/vae),
+[Transformer](/reference/transformer)
+
+**Learn more:** [Generative Models](/docs/generative-models)

@@ -1,0 +1,45 @@
+---
+title: Policy
+description: A policy is the strategy a reinforcement-learning agent learns for choosing actions — the thing being trained, analogous to a model in supervised learning.
+---
+
+A **policy** maps states to actions — it's the thing a
+[reinforcement learning](/docs/reinforcement-learning) agent is trying
+to learn, analogous to the model `f(x; θ)` in supervised learning, except
+here the "prediction" is an action to take rather than a label.
+
+## How it works
+
+Two broad families learn a policy differently. **Value-based** methods
+(like [Q-learning](/reference/q-learning)) learn a value function first —
+how much future reward to expect from a state or action — and derive a
+policy indirectly, by always choosing the action with the highest
+estimated value. **Policy gradient** methods skip that intermediate step
+and directly adjust the policy's parameters to make higher-reward
+actions more likely, using gradient ascent on an objective built from the
+rewards actually received.
+
+Either way, a policy has to balance **exploitation** (taking the action
+it currently believes is best) against **exploration** (trying something
+uncertain to potentially discover something better) — a tension with no
+equivalent in supervised learning, where the training data is fixed
+rather than shaped by the model's own past decisions.
+
+## When it breaks
+
+- **A stochastic policy is a probability distribution over actions, not
+  a single choice.** This is deliberate — sampling from it is what makes
+  exploration possible at all, and policy-gradient methods specifically
+  need the ability to compute a probability for the action taken.
+- **Large policy updates can catastrophically break a working policy.**
+  Because the policy also determines what data gets collected next, an
+  update that moves too far can send the agent into a state distribution
+  it never learns to recover from — the specific problem
+  [PPO](/reference/ppo) was designed to prevent.
+- **A policy trained on a proxy reward optimizes the proxy, not the
+  intent behind it.** See [reward](/reference/reward) hacking.
+
+**See also:** [MDP](/reference/mdp), [Q-Learning](/reference/q-learning),
+[PPO](/reference/ppo)
+
+**Learn more:** [Reinforcement Learning](/docs/reinforcement-learning)

@@ -1,0 +1,41 @@
+---
+title: GAN (Generative Adversarial Network)
+description: A GAN trains a generator and a discriminator against each other, the generator learning to fool the discriminator into mistaking its output for real data.
+---
+
+A **GAN (Generative Adversarial Network)** trains two networks against
+each other: a **generator** that takes random noise as input and tries to
+produce realistic outputs, and a **discriminator** — a classifier trained
+to distinguish the generator's fakes from real training examples. The
+generator is trained to fool the discriminator; the discriminator is
+trained to catch it. Introduced by
+[Ian Goodfellow](/people/ian-goodfellow) in 2014.
+
+## How it works
+
+The two networks are updated in alternation against one shared minimax
+objective, rather than each minimizing its own fixed
+[loss function](/reference/loss-function). As training progresses, both
+improve together — the discriminator gets better at spotting fakes,
+which forces the generator to produce increasingly realistic ones. Once
+training ends, only the generator is kept; the discriminator exists
+purely to manufacture a training signal and has no role at inference
+time.
+
+## When it breaks
+
+- **Training is adversarial, not convergent.** The target is a Nash
+  equilibrium, not a minimum, and the landscape moves every time the
+  opponent updates — the pair can oscillate or drift without settling.
+- **Mode collapse.** If the discriminator gets too good too fast, the
+  generator stops receiving useful gradient signal and can converge to
+  producing only a narrow range of outputs that reliably fool it, rather
+  than covering the full data distribution.
+- **Displaced for state-of-the-art image generation.** [Diffusion models](/reference/diffusion-model)
+  now dominate that use case largely because their training is far more
+  stable, though GANs remain fast at sampling — one forward pass per
+  image, versus dozens to hundreds for diffusion.
+
+**See also:** [VAE](/reference/vae), [Diffusion Model](/reference/diffusion-model)
+
+**Learn more:** [Generative Models](/docs/generative-models)

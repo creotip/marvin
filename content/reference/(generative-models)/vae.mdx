@@ -1,0 +1,41 @@
+---
+title: VAE (Variational Autoencoder)
+description: A VAE encodes inputs into a distribution over a compact latent space rather than a fixed point, so sampling from that space and decoding produces plausible new outputs.
+---
+
+A **VAE (Variational Autoencoder)** compresses an input into a compact
+**latent** representation via an **encoder**, and reconstructs the
+original input from that latent vector via a **decoder** — similar in
+spirit to the [embeddings](/reference/embedding) used elsewhere in this
+course. The "variational" part is what makes it generative rather than
+just compression.
+
+## How it works
+
+Instead of encoding an input to a single fixed point, the encoder
+produces a *distribution* (see
+[Probability Distribution](/reference/probability-distribution)) over
+the latent space, and the model is trained so that sampling randomly
+from that latent space and decoding produces plausible new outputs — not
+just reconstructions of inputs it has already seen. Training optimizes a
+single, well-defined loss (no adversarial dynamics), which makes VAEs
+considerably more stable to train than a [GAN](/reference/gan).
+
+## When it breaks
+
+- **Historically blurrier outputs.** The training objective tends to
+  average over plausible reconstructions rather than commit to sharp
+  detail, which is one reason [diffusion models](/reference/diffusion-model)
+  became the dominant approach for high-fidelity image generation.
+- **The latent space's structure is a modeling assumption.** Typically
+  Gaussian, which is tractable but may not match the true shape of the
+  data's underlying variation.
+- **Still useful as a compression stage, not just standalone.** Modern
+  diffusion models commonly run their denoising process in a compressed
+  VAE latent space rather than on raw pixels — combining both
+  techniques rather than choosing one.
+
+**See also:** [GAN](/reference/gan), [Diffusion Model](/reference/diffusion-model),
+[Embedding](/reference/embedding)
+
+**Learn more:** [Generative Models](/docs/generative-models)

@@ -1,0 +1,41 @@
+---
+title: LLM-as-Judge
+description: LLM-as-judge uses a typically stronger LLM to score or compare another model's open-ended output, scaling far better than human review at the cost of inheriting the judge's own biases.
+---
+
+**LLM-as-judge** evaluation uses a (typically stronger)
+[LLM](/reference/llm) to score or compare another model's open-ended
+outputs. It exists to cover exactly what fixed
+[benchmarks](/reference/benchmark) can't: writing quality, helpfulness,
+and following nuanced instructions have no single correct answer to
+check against by machine.
+
+## How it works
+
+The approach leans on the same intuition behind
+[RLHF](/reference/rlhf): judging the quality of a response is often
+easier than defining a hard, checkable rule for it. A judge model is
+typically given a prompt, one or more candidate responses, and asked to
+score or rank them — commonly as a **pairwise comparison** (which
+response is better?) rather than an absolute score, since raters (human
+or model) are more consistent at ranking two things than scoring one in
+isolation. This scales far better than paying humans to review every
+output, which is the main reason it's used at all.
+
+## When it breaks
+
+- **The judge's own biases become the evaluation criteria.** A judge
+  model that prefers longer responses, or is fooled by confident phrasing
+  over correct content, silently shapes what "wins" regardless of actual
+  quality.
+- **It's not independent of the models it evaluates.** A judge from the
+  same lab or model family as a candidate being scored risks systematic
+  favoritism that's hard to detect from the scores alone.
+- **Still a proxy, not ground truth.** It scales better than human
+  evaluation, but inherits the same fundamental limitation as any
+  automated proxy: it measures what the judge notices, not necessarily
+  what a real user would care about.
+
+**See also:** [Benchmark](/reference/benchmark), [RLHF](/reference/rlhf)
+
+**Learn more:** [Evaluation & Benchmarks](/docs/evaluation-and-benchmarks)

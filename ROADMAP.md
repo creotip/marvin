@@ -51,6 +51,7 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 - **People content collection** — third `Collection` (alongside `docs`/`reference`), 22 profiles grouped by era (founding theory, connectionist revival, modern deep learning/transformers, current labs). Auto-links from lesson/glossary prose, "Mentioned in" backlinks. ([PR #11](https://github.com/creotip/marvin/pull/11))
 - **History & Landscape timeline** — the "Five eras" overview now uses a custom `<Timeline>`/`<TimelineItem>` component (`src/components/timeline.tsx`, registered in MDX) instead of a `<Mermaid>` flowchart. Reusable for a future People profile career timeline or an in-lesson mini-timeline (e.g. GPT-1→2→3→ChatGPT in LLMs). ([PR #12](https://github.com/creotip/marvin/pull/12))
 - **AI Security** lesson (17th lesson, new `(safety)` sidebar section) — prompt injection (direct/indirect), jailbreaks, data exfiltration via tool use, adversarial examples, red-teaming, framed against AI safety/alignment as a distinct problem. New "Safety & Security" reference glossary group with 4 terms (Prompt Injection, Jailbreak, Adversarial Example, Red Teaming), cross-linked from `rag`/`mcp`/`prompt-engineering` reference pages and from Ian Goodfellow's People profile.
+- **Glossary gap-fill** — closed the zero-term gap on 4 lessons: Reinforcement Learning (MDP, Policy, Q-Learning, Reward, PPO), Generative Models (GAN, VAE, Diffusion Model), Probability & Statistics Foundations (Bayes' Theorem, MLE, MAP, Probability Distribution), Evaluation & Benchmarks (Benchmark, LLM-as-Judge). Also added Mixture of Experts (transformers-and-llms group) and Knowledge Distillation (inference-and-applied-systems group). All auto-link from their lessons; Ian Goodfellow's and Noam Shazeer's People profiles now auto-link to GAN and Mixture of Experts respectively with no manual edits needed.
 
 ## Flagged content — not yet built
 
@@ -59,12 +60,6 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 - **Two more "Safety & Security" glossary terms** — AI Safety, Alignment (RLHF already exists and is the natural cross-link) — hold until the Safety & Alignment lesson above is written
 - **Interpretability lesson** — mechanistic interpretability, feature attribution, probing. Distinct from both Safety & Alignment and AI Security; ties to the interpretability line already in Dario Amodei's People profile, and it's a heavily-searched term right now.
 - **Optimization & Training Dynamics lesson** — Adam, learning-rate schedules, warmup, batch size effects. Deepens ML Fundamentals rather than adding new breadth — currently only covered in passing via a `<Deeper>` dive.
-- **Glossary gap-fill: four lessons have zero glossary terms** despite being full lessons — Reinforcement Learning (#10), Generative Models (#8), Probability & Statistics Foundations (#3), and Evaluation & Benchmarks (#12). Missing and worth adding regardless of any new lesson:
-  - Reinforcement Learning: MDP, Policy, Q-Learning, Reward, PPO
-  - Generative Models: GAN, VAE, Diffusion Model
-  - Probability & Statistics Foundations: Bayes' Theorem, MLE, MAP, Probability Distribution — "Bayes' theorem" alone is a heavily searched term in its own right
-  - Evaluation & Benchmarks: Benchmark, LLM-as-Judge
-  - Also missing and mentioned elsewhere already: Mixture of Experts (referenced in Noam Shazeer's People profile) and Knowledge Distillation (natural fit alongside Quantization/Batching/KV-Cache in the inference-and-applied-systems group)
 - **Case-study narrative content** — a new content type distinct from lesson/glossary/person: 1-2 worked narratives (e.g. "How ChatGPT Was Actually Built," tying pretraining → RLHF → inference → security together, or "Anatomy of a Production RAG System") that read as a story rather than a topic-by-topic lesson. Bridges the drier per-topic lessons with something advanced readers specifically search for. Higher effort and more editorial judgment on scope than the other items here — revisit after the cheaper wins above.
 
 ---

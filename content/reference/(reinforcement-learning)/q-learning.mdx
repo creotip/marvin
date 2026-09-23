@@ -1,0 +1,52 @@
+---
+title: Q-Learning
+description: Q-learning learns the expected future reward of taking a specific action in a specific state, updating its estimate incrementally from every action the agent actually takes.
+---
+
+**Q-learning** is a foundational [reinforcement learning](/docs/reinforcement-learning)
+algorithm that learns a **Q-function** — the expected total future
+reward of taking a specific action in a specific state, then acting
+optimally afterward. It updates its estimate after every action taken,
+using the actual reward received plus its current estimate of the next
+state's value.
+
+## How it works
+
+```
+Q(state, action) ← Q(state, action) + α · [reward + γ · max(Q(next_state, ·)) − Q(state, action)]
+```
+
+`α` is a learning rate, playing the same role as in
+[gradient descent](/reference/gradient-descent). `γ` (gamma) is a
+discount factor slightly less than 1, making future rewards count
+slightly less than immediate ones. Once learned, choosing an action is
+simple: pick whichever has the highest Q-value in the current state — the
+[policy](/reference/policy) falls out of the value estimates directly,
+without being learned separately.
+
+**Deep Q-Networks (DQN)** replace the lookup-table version of Q with a
+[neural network](/reference/neural-network), letting the approach
+generalize to states it hasn't seen exactly before — the same
+representation upgrade used throughout this course, and the technique
+behind early landmark results like learning to play Atari games directly
+from raw pixels.
+
+## When it breaks
+
+- **A lookup table doesn't scale to large or continuous state spaces.**
+  Real environments (images, continuous sensor readings) have far too
+  many possible states to store a Q-value for each — the reason DQN's
+  neural-network substitution matters in practice, not just in theory.
+- **The `max` in the update makes it a value-based method, not a
+  general-purpose one.** Q-learning naturally fits discrete action
+  spaces; continuous action spaces (steering angle, motor torque) need
+  different algorithm families, commonly policy-gradient methods like
+  [PPO](/reference/ppo).
+- **Overestimation bias.** Repeatedly taking a `max` over noisy value
+  estimates systematically overestimates them, a well-documented failure
+  mode with known (if partial) fixes like Double Q-learning.
+
+**See also:** [Policy](/reference/policy), [Reward](/reference/reward),
+[PPO](/reference/ppo)
+
+**Learn more:** [Reinforcement Learning](/docs/reinforcement-learning)
