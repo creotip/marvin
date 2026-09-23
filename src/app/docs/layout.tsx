@@ -1,10 +1,16 @@
 import { docs } from '@/lib/content';
-import { DocsLayout } from 'fumadocs-ui/layouts/docs';
+import { DocsLayout } from 'fumadocs-ui/layouts/notebook';
 import { baseOptions } from '@/lib/layout.shared';
 
 export default function Layout({ children }: LayoutProps<'/docs'>) {
+  const options = baseOptions();
+
   return (
-    <DocsLayout tree={docs.source.getPageTree()} {...baseOptions()}>
+    <DocsLayout
+      tree={docs.source.getPageTree()}
+      {...options}
+      nav={{ ...options.nav, mode: 'top' }}
+    >
       {children}
     </DocsLayout>
   );
