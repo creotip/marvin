@@ -1,0 +1,42 @@
+---
+title: MDP (Markov Decision Process)
+description: An MDP formalizes the reinforcement-learning setup — an agent observing a state, choosing an action, and receiving a reward, with no dataset of correct actions to imitate.
+---
+
+An **MDP (Markov Decision Process)** formalizes the structure shared by
+every [reinforcement learning](/docs/reinforcement-learning) problem: an
+**agent** observes a **state** of an **environment** and chooses an
+**action**; the environment transitions to a new state and returns a
+**reward**; the agent's goal is to learn a **policy** that maximizes
+total reward over time, not just the immediate reward from one action.
+
+## How it works
+
+What makes this genuinely different from supervised learning is that
+there's no dataset of "correct" actions to imitate — only a scalar reward
+signal, often delayed. An action that looks bad immediately (sacrificing
+a chess piece) can be the right choice if it leads to much better rewards
+later, and the agent has to learn this from trial and error. "Markov"
+refers to the assumption that the current state contains everything
+needed to decide the best action — the history of how the agent arrived
+there doesn't matter beyond what's captured in the state itself.
+
+## When it breaks
+
+- **The data isn't fixed, unlike supervised learning.** Improving the
+  policy changes which states the agent visits, which changes the data
+  it learns from next — a feedback loop that has no equivalent in a
+  static training set and is a major source of RL's training
+  instability.
+- **Credit assignment is genuinely hard.** A reward arriving at the end
+  of a long sequence of actions says only that the sequence as a whole
+  worked out, not which specific action deserves the credit.
+- **The Markov assumption can be false.** Many real environments are only
+  partially observable — the visible state doesn't contain everything
+  relevant, which is a distinct, harder problem (a POMDP) than the
+  standard setup.
+
+**See also:** [Reward](/reference/reward), [Policy](/reference/policy),
+[Q-Learning](/reference/q-learning)
+
+**Learn more:** [Reinforcement Learning](/docs/reinforcement-learning)

@@ -1,0 +1,46 @@
+---
+title: Benchmark
+description: A benchmark is a fixed, standardized set of test questions used to compare models on a specific capability — reproducible, but vulnerable to contamination and saturation.
+---
+
+A **benchmark** is a fixed, standardized set of test questions used to
+compare models on a specific capability. Widely cited examples include
+MMLU (broad academic knowledge and reasoning), HumanEval (programming
+problems scored by whether generated code passes test cases), and GSM8K
+(grade-school math word problems). **Leaderboards** rank models by
+aggregate performance across many benchmarks at once.
+
+## How it works
+
+Benchmarks work best when a task has a single, machine-checkable answer:
+exact match on a multiple-choice question, or code that either passes
+its unit tests or doesn't. That makes scoring exact, free, and
+reproducible — the same appeal standardized tests have for comparing
+students. A reported score is nonetheless an estimate from a finite
+sample of questions, and like any sample estimate it carries statistical
+uncertainty: with only a few hundred items, that noise is often larger
+than the gap between two models being compared.
+
+## When it breaks
+
+- **Contamination.** If a benchmark's questions (or close variants)
+  appeared in a model's [pretraining](/reference/pretraining) data, the
+  model can score well by partial memorization rather than genuine
+  reasoning — a real risk for any benchmark built from public web text,
+  and hard to fully rule out from outside a lab.
+- **Overfitting to the leaderboard.** If a lab tunes specifically to
+  score well on popular public benchmarks, performance can improve on
+  paper without real-world capability improving to match — the same
+  mechanism as [overfitting](/reference/overfitting) to a validation set,
+  distributed across an entire industry (Goodhart's law).
+- **Narrow coverage.** A benchmark measures exactly what it tests; a
+  model that excels at multiple-choice academic questions isn't thereby
+  good at open-ended writing or knowing when it doesn't know something.
+- **Saturation.** As models improve, top scores cluster near 100%, at
+  which point the benchmark stops usefully distinguishing between
+  models.
+
+**See also:** [LLM-as-Judge](/reference/llm-as-judge),
+[Overfitting](/reference/overfitting)
+
+**Learn more:** [Evaluation & Benchmarks](/docs/evaluation-and-benchmarks)

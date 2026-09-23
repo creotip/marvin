@@ -1,0 +1,48 @@
+---
+title: MLE (Maximum Likelihood Estimation)
+description: MLE chooses model parameters that make the observed training data as probable as possible — and turns out to be exactly what training with cross-entropy or MSE loss already does.
+---
+
+**MLE (Maximum Likelihood Estimation)** is the principle of choosing
+model parameters `θ` that make the observed training data as probable as
+possible under the model. It's the answer to a question every earlier
+lesson leaves implicit: *why* is [cross-entropy](/reference/loss-function)
+the "right" loss for classification, rather than an arbitrary choice?
+
+## How it works
+
+For classification, MLE means choosing `θ` to maximize the probability
+the model assigns to the correct label, averaged across training
+examples. Maximizing a probability is equivalent to minimizing its
+negative logarithm — logs turn products of many small probabilities into
+sums, which is numerically stable and doesn't change which `θ` wins. That
+negative log-probability, averaged over the data, **is** cross-entropy
+loss. Training a classifier with cross-entropy via
+[gradient descent](/reference/gradient-descent) is not analogous to MLE —
+it *is* MLE, the same object derived two ways.
+
+The same trick explains mean squared error: assuming prediction errors
+are Gaussian-distributed noise, the negative log-likelihood reduces
+exactly to MSE. Every loss function in this course has a probabilistic
+story behind it, not just an intuitive one.
+
+## When it breaks
+
+- **MLE has no opinion about the parameters themselves.** It only asks
+  how well `θ` explains the data, which is exactly what lets it overfit —
+  a model can maximize likelihood on the training set by memorizing noise.
+  [MAP estimation](/reference/map) fixes this by adding a prior.
+- **It assumes the model family is capable of representing the truth.**
+  If the true relationship isn't Gaussian noise around a linear function,
+  fitting MSE via MLE is optimizing the wrong objective, however well the
+  optimization itself converges.
+- **A well-fit likelihood doesn't imply calibrated probabilities.** MLE
+  optimizes an average over the training set; it doesn't guarantee the
+  model's confidence matches its accuracy on any individual input.
+
+**See also:** [MAP](/reference/map),
+[Bayes' Theorem](/reference/bayes-theorem),
+[Loss Function](/reference/loss-function),
+[Probability Distribution](/reference/probability-distribution)
+
+**Learn more:** [Probability & Statistics Foundations](/docs/probability-and-statistics-foundations)

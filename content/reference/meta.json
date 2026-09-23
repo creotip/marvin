@@ -4,9 +4,13 @@
     "index",
     "(history)",
     "(foundations)",
+    "(probability-and-statistics)",
     "(computer-vision)",
+    "(generative-models)",
     "(transformers-and-llms)",
+    "(reinforcement-learning)",
     "(inference-and-applied-systems)",
+    "(evaluation)",
     "(safety-and-security)",
     "(tooling-and-hardware)"
   ]

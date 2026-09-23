@@ -1,0 +1,51 @@
+---
+title: MAP (Maximum a Posteriori Estimation)
+description: MAP estimation extends MLE with a prior belief about the parameters themselves, via Bayes' theorem — and is precisely where weight-decay regularization comes from.
+---
+
+**MAP (Maximum a Posteriori) estimation** extends
+[MLE](/reference/mle) by incorporating a prior belief about the
+parameters themselves, via [Bayes' theorem](/reference/bayes-theorem).
+Instead of only maximizing how well `θ` explains the data (the
+likelihood), MAP also weighs how plausible `θ` was *before* seeing any
+data (the prior).
+
+## How it works
+
+| | Maximizes | Uses a prior | Training objective |
+| --- | --- | --- | --- |
+| MLE | Probability of the data given `θ` | No | Plain loss |
+| MAP | Probability of `θ` given the data | Yes | Loss + regularization penalty |
+
+This is where [regularization](/reference/regularization) comes from,
+not a separate hack bolted onto training. Assuming a Gaussian prior
+centered at zero for the parameters — a belief that "smaller weights are
+more plausible than huge ones" — and combining it with the likelihood via
+Bayes' theorem produces a training objective that is precisely the
+ordinary loss function plus an L2 penalty on the weights: weight decay.
+
+The choice of prior determines the penalty. A Gaussian prior gives the
+squared (L2) penalty of weight decay; a Laplace prior gives an
+absolute-value (L1) penalty, which drives weights to exactly zero and
+produces sparse models.
+
+## When it breaks
+
+- **The prior is a modeling choice, not a fact.** A Gaussian prior
+  encodes a specific belief (small weights are more plausible); if that
+  belief is wrong for the problem, MAP regularizes toward the wrong
+  answer.
+- **MAP gives a single point estimate, not a distribution.** It answers
+  "what's the single most probable `θ`," not "how uncertain am I about
+  `θ`" — full Bayesian inference (integrating over the posterior) answers
+  the second question, at far higher computational cost.
+- **The regularization strength is set by the prior's own parameters**
+  (how tightly it's centered at zero), which in practice becomes a
+  hyperparameter to tune rather than something derived from first
+  principles.
+
+**See also:** [MLE](/reference/mle),
+[Bayes' Theorem](/reference/bayes-theorem),
+[Regularization](/reference/regularization)
+
+**Learn more:** [Probability & Statistics Foundations](/docs/probability-and-statistics-foundations)

@@ -1,0 +1,49 @@
+---
+title: Knowledge Distillation
+description: Knowledge distillation trains a small "student" model to mimic a larger "teacher" model's output distribution, transferring most of its capability at a fraction of the serving cost.
+---
+
+**Knowledge distillation** trains a small **student** model to reproduce
+a larger, already-trained **teacher** model's behavior — rather than
+training the student from scratch on raw labels alone. The goal is
+compressing most of a large model's capability into something far
+cheaper to serve.
+
+## How it works
+
+Instead of training the student only on hard labels (the single correct
+answer), distillation trains it to match the teacher's full output
+[probability distribution](/reference/probability-distribution) over
+possible answers — including the relative probabilities the teacher
+assigns to *wrong* answers, which carry information a hard label
+discards entirely. A teacher that assigns "cat" 90%, "dog" 8%, and
+"truck" 0.001% is communicating that dogs and cats are more confusable
+than cats and trucks — a signal a student can learn from that plain
+labels can't express.
+
+This sits alongside [quantization](/reference/quantization) as a way of
+reducing a model's serving footprint, but attacks a different part of
+the cost: quantization reduces the precision of existing weights,
+distillation reduces the number of parameters entirely by training a
+genuinely smaller network.
+
+## When it breaks
+
+- **The student is capped by the teacher, not just by its own size.** A
+  student can approach but not exceed what the teacher itself knows —
+  distillation transfers capability, it doesn't create new capability
+  beyond the source model.
+- **Some capabilities compress far worse than others.** Broad knowledge
+  recall tends to compress reasonably; multi-step reasoning and rare,
+  long-tail knowledge tend to degrade disproportionately in smaller
+  students, since there's less capacity to store what showed up rarely
+  in training.
+- **Still requires running the teacher, at least during training.**
+  Generating the teacher's output distribution for the training set
+  (or for synthetic prompts) is itself a real compute cost, separate
+  from the savings the resulting student provides later at inference.
+
+**See also:** [Quantization](/reference/quantization),
+[Probability Distribution](/reference/probability-distribution)
+
+**Learn more:** [Inference & Serving](/docs/inference-and-serving)

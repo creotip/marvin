@@ -1,0 +1,50 @@
+---
+title: PPO (Proximal Policy Optimization)
+description: PPO is a policy-gradient reinforcement-learning algorithm that takes conservative, clipped update steps, and is the algorithm most commonly used to optimize LLMs during RLHF.
+---
+
+**PPO (Proximal Policy Optimization)** is a widely used
+**policy gradient** algorithm: instead of learning a value function
+first, it directly adjusts a [policy](/reference/policy)'s parameters to
+make higher-reward actions more likely, using
+[gradient descent](/reference/gradient-descent) on an objective built
+from the rewards received.
+
+## How it works
+
+Policy gradient methods have a specific failure mode PPO is designed
+around: a large update can catastrophically break a policy that was
+working, because the policy also determines what data gets collected
+next — an update that moves too far can send the agent into a part of
+the state space it never recovers from. PPO fixes this with a **clipped
+objective** that refuses to let the probability ratio between the new
+and old policy stray far from 1, trading some update speed for
+training stability.
+
+PPO is specifically the RL algorithm most commonly used inside
+[RLHF](/reference/rlhf): an [LLM](/reference/llm) is the policy,
+generating a response is taking an action, and a learned reward model's
+score is the reward. Everything about PPO — stable, conservative,
+incremental updates — is why it, rather than a less constrained
+policy-gradient method, is the standard choice for that step.
+
+## When it breaks
+
+- **Clipping bounds each individual update, not the final result.** A
+  separate KL-divergence penalty against a frozen reference model is
+  typically added on top, specifically in RLHF, to bound how far the
+  *cumulative* policy drift can go — clipping alone doesn't prevent slow
+  drift across many small steps.
+- **Still vulnerable to reward hacking.** PPO optimizes exactly the
+  reward signal it's given; if that reward (e.g. a learned reward model)
+  is an imperfect proxy for what's actually wanted, PPO will find and
+  exploit the gap just as readily as any other RL method.
+- **Sample-inefficient compared to value-based methods** on tasks where
+  a discrete action space and a tabular or DQN-style approach fit
+  naturally — PPO's generality costs more environment interactions to
+  reach the same performance in those cases.
+
+**See also:** [Policy](/reference/policy), [Reward](/reference/reward),
+[RLHF](/reference/rlhf)
+
+**Learn more:** [Reinforcement Learning](/docs/reinforcement-learning)

@@ -1,0 +1,52 @@
+---
+title: Bayes' Theorem
+description: Bayes' theorem relates how likely a hypothesis is given evidence to how likely the evidence is given the hypothesis — the exact mechanism behind spam filters and MAP estimation.
+---
+
+**Bayes' theorem** relates two conditional probabilities that are easy to
+confuse but answer very different questions: how likely a hypothesis is
+*given* evidence, versus how likely the evidence is *given* the
+hypothesis.
+
+```
+P(hypothesis | evidence) = P(evidence | hypothesis) · P(hypothesis)
+                            ────────────────────────────────────────
+                                        P(evidence)
+```
+
+## How it works
+
+The **prior**, `P(hypothesis)`, is what you believed before seeing data;
+the **likelihood**, `P(evidence | hypothesis)`, is how well a hypothesis
+explains the evidence; the **posterior**,
+`P(hypothesis | evidence)`, is the updated belief after seeing it. This
+is the literal mechanism behind a spam filter (is this email spam, given
+these words?) and the conceptual basis of
+[MAP estimation](/reference/map).
+
+Written as odds instead of probabilities, the theorem says something
+sharper: evidence *multiplies* your prior odds by how much better the
+hypothesis explains it than the alternative does. A test that fires 20×
+more often on sick people than healthy ones multiplies your odds by 20 —
+a lot, but not enough to overcome a prior of 1-in-10,000.
+
+## When it breaks
+
+- **Conflating the two conditional probabilities.** "How likely is a
+  positive test, given you have the disease" is not the same question as
+  "how likely are you to have the disease, given a positive test" —
+  especially when the disease is rare. This confusion is common enough to
+  have a name, the base-rate fallacy.
+- **A high-accuracy test can still be mostly wrong on a positive result.**
+  A test that's 99% accurate on a disease affecting 1 in 10,000 people
+  leaves someone who tests positive still roughly 99% likely to be
+  healthy — the false positives come from a pool 10,000× larger than the
+  true cases.
+- **Strong evidence cannot rescue a weak prior on its own.** The odds
+  form makes this explicit: evidence multiplies prior odds, it doesn't
+  replace them.
+
+**See also:** [Probability Distribution](/reference/probability-distribution),
+[MAP](/reference/map), [MLE](/reference/mle)
+
+**Learn more:** [Probability & Statistics Foundations](/docs/probability-and-statistics-foundations)
