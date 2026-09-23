@@ -6,18 +6,36 @@ import { useEffect, useId, useState } from 'react';
 // library (to derive lighter/darker shades), so a raw `var(--color-fd-*)`
 // reference throws ("Unsupported color format") — it needs an actual
 // resolved color, not a CSS variable. `resolveColor` asks the browser to
-// resolve it instead (works for any valid CSS color syntax, including the
-// oklch()/color-mix() the theme's tokens are defined in), so diagrams still
-// track the site's real palette in light mode, dark mode, and any future
-// theme swap — just resolved once per render instead of left as a live var().
+// resolve it instead, so diagrams still track the site's real palette in
+// light mode, dark mode, and any future theme swap — just resolved once per
+// render instead of left as a live var().
+//
+// The theme's tokens are defined in oklch(), and `getComputedStyle` can
+// serialize a resolved oklch() color back out as `lab(...)` (observed on
+// Chrome/Turbopack) — a format Mermaid's own color library can't parse.
+// Painting onto a 1x1 canvas and reading the pixel back sidesteps that: the
+// canvas 2D context accepts any valid CSS color as `fillStyle` and always
+// returns plain 8-bit sRGB from `getImageData`, which Mermaid can parse.
 function resolveColor(cssVar: string): string {
   const probe = document.createElement('div');
   probe.style.color = `var(${cssVar})`;
   probe.style.display = 'none';
   document.body.appendChild(probe);
-  const resolved = getComputedStyle(probe).color;
+  const computed = getComputedStyle(probe).color;
   document.body.removeChild(probe);
-  return resolved;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 1;
+  canvas.height = 1;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return computed;
+
+  ctx.fillStyle = computed;
+  ctx.fillRect(0, 0, 1, 1);
+  const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+  return a === 255
+    ? `rgb(${r}, ${g}, ${b})`
+    : `rgba(${r}, ${g}, ${b}, ${a / 255})`;
 }
 
 function useThemeVariables() {
