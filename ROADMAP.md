@@ -34,7 +34,6 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 - [ ] FAQ-style question subheadings in lessons and glossary "How it works" sections
 - [ ] Diagram + caption audit — every diagram paired with restating prose, never standalone
 - [ ] Newbie-readability audit — flag jargon introduced without a plain-language anchor
-- [ ] **A-Z glossary index page** — one crawlable hub page listing every reference term alphabetically, built from the same `collectReferenceTerms` data the auto-linker already uses. Cheap (no new content to write) and a solid SEO/internal-linking win.
 - [ ] **FAQ hub page** — a dedicated `/faq` page for cross-lesson beginner questions that don't map to one specific lesson ("is RAG the same as fine-tuning?", "do I need calculus for this?"). Distinct from the inline FAQ subheadings above — a landing page, not per-lesson headers — targeting "People Also Ask"-style queries.
 - [ ] Deprioritized: force-directed glossary concept-map graph (no crawlable text, no SEO payoff — revisit after the above)
 
@@ -52,6 +51,7 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 - **History & Landscape timeline** — the "Five eras" overview now uses a custom `<Timeline>`/`<TimelineItem>` component (`src/components/timeline.tsx`, registered in MDX) instead of a `<Mermaid>` flowchart. Reusable for a future People profile career timeline or an in-lesson mini-timeline (e.g. GPT-1→2→3→ChatGPT in LLMs). ([PR #12](https://github.com/creotip/marvin/pull/12))
 - **AI Security** lesson (17th lesson, new `(safety)` sidebar section) — prompt injection (direct/indirect), jailbreaks, data exfiltration via tool use, adversarial examples, red-teaming, framed against AI safety/alignment as a distinct problem. New "Safety & Security" reference glossary group with 4 terms (Prompt Injection, Jailbreak, Adversarial Example, Red Teaming), cross-linked from `rag`/`mcp`/`prompt-engineering` reference pages and from Ian Goodfellow's People profile.
 - **Glossary gap-fill** — closed the zero-term gap on 4 lessons: Reinforcement Learning (MDP, Policy, Q-Learning, Reward, PPO), Generative Models (GAN, VAE, Diffusion Model), Probability & Statistics Foundations (Bayes' Theorem, MLE, MAP, Probability Distribution), Evaluation & Benchmarks (Benchmark, LLM-as-Judge). Also added Mixture of Experts (transformers-and-llms group) and Knowledge Distillation (inference-and-applied-systems group). All auto-link from their lessons; Ian Goodfellow's and Noam Shazeer's People profiles now auto-link to GAN and Mixture of Experts respectively with no manual edits needed.
+- **A-Z glossary index page** — `/reference/a-z`, a single crawlable page listing every reference term alphabetically with a letter-jump nav, built from `reference.source.getPages()` (no new content, reused existing page data). Linked from the reference introduction page.
 
 ## Flagged content — not yet built
 

@@ -14,6 +14,7 @@ import { Mermaid } from '@/components/mermaid';
 import { ReferencePreview } from '@/components/reference-preview';
 import { Misconception, NapkinMath } from '@/components/teaching';
 import { Timeline, TimelineItem } from '@/components/timeline';
+import { GlossaryIndex } from '@/components/glossary-index';
 
 const Anchor = defaultMdxComponents.a ?? 'a';
 
@@ -61,6 +62,7 @@ export function getMDXComponents(components?: MDXComponents) {
     Misconception,
     Timeline,
     TimelineItem,
+    GlossaryIndex,
     ...components,
     // Must come last so it also wraps a caller-supplied link component.
     a: withReferencePreview(
