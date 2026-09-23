@@ -33,7 +33,7 @@ An AI-education docs site (Next.js + Fumadocs), named after Marvin Minsky. Read 
 
 ## Known gotchas
 
-- **MDX frontmatter YAML**: a `description:` value that *starts* with a `"` is parsed as a quoted scalar and breaks if anything follows the closing quote (e.g. an em dash). Don't open a frontmatter string with a quote mid-sentence — rephrase instead.
+- **MDX frontmatter YAML**: a `description:` value that _starts_ with a `"` is parsed as a quoted scalar and breaks if anything follows the closing quote (e.g. an em dash). Don't open a frontmatter string with a quote mid-sentence — rephrase instead.
 - Wikipedia URLs with parentheses in the slug (e.g. `John_McCarthy_(computer_scientist)`) break a plain `[text](url)` markdown link — wrap the URL in `<angle brackets>`.
 - `zod` is not a direct dependency; don't reach for a custom Fumadocs page schema unless you've confirmed it's actually needed (it usually isn't — plain `pageSchema`/`metaSchema` covers everything so far).
 

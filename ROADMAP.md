@@ -18,7 +18,7 @@ Living tracker for what's shipped and what's next. Stable reference material (go
 - [x] Attention weight visualizer (Attention & Transformers)
 - [x] Tokenizer playground (LLMs)
 - [x] KV-cache latency simulator (Inference & Serving)
-- [ ] Bayes' theorem calculator (Probability & Statistics) — **top priority**: fully live, zero-widget lesson
+- [x] Bayes' theorem calculator (Probability & Statistics)
 - [ ] Grid-world Q-learning visualizer (Reinforcement Learning) — **top priority**: fully live, zero-widget lesson
 - [ ] Diffusion denoising visualizer (Generative Models)
 - [ ] Embedding similarity search playground (LLMs / RAG)
@@ -52,6 +52,7 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 - **AI Security** lesson (17th lesson, new `(safety)` sidebar section) — prompt injection (direct/indirect), jailbreaks, data exfiltration via tool use, adversarial examples, red-teaming, framed against AI safety/alignment as a distinct problem. New "Safety & Security" reference glossary group with 4 terms (Prompt Injection, Jailbreak, Adversarial Example, Red Teaming), cross-linked from `rag`/`mcp`/`prompt-engineering` reference pages and from Ian Goodfellow's People profile.
 - **Glossary gap-fill** — closed the zero-term gap on 4 lessons: Reinforcement Learning (MDP, Policy, Q-Learning, Reward, PPO), Generative Models (GAN, VAE, Diffusion Model), Probability & Statistics Foundations (Bayes' Theorem, MLE, MAP, Probability Distribution), Evaluation & Benchmarks (Benchmark, LLM-as-Judge). Also added Mixture of Experts (transformers-and-llms group) and Knowledge Distillation (inference-and-applied-systems group). All auto-link from their lessons; Ian Goodfellow's and Noam Shazeer's People profiles now auto-link to GAN and Mixture of Experts respectively with no manual edits needed.
 - **A-Z glossary index page** — `/reference/a-z`, a single crawlable page listing every reference term alphabetically with a letter-jump nav, built from `reference.source.getPages()` (no new content, reused existing page data). Linked from the reference introduction page.
+- **Bayes' theorem calculator widget** (`src/components/widgets/bayes-calculator.tsx`) — live, pure-JS, no data-honesty caveats. Prior/sensitivity/false-positive-rate sliders (prior on a log scale, 0.01%–50%) update a prior-vs-posterior bar chart and a natural-frequency breakdown in real time; three presets including the lesson's own rare-disease example. Embedded in Probability & Statistics Foundations right after the matching NapkinMath callout.
 
 ## Flagged content — not yet built
 

@@ -11,6 +11,7 @@ import type { MDXComponents } from 'mdx/types';
 import type { ComponentProps, ComponentType } from 'react';
 import { Deeper } from '@/components/depth';
 import { Mermaid } from '@/components/mermaid';
+import { BayesCalculator } from '@/components/widgets/bayes-calculator';
 import { ReferencePreview } from '@/components/reference-preview';
 import { Misconception, NapkinMath } from '@/components/teaching';
 import { Timeline, TimelineItem } from '@/components/timeline';
@@ -57,6 +58,7 @@ export function getMDXComponents(components?: MDXComponents) {
     GithubInfo,
     Banner,
     Mermaid,
+    BayesCalculator,
     Deeper,
     NapkinMath,
     Misconception,
