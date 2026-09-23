@@ -20,7 +20,7 @@ Living tracker for what's shipped and what's next. Stable reference material (go
 - [x] KV-cache latency simulator (Inference & Serving)
 - [x] Bayes' theorem calculator (Probability & Statistics)
 - [x] Grid-world Q-learning visualizer (Reinforcement Learning)
-- [ ] Diffusion denoising visualizer (Generative Models)
+- [x] Diffusion denoising visualizer (Generative Models)
 - [ ] Embedding similarity search playground (LLMs / RAG)
 - [ ] Agent trace stepper (Agents & Tool Use)
 - [ ] Batching latency/throughput slider (Inference & Serving)
@@ -55,6 +55,7 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 - **Bayes' theorem calculator widget** (`src/components/widgets/bayes-calculator.tsx`) — live, pure-JS, no data-honesty caveats. Prior/sensitivity/false-positive-rate sliders (prior on a log scale, 0.01%–50%) update a prior-vs-posterior bar chart and a natural-frequency breakdown in real time; three presets including the lesson's own rare-disease example. Embedded in Probability & Statistics Foundations right after the matching NapkinMath callout. ([PR #16](https://github.com/creotip/marvin/pull/16))
 - **Grid-world Q-learning visualizer widget** (`src/components/widgets/q-learning-grid.tsx`) — live tabular Q-learning trained in the browser, 5×5 grid with a goal and a trap, epsilon-greedy with decay, ε-greedy policy shown as arrows over a Q-value heatmap. "Train ×50" fast-forwards episodes; "Watch agent" animates a greedy rollout of the current policy. Closes the last zero-widget lesson (Reinforcement Learning) alongside the Bayes calculator closing Probability & Statistics.
 - **Confusion matrix / ROC curve widget** (`src/components/widgets/confusion-matrix-roc.tsx`) — live, computed from a fixed seeded-synthetic set of 300 scored examples (not a real dataset, but the confusion matrix/precision/recall/F1/ROC/AUC math on them is all real). A threshold slider drives a live 2×2 confusion matrix (color-coded like the Q-learning grid), precision/recall/F1, and a marker sliding along a precomputed ROC curve. Embedded in Evaluation & Benchmarks right after the precision/recall/F1 Deeper dive — the last of the two "top priority" zero-widget-lesson pairs originally flagged.
+- **Diffusion denoising visualizer widget** (`src/components/widgets/diffusion-visualizer.tsx`) — forward direction is genuinely live: a slider runs the lesson's own closed-form equation (`x_t = √ᾱ_t·x0 + √(1-ᾱ_t)·ε`, cosine noise schedule, one fixed noise draw) on the convolution visualizer's hollow-square test image, at any step t. Reverse direction is explicitly labeled simulated — no trained denoising network runs in the browser, so it replays the same known frames backward, with an in-widget caption saying so plainly.
 
 ## Flagged content — not yet built
 
