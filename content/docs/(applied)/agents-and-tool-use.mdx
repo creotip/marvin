@@ -108,6 +108,13 @@ produces a final response.
 </Step>
 </Steps>
 
+Here's that loop scripted out concretely. Step through it (or watch it run)
+across three goals — one that needs two tool calls, one that needs none at
+all, and one where the right move is admitting a search came up empty
+rather than guessing:
+
+<AgentTraceStepper />
+
 This is a genuinely different mode from a single Q&A exchange: an agent
 might search the web, read a file, run a calculation, and check its own
 intermediate result against the original goal — several LLM calls chained
