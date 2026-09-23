@@ -24,7 +24,7 @@ Living tracker for what's shipped and what's next. Stable reference material (go
 - [ ] Embedding similarity search playground (LLMs / RAG)
 - [ ] Agent trace stepper (Agents & Tool Use)
 - [ ] Batching latency/throughput slider (Inference & Serving)
-- [ ] Confusion matrix / ROC curve widget (Evaluation & Benchmarks) — another zero-widget lesson; pairs with the glossary gap there below
+- [x] Confusion matrix / ROC curve widget (Evaluation & Benchmarks)
 
 See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the live/precomputed/simulated data-source decision per widget.
 
@@ -54,6 +54,7 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 - **A-Z glossary index page** — `/reference/a-z`, a single crawlable page listing every reference term alphabetically with a letter-jump nav, built from `reference.source.getPages()` (no new content, reused existing page data). Linked from the reference introduction page.
 - **Bayes' theorem calculator widget** (`src/components/widgets/bayes-calculator.tsx`) — live, pure-JS, no data-honesty caveats. Prior/sensitivity/false-positive-rate sliders (prior on a log scale, 0.01%–50%) update a prior-vs-posterior bar chart and a natural-frequency breakdown in real time; three presets including the lesson's own rare-disease example. Embedded in Probability & Statistics Foundations right after the matching NapkinMath callout. ([PR #16](https://github.com/creotip/marvin/pull/16))
 - **Grid-world Q-learning visualizer widget** (`src/components/widgets/q-learning-grid.tsx`) — live tabular Q-learning trained in the browser, 5×5 grid with a goal and a trap, epsilon-greedy with decay, ε-greedy policy shown as arrows over a Q-value heatmap. "Train ×50" fast-forwards episodes; "Watch agent" animates a greedy rollout of the current policy. Closes the last zero-widget lesson (Reinforcement Learning) alongside the Bayes calculator closing Probability & Statistics.
+- **Confusion matrix / ROC curve widget** (`src/components/widgets/confusion-matrix-roc.tsx`) — live, computed from a fixed seeded-synthetic set of 300 scored examples (not a real dataset, but the confusion matrix/precision/recall/F1/ROC/AUC math on them is all real). A threshold slider drives a live 2×2 confusion matrix (color-coded like the Q-learning grid), precision/recall/F1, and a marker sliding along a precomputed ROC curve. Embedded in Evaluation & Benchmarks right after the precision/recall/F1 Deeper dive — the last of the two "top priority" zero-widget-lesson pairs originally flagged.
 
 ## Flagged content — not yet built
 
