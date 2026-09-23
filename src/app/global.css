@@ -1,7 +1,60 @@
 @import 'tailwindcss';
-@import 'fumadocs-ui/css/catppuccin.css';
 @import 'fumadocs-ui/css/preset.css';
 @import 'katex/dist/katex.min.css';
+
+/* Warm near-black / burnt-orange theme — replaces the default Catppuccin
+   preset. Every `--color-fd-*` token below is the same token fumadocs'
+   own presets define, so the whole UI (including every widget, which
+   only ever references these tokens, never raw hex) re-colors itself
+   automatically — nothing else needs to change. */
+@theme {
+  --color-fd-background: oklch(98.3% 0.004 75);
+  --color-fd-foreground: oklch(18% 0.012 55);
+  --color-fd-muted: oklch(95.5% 0.006 70);
+  --color-fd-muted-foreground: oklch(45% 0.014 55);
+  --color-fd-popover: oklch(99% 0.003 75);
+  --color-fd-popover-foreground: oklch(18% 0.012 55);
+  --color-fd-card: oklch(97% 0.005 70);
+  --color-fd-card-foreground: oklch(18% 0.012 55);
+  --color-fd-border: oklch(80% 0.012 60 / 45%);
+  --color-fd-primary: oklch(62% 0.19 39);
+  --color-fd-primary-foreground: oklch(99% 0 0);
+  --color-fd-secondary: oklch(94% 0.006 70);
+  --color-fd-secondary-foreground: oklch(20% 0.012 55);
+  --color-fd-accent: oklch(92% 0.03 45 / 65%);
+  --color-fd-accent-foreground: oklch(20% 0.012 55);
+  --color-fd-ring: oklch(62% 0.19 39);
+  --color-fd-overlay: oklch(0% 0 0 / 20%);
+
+  --color-fd-info: oklch(62.3% 0.214 259.815);
+  --color-fd-warning: oklch(76.9% 0.188 70.08);
+  --color-fd-error: oklch(63.7% 0.237 25.331);
+  --color-fd-success: oklch(72.3% 0.219 149.579);
+  --color-fd-idea: oklch(70.5% 0.209 60.849);
+  --color-fd-diff-remove: rgba(200, 10, 100, 0.12);
+  --color-fd-diff-remove-symbol: rgb(230, 10, 100);
+  --color-fd-diff-add: rgba(14, 180, 100, 0.1);
+  --color-fd-diff-add-symbol: rgb(10, 200, 100);
+}
+
+.dark {
+  --color-fd-background: oklch(15.5% 0.008 55);
+  --color-fd-foreground: oklch(93% 0.005 70);
+  --color-fd-muted: oklch(21% 0.009 55);
+  --color-fd-muted-foreground: oklch(68% 0.012 65);
+  --color-fd-popover: oklch(18% 0.008 55);
+  --color-fd-popover-foreground: oklch(91% 0.005 70);
+  --color-fd-card: oklch(19% 0.008 55);
+  --color-fd-card-foreground: oklch(94% 0.005 70);
+  --color-fd-border: oklch(55% 0.012 60 / 18%);
+  --color-fd-primary: oklch(72% 0.18 45);
+  --color-fd-primary-foreground: oklch(13% 0.01 55);
+  --color-fd-secondary: oklch(23% 0.009 55);
+  --color-fd-secondary-foreground: oklch(93% 0.005 70);
+  --color-fd-accent: oklch(32% 0.05 45 / 45%);
+  --color-fd-accent-foreground: oklch(95% 0.01 60);
+  --color-fd-ring: oklch(72% 0.18 45);
+}
 
 html {
   scrollbar-gutter: stable;
@@ -10,4 +63,15 @@ html {
 html > body[data-scroll-locked] {
   margin-right: 0px !important;
   --removed-body-scroll-bar-size: 0px !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.font-heading {
+  font-family: var(--font-heading), sans-serif;
+  letter-spacing: -0.02em;
 }

@@ -1,5 +1,6 @@
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-import { appName } from './shared';
+import { TopNavTabs } from '@/components/top-nav-tabs';
+import { appName, gitConfig } from './shared';
 
 export function baseOptions(): BaseLayoutProps {
   return {
@@ -7,21 +8,11 @@ export function baseOptions(): BaseLayoutProps {
       // JSX supported
       title: appName,
     },
+    githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}`,
     links: [
       {
-        text: 'Docs',
-        url: '/docs',
-        active: 'nested-url',
-      },
-      {
-        text: 'Reference',
-        url: '/reference',
-        active: 'nested-url',
-      },
-      {
-        text: 'People',
-        url: '/people',
-        active: 'nested-url',
+        type: 'custom',
+        children: <TopNavTabs />,
       },
     ],
   };
