@@ -104,6 +104,14 @@ pointing in similar directions in that high-dimensional space, which is
 exactly what makes nearest-neighbor search double as "find text with a
 similar meaning."
 
+Click any point below to make it the query and see its real cosine-similarity
+nearest neighbors. The positions are a hand-placed 2D illustration, not
+output from an actual embedding model — real embeddings have hundreds to
+thousands of dimensions — but the similarity scores themselves are computed
+live, the same formula shown above:
+
+<EmbeddingPlayground />
+
 Naively, finding the true nearest neighbors means comparing the query
 against *every* stored vector — fine for thousands of chunks, far too
 slow once you're indexing millions. Vector databases solve this with
