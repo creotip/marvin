@@ -2,7 +2,7 @@
 
 Living tracker for what's shipped and what's next. Stable reference material (goals, content outline, architecture, decisions) lives in [ai-learning-platform-plan.md](ai-learning-platform-plan.md); this file is the "what's left to build" view.
 
-**Status: MVP v1 shipped and live on Vercel.** All 16 lessons written, 6 widgets shipped, reference glossary with auto-linking + backlinks shipped.
+**Status: MVP v1 shipped and live on Vercel.** All 17 lessons written, 6 widgets shipped, reference glossary with auto-linking + backlinks shipped.
 
 ---
 
@@ -33,6 +33,7 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 - [ ] FAQ-style question subheadings in lessons and glossary "How it works" sections
 - [ ] Diagram + caption audit — every diagram paired with restating prose, never standalone
 - [ ] Newbie-readability audit — flag jargon introduced without a plain-language anchor
+- [ ] **A-Z glossary index page** — one crawlable hub page listing every reference term alphabetically, built from the same `collectReferenceTerms` data the auto-linker already uses. Cheap (no new content to write) and a solid SEO/internal-linking win.
 - [ ] Deprioritized: force-directed glossary concept-map graph (no crawlable text, no SEO payoff — revisit after the above)
 
 **Phase 3 — Progress tracking (deferred, localStorage only)** — not started
@@ -54,6 +55,9 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 - **AI Safety & Alignment** lesson — model objectives/alignment, distinct from AI Security (deployed-system misuse vs. the model's own objectives) — a real gap for "university of AI" scope
 - **Multimodal Models** lesson — vision-language and audio models; course currently only covers single-modality
 - **Two more "Safety & Security" glossary terms** — AI Safety, Alignment (RLHF already exists and is the natural cross-link) — hold until the Safety & Alignment lesson above is written
+- **Interpretability lesson** — mechanistic interpretability, feature attribution, probing. Distinct from both Safety & Alignment and AI Security; ties to the interpretability line already in Dario Amodei's People profile, and it's a heavily-searched term right now.
+- **Optimization & Training Dynamics lesson** — Adam, learning-rate schedules, warmup, batch size effects. Deepens ML Fundamentals rather than adding new breadth — currently only covered in passing via a `<Deeper>` dive.
+- **Glossary gap-fill: Reinforcement Learning and Generative Models have zero glossary terms**, despite both being full lessons (#10 and #8). Missing and worth adding regardless of any new lesson: MDP, Policy, Q-Learning, Reward, PPO (Reinforcement Learning); GAN, VAE, Diffusion Model (Generative Models). Also missing and mentioned elsewhere already: Mixture of Experts (referenced in Noam Shazeer's People profile) and Knowledge Distillation (natural fit alongside Quantization/Batching/KV-Cache in the inference-and-applied-systems group).
 
 ---
 
