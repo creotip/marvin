@@ -10,7 +10,7 @@ Living tracker for what's shipped and what's next. Stable reference material (go
 
 **Phase 1 — MVP v1: working site, full content, no widgets/quizzes** ✅ done
 
-**Phase 2 — Widgets**
+**Phase 2 — Widgets** ✅ done — every lesson now has at least one widget
 
 - [x] Gradient descent playground (ML Fundamentals)
 - [x] Backprop stepper (Neural Networks & Backprop)
@@ -23,7 +23,7 @@ Living tracker for what's shipped and what's next. Stable reference material (go
 - [x] Diffusion denoising visualizer (Generative Models)
 - [x] Embedding similarity search playground (LLMs / RAG)
 - [x] Agent trace stepper (Agents & Tool Use)
-- [ ] Batching latency/throughput slider (Inference & Serving)
+- [x] Batching latency/throughput slider (Inference & Serving)
 - [x] Confusion matrix / ROC curve widget (Evaluation & Benchmarks)
 
 See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the live/precomputed/simulated data-source decision per widget.
@@ -58,6 +58,7 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 - **Diffusion denoising visualizer widget** (`src/components/widgets/diffusion-visualizer.tsx`) — forward direction is genuinely live: a slider runs the lesson's own closed-form equation (`x_t = √ᾱ_t·x0 + √(1-ᾱ_t)·ε`, cosine noise schedule, one fixed noise draw) on the convolution visualizer's hollow-square test image, at any step t. Reverse direction is explicitly labeled simulated — no trained denoising network runs in the browser, so it replays the same known frames backward, with an in-widget caption saying so plainly.
 - **Embedding similarity search playground widget** (`src/components/widgets/embedding-playground.tsx`) — precomputed, same honesty pattern as the attention visualizer: 15 hand-placed words across 5 wedges (Animals/Code/Fruit/Emotion + a "Direction" pair) on a 2D plane. Clicking a word makes it the query and ranks every other word by real, live-computed cosine similarity, with a similarity-threshold (not fixed top-N) highlight so only genuine matches get a connecting line. Includes one deliberately counterintuitive pair — "to Paris" / "from Paris" score ≈1.00 despite opposite meanings, with an in-widget callout explaining the real blind spot this demonstrates (dense embeddings compress out negation/direction far more than topic). Went through 3 review rounds after initial ship: caught and fixed a hydration mismatch from unrounded `Math.cos`/`Math.sin` output, overlapping SVG labels on the near-identical Paris dots, wedge gaps too narrow (an unrelated cross-category item scored a deceptively-not-low 0.72), and finally — since 5 categories sharing one 2D circle can never fully eliminate _some_ neighbor being nearest — added an explicit "layout noise" divider and muted styling in the ranked list so non-matches read as background noise, not a ranked continuation. Embedded in RAG & Vector Databases right where cosine similarity is explained.
 - **Agent trace stepper widget** (`src/components/widgets/agent-trace-stepper.tsx`) — precomputed, same honesty pattern as the attention visualizer: 3 hand-scripted Thought → Tool call → Observation → ... → Final answer traces (a 2-tool-call weather comparison, a 0-tool direct-math answer, and a tool-call-with-no-results case showing the agent admit it couldn't find something rather than guess), each revealed step-by-step via Run/Step/Reset controls. Embedded in Agents & Tool Use right after the agent-loop `<Steps>` walkthrough, making the abstract loop concrete.
+- **Batching latency/throughput slider widget** (`src/components/widgets/batching-slider.tsx`) — simulated by design, reproducing the lesson's own Misconception callout: per-step decode time stays flat while bandwidth-bound, then breaks upward once the batch is large enough to be compute-bound, while latency (queue + step) climbs the whole way, mostly from queueing rather than compute. Throughput correctly plateaus at the same value once compute-bound is reached, whichever batch size you're at. Closes the last unwidgeted lesson — **every lesson now has at least one widget.**
 
 ## Flagged content — not yet built
 

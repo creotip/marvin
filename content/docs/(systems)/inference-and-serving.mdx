@@ -236,6 +236,12 @@ request.
   GPU genuinely compute-bound.
 </Misconception>
 
+Drag the batch size below and watch that split play out: the step time
+stays flat, then breaks upward once the batch is large enough to be
+compute-bound — while latency climbs the whole way, mostly from queueing:
+
+<BatchingSlider />
+
 ## Quantization: trading precision for speed and memory
 
 Model weights are normally stored as 16-bit or 32-bit floating point
