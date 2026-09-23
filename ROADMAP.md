@@ -24,6 +24,7 @@ Living tracker for what's shipped and what's next. Stable reference material (go
 - [ ] Embedding similarity search playground (LLMs / RAG)
 - [ ] Agent trace stepper (Agents & Tool Use)
 - [ ] Batching latency/throughput slider (Inference & Serving)
+- [ ] Confusion matrix / ROC curve widget (Evaluation & Benchmarks) — another zero-widget lesson; pairs with the glossary gap there below
 
 See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the live/precomputed/simulated data-source decision per widget.
 
@@ -34,6 +35,7 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 - [ ] Diagram + caption audit — every diagram paired with restating prose, never standalone
 - [ ] Newbie-readability audit — flag jargon introduced without a plain-language anchor
 - [ ] **A-Z glossary index page** — one crawlable hub page listing every reference term alphabetically, built from the same `collectReferenceTerms` data the auto-linker already uses. Cheap (no new content to write) and a solid SEO/internal-linking win.
+- [ ] **FAQ hub page** — a dedicated `/faq` page for cross-lesson beginner questions that don't map to one specific lesson ("is RAG the same as fine-tuning?", "do I need calculus for this?"). Distinct from the inline FAQ subheadings above — a landing page, not per-lesson headers — targeting "People Also Ask"-style queries.
 - [ ] Deprioritized: force-directed glossary concept-map graph (no crawlable text, no SEO payoff — revisit after the above)
 
 **Phase 3 — Progress tracking (deferred, localStorage only)** — not started
@@ -57,7 +59,13 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 - **Two more "Safety & Security" glossary terms** — AI Safety, Alignment (RLHF already exists and is the natural cross-link) — hold until the Safety & Alignment lesson above is written
 - **Interpretability lesson** — mechanistic interpretability, feature attribution, probing. Distinct from both Safety & Alignment and AI Security; ties to the interpretability line already in Dario Amodei's People profile, and it's a heavily-searched term right now.
 - **Optimization & Training Dynamics lesson** — Adam, learning-rate schedules, warmup, batch size effects. Deepens ML Fundamentals rather than adding new breadth — currently only covered in passing via a `<Deeper>` dive.
-- **Glossary gap-fill: Reinforcement Learning and Generative Models have zero glossary terms**, despite both being full lessons (#10 and #8). Missing and worth adding regardless of any new lesson: MDP, Policy, Q-Learning, Reward, PPO (Reinforcement Learning); GAN, VAE, Diffusion Model (Generative Models). Also missing and mentioned elsewhere already: Mixture of Experts (referenced in Noam Shazeer's People profile) and Knowledge Distillation (natural fit alongside Quantization/Batching/KV-Cache in the inference-and-applied-systems group).
+- **Glossary gap-fill: four lessons have zero glossary terms** despite being full lessons — Reinforcement Learning (#10), Generative Models (#8), Probability & Statistics Foundations (#3), and Evaluation & Benchmarks (#12). Missing and worth adding regardless of any new lesson:
+  - Reinforcement Learning: MDP, Policy, Q-Learning, Reward, PPO
+  - Generative Models: GAN, VAE, Diffusion Model
+  - Probability & Statistics Foundations: Bayes' Theorem, MLE, MAP, Probability Distribution — "Bayes' theorem" alone is a heavily searched term in its own right
+  - Evaluation & Benchmarks: Benchmark, LLM-as-Judge
+  - Also missing and mentioned elsewhere already: Mixture of Experts (referenced in Noam Shazeer's People profile) and Knowledge Distillation (natural fit alongside Quantization/Batching/KV-Cache in the inference-and-applied-systems group)
+- **Case-study narrative content** — a new content type distinct from lesson/glossary/person: 1-2 worked narratives (e.g. "How ChatGPT Was Actually Built," tying pretraining → RLHF → inference → security together, or "Anatomy of a Production RAG System") that read as a story rather than a topic-by-topic lesson. Bridges the drier per-topic lessons with something advanced readers specifically search for. Higher effort and more editorial judgment on scope than the other items here — revisit after the cheaper wins above.
 
 ---
 
