@@ -21,7 +21,7 @@ Living tracker for what's shipped and what's next. Stable reference material (go
 - [x] Bayes' theorem calculator (Probability & Statistics)
 - [x] Grid-world Q-learning visualizer (Reinforcement Learning)
 - [x] Diffusion denoising visualizer (Generative Models)
-- [ ] Embedding similarity search playground (LLMs / RAG)
+- [x] Embedding similarity search playground (LLMs / RAG)
 - [ ] Agent trace stepper (Agents & Tool Use)
 - [ ] Batching latency/throughput slider (Inference & Serving)
 - [x] Confusion matrix / ROC curve widget (Evaluation & Benchmarks)
@@ -56,6 +56,7 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 - **Grid-world Q-learning visualizer widget** (`src/components/widgets/q-learning-grid.tsx`) — live tabular Q-learning trained in the browser, 5×5 grid with a goal and a trap, epsilon-greedy with decay, ε-greedy policy shown as arrows over a Q-value heatmap. "Train ×50" fast-forwards episodes; "Watch agent" animates a greedy rollout of the current policy. Closes the last zero-widget lesson (Reinforcement Learning) alongside the Bayes calculator closing Probability & Statistics.
 - **Confusion matrix / ROC curve widget** (`src/components/widgets/confusion-matrix-roc.tsx`) — live, computed from a fixed seeded-synthetic set of 300 scored examples (not a real dataset, but the confusion matrix/precision/recall/F1/ROC/AUC math on them is all real). A threshold slider drives a live 2×2 confusion matrix (color-coded like the Q-learning grid), precision/recall/F1, and a marker sliding along a precomputed ROC curve. Embedded in Evaluation & Benchmarks right after the precision/recall/F1 Deeper dive — the last of the two "top priority" zero-widget-lesson pairs originally flagged.
 - **Diffusion denoising visualizer widget** (`src/components/widgets/diffusion-visualizer.tsx`) — forward direction is genuinely live: a slider runs the lesson's own closed-form equation (`x_t = √ᾱ_t·x0 + √(1-ᾱ_t)·ε`, cosine noise schedule, one fixed noise draw) on the convolution visualizer's hollow-square test image, at any step t. Reverse direction is explicitly labeled simulated — no trained denoising network runs in the browser, so it replays the same known frames backward, with an in-widget caption saying so plainly.
+- **Embedding similarity search playground widget** (`src/components/widgets/embedding-playground.tsx`) — precomputed, same honesty pattern as the attention visualizer: 13 hand-placed words across 4 categories (Animals/Code/Fruit/Emotion) on a 2D plane, positioned so each category sits in its own angular wedge from center. Clicking a word makes it the query and ranks every other word by real, live-computed cosine similarity — top-2 highlighted with connecting lines. Embedded in RAG & Vector Databases right where cosine similarity is explained.
 
 ## Flagged content — not yet built
 
