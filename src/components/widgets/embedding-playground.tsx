@@ -45,35 +45,38 @@ const CATEGORY_COLORS: Record<string, string> = {
 const PARIS_NOTE =
   'Blind spot: nearly identical to its opposite, despite meaning the reverse. Dense embeddings encode topic far more strongly than negation or direction, so real embedding models show this exact pattern — "flight to Paris" and "flight from Paris" land almost on top of each other. Similarity is not relevance.';
 
-// Five wedges (four real categories, one deliberate trap), evenly spaced
-// with wide gaps, so the narrowest within-wedge angle always beats the
-// narrowest cross-wedge angle — every query's top matches stay inside its
-// own wedge, except the trap pair, which is the point of the trap pair.
+// Five wedges (four real categories, one deliberate trap). Gaps between
+// wedges (~57-58°, cos ≈ 0.53-0.56) are deliberately much wider than
+// within-wedge spread (~6-8°, cos ≈ 0.99), so an unrelated cross-wedge item
+// tops out around 0.5 — clearly negligible next to a genuine match, not a
+// deceptively-not-that-low number like an earlier version of this had
+// ("angry" scored 0.72 against "to Paris" purely from the wedges sitting
+// too close together, with no semantic meaning behind it at all).
 const POINTS: Point[] = [
-  { label: 'elephant', category: 'Animals', angleDeg: 2, radius: 120 },
-  { label: 'cat', category: 'Animals', angleDeg: 10, radius: 95 },
-  { label: 'dog', category: 'Animals', angleDeg: 20, radius: 110 },
-  { label: 'lion', category: 'Animals', angleDeg: 28, radius: 85 },
+  { label: 'elephant', category: 'Animals', angleDeg: 0, radius: 120 },
+  { label: 'cat', category: 'Animals', angleDeg: 7, radius: 95 },
+  { label: 'dog', category: 'Animals', angleDeg: 14, radius: 110 },
+  { label: 'lion', category: 'Animals', angleDeg: 20, radius: 85 },
 
   { label: 'python', category: 'Code', angleDeg: 78, radius: 100 },
-  { label: 'javascript', category: 'Code', angleDeg: 90, radius: 115 },
-  { label: 'rust', category: 'Code', angleDeg: 100, radius: 90 },
+  { label: 'javascript', category: 'Code', angleDeg: 86, radius: 115 },
+  { label: 'rust', category: 'Code', angleDeg: 94, radius: 90 },
 
-  { label: 'apple', category: 'Fruit', angleDeg: 148, radius: 105 },
+  { label: 'apple', category: 'Fruit', angleDeg: 152, radius: 105 },
   { label: 'banana', category: 'Fruit', angleDeg: 160, radius: 90 },
-  { label: 'mango', category: 'Fruit', angleDeg: 172, radius: 115 },
+  { label: 'mango', category: 'Fruit', angleDeg: 168, radius: 115 },
 
-  { label: 'happy', category: 'Emotion', angleDeg: 220, radius: 95 },
-  { label: 'sad', category: 'Emotion', angleDeg: 233, radius: 110 },
-  { label: 'angry', category: 'Emotion', angleDeg: 244, radius: 85 },
+  { label: 'happy', category: 'Emotion', angleDeg: 226, radius: 95 },
+  { label: 'sad', category: 'Emotion', angleDeg: 234, radius: 110 },
+  { label: 'angry', category: 'Emotion', angleDeg: 242, radius: 85 },
 
   {
     label: 'to Paris',
     category: 'Direction',
-    angleDeg: 288,
+    angleDeg: 300,
     radius: 100,
     note: PARIS_NOTE,
-    // The dots sit only 5° apart on purpose — that's the whole point — so
+    // The dots sit only 4° apart on purpose — that's the whole point — so
     // the labels are pushed to opposite sides instead of both defaulting
     // to dead center above an already-crowded pair of dots.
     labelOffset: { dx: -28, dy: -8 },
@@ -81,7 +84,7 @@ const POINTS: Point[] = [
   {
     label: 'from Paris',
     category: 'Direction',
-    angleDeg: 293,
+    angleDeg: 304,
     radius: 108,
     note: PARIS_NOTE,
     labelOffset: { dx: 32, dy: 16 },
@@ -117,10 +120,10 @@ function cosineSimilarity(
 const VECTORS = POINTS.map(toVector);
 // Highlight up to 2 neighbors, but only ones that clear a real similarity
 // bar — not just whichever 2 happen to score highest. Same-wedge matches
-// score ≥0.95 here; incidental cross-wedge matches top out around 0.72. The
-// 0.8 threshold sits cleanly between the two, which is also what makes the
+// score ≥0.98 here; incidental cross-wedge matches top out around 0.56. The
+// 0.8 threshold sits well clear of both, which is also what makes the
 // "to Paris" / "from Paris" pair land correctly: querying either highlights
-// only the other (≈0.999), not a second, unrelated point padded in to fill
+// only the other (≈0.998), not a second, unrelated point padded in to fill
 // a quota.
 const TOP_K = 2;
 const SIMILARITY_THRESHOLD = 0.8;
