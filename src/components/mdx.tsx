@@ -16,6 +16,7 @@ import { QLearningGrid } from '@/components/widgets/q-learning-grid';
 import { ConfusionMatrixRoc } from '@/components/widgets/confusion-matrix-roc';
 import { DiffusionVisualizer } from '@/components/widgets/diffusion-visualizer';
 import { EmbeddingPlayground } from '@/components/widgets/embedding-playground';
+import { AgentTraceStepper } from '@/components/widgets/agent-trace-stepper';
 import { ReferencePreview } from '@/components/reference-preview';
 import { Misconception, NapkinMath } from '@/components/teaching';
 import { Timeline, TimelineItem } from '@/components/timeline';
@@ -67,6 +68,7 @@ export function getMDXComponents(components?: MDXComponents) {
     ConfusionMatrixRoc,
     DiffusionVisualizer,
     EmbeddingPlayground,
+    AgentTraceStepper,
     Deeper,
     NapkinMath,
     Misconception,
