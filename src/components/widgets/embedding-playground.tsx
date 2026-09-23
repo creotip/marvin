@@ -146,6 +146,7 @@ export function EmbeddingPlayground() {
     ?.filter((r) => r.similarity >= SIMILARITY_THRESHOLD)
     .slice(0, TOP_K);
   const neighborIndexes = new Set(topNeighbors?.map((r) => r.index) ?? []);
+  const restRanked = ranked?.filter((r) => !neighborIndexes.has(r.index));
 
   return (
     <div className="not-prose bg-fd-card my-6 rounded-xl border p-4">
@@ -244,18 +245,12 @@ export function EmbeddingPlayground() {
                 :
               </p>
               <div className="flex flex-col gap-1">
-                {ranked?.map((r) => (
+                {topNeighbors?.map((r) => (
                   <div
                     key={r.index}
                     className="flex items-center gap-2 text-xs"
                   >
-                    <span
-                      className={`w-24 shrink-0 truncate font-mono ${
-                        neighborIndexes.has(r.index)
-                          ? 'text-fd-foreground'
-                          : 'text-fd-muted-foreground'
-                      }`}
-                    >
+                    <span className="text-fd-foreground w-24 shrink-0 truncate font-mono">
                       {r.point.label}
                     </span>
                     <div className="bg-fd-secondary h-3 flex-1 overflow-hidden rounded">
@@ -272,6 +267,42 @@ export function EmbeddingPlayground() {
                   </div>
                 ))}
               </div>
+
+              {restRanked && restRanked.length > 0 && (
+                <>
+                  <p className="text-fd-muted-foreground/70 mt-3 mb-1 text-[10px]">
+                    Below this line, ranking is just whichever 2D point happens
+                    to sit geometrically nearest — none of it is a real match. A
+                    real embedding space has hundreds of dimensions to keep
+                    unrelated concepts apart; this toy layout only has two, so
+                    some other category is always going to be closest to
+                    something.
+                  </p>
+                  <div className="flex flex-col gap-1 opacity-60">
+                    {restRanked.map((r) => (
+                      <div
+                        key={r.index}
+                        className="flex items-center gap-2 text-xs"
+                      >
+                        <span className="text-fd-muted-foreground w-24 shrink-0 truncate font-mono">
+                          {r.point.label}
+                        </span>
+                        <div className="bg-fd-secondary h-3 flex-1 overflow-hidden rounded">
+                          <div
+                            className="bg-fd-muted-foreground h-full"
+                            style={{
+                              width: `${Math.max(0, r.similarity) * 100}%`,
+                            }}
+                          />
+                        </div>
+                        <span className="text-fd-muted-foreground w-10 shrink-0 text-right font-mono">
+                          {r.similarity.toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
 
               {POINTS[queryIndex].note && (
                 <p className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/[0.06] p-2.5 text-xs text-amber-700 dark:text-amber-400">
