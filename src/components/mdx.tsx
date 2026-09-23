@@ -12,6 +12,7 @@ import type { ComponentProps, ComponentType } from 'react';
 import { Deeper } from '@/components/depth';
 import { Mermaid } from '@/components/mermaid';
 import { BayesCalculator } from '@/components/widgets/bayes-calculator';
+import { QLearningGrid } from '@/components/widgets/q-learning-grid';
 import { ReferencePreview } from '@/components/reference-preview';
 import { Misconception, NapkinMath } from '@/components/teaching';
 import { Timeline, TimelineItem } from '@/components/timeline';
@@ -59,6 +60,7 @@ export function getMDXComponents(components?: MDXComponents) {
     Banner,
     Mermaid,
     BayesCalculator,
+    QLearningGrid,
     Deeper,
     NapkinMath,
     Misconception,

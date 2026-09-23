@@ -164,6 +164,12 @@ learned one that can generalize across states it hasn't seen exactly
 before. This was the approach behind early landmark results like
 learning to play Atari games directly from raw pixels.
 
+The lookup-table version is small enough to train live, right here.
+Click "Train ×50" a few times and watch a policy emerge — arrows
+pointing toward the flag, curving around the trap:
+
+<QLearningGrid />
+
 ## Policy gradients: learning the policy directly
 
 An alternative family of methods, **policy gradient** methods, skip value
