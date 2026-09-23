@@ -108,7 +108,10 @@ Click any point below to make it the query and see its real cosine-similarity
 nearest neighbors. The positions are a hand-placed 2D illustration, not
 output from an actual embedding model — real embeddings have hundreds to
 thousands of dimensions — but the similarity scores themselves are computed
-live, the same formula shown above:
+live, the same formula shown above. One pair is a deliberate trap: dense
+[embeddings](/reference/embedding) compress out negation and direction far
+more than they compress out topic — a named blind spot, not a quirk of this
+toy example — so try querying it to see the effect directly.
 
 <EmbeddingPlayground />
 

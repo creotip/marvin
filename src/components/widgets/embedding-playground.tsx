@@ -10,6 +10,13 @@ import { useMemo, useState } from 'react';
 // each cluster sits in its own angular wedge from the plot's center
 // specifically so that "angle from center" (what cosine similarity actually
 // measures) lines up with the semantic grouping.
+//
+// One pair is deliberately NOT a clean cluster: "to Paris" / "from Paris"
+// sit almost on top of each other on purpose, to demonstrate a real
+// limitation named in the reference glossary — dense embeddings barely move
+// for negation or direction, so near-opposite meanings can still end up
+// nearly identical in vector space. That's not a toy artifact of this demo;
+// it's the actual behavior of real embedding models too.
 
 const SIZE = 320;
 const CENTER = SIZE / 2;
@@ -19,36 +26,66 @@ interface Point {
   category: string;
   angleDeg: number;
   radius: number;
+  note?: string;
+  // Only needed when a point's dot sits close enough to a neighbor's that
+  // the default "centered above the dot" label would overlap it.
+  labelOffset?: { dx: number; dy: number };
 }
+
+const DEFAULT_LABEL_OFFSET = { dx: 0, dy: -11 };
 
 const CATEGORY_COLORS: Record<string, string> = {
   Animals: 'var(--color-sky-500)',
   Code: 'var(--color-amber-500)',
   Fruit: 'var(--color-emerald-500)',
   Emotion: 'var(--color-rose-500)',
+  Direction: 'var(--color-fuchsia-500)',
 };
 
-// Evenly spaced 40°-wide clusters with 50° gaps between them, so the
-// narrowest same-cluster angle (~36°, cos ≈ 0.81) always beats the widest
-// cross-cluster angle (~50°, cos ≈ 0.64) — every query's top matches stay
-// inside its own category, not just on average.
+const PARIS_NOTE =
+  'Blind spot: nearly identical to its opposite, despite meaning the reverse. Dense embeddings encode topic far more strongly than negation or direction, so real embedding models show this exact pattern — "flight to Paris" and "flight from Paris" land almost on top of each other. Similarity is not relevance.';
+
+// Five wedges (four real categories, one deliberate trap), evenly spaced
+// with wide gaps, so the narrowest within-wedge angle always beats the
+// narrowest cross-wedge angle — every query's top matches stay inside its
+// own wedge, except the trap pair, which is the point of the trap pair.
 const POINTS: Point[] = [
   { label: 'elephant', category: 'Animals', angleDeg: 2, radius: 120 },
   { label: 'cat', category: 'Animals', angleDeg: 10, radius: 95 },
-  { label: 'dog', category: 'Animals', angleDeg: 25, radius: 110 },
-  { label: 'lion', category: 'Animals', angleDeg: 38, radius: 85 },
+  { label: 'dog', category: 'Animals', angleDeg: 20, radius: 110 },
+  { label: 'lion', category: 'Animals', angleDeg: 28, radius: 85 },
 
-  { label: 'python', category: 'Code', angleDeg: 100, radius: 100 },
-  { label: 'javascript', category: 'Code', angleDeg: 115, radius: 115 },
-  { label: 'rust', category: 'Code', angleDeg: 128, radius: 90 },
+  { label: 'python', category: 'Code', angleDeg: 78, radius: 100 },
+  { label: 'javascript', category: 'Code', angleDeg: 90, radius: 115 },
+  { label: 'rust', category: 'Code', angleDeg: 100, radius: 90 },
 
-  { label: 'apple', category: 'Fruit', angleDeg: 190, radius: 105 },
-  { label: 'banana', category: 'Fruit', angleDeg: 205, radius: 90 },
-  { label: 'mango', category: 'Fruit', angleDeg: 218, radius: 115 },
+  { label: 'apple', category: 'Fruit', angleDeg: 148, radius: 105 },
+  { label: 'banana', category: 'Fruit', angleDeg: 160, radius: 90 },
+  { label: 'mango', category: 'Fruit', angleDeg: 172, radius: 115 },
 
-  { label: 'happy', category: 'Emotion', angleDeg: 280, radius: 95 },
-  { label: 'sad', category: 'Emotion', angleDeg: 295, radius: 110 },
-  { label: 'angry', category: 'Emotion', angleDeg: 308, radius: 85 },
+  { label: 'happy', category: 'Emotion', angleDeg: 220, radius: 95 },
+  { label: 'sad', category: 'Emotion', angleDeg: 233, radius: 110 },
+  { label: 'angry', category: 'Emotion', angleDeg: 244, radius: 85 },
+
+  {
+    label: 'to Paris',
+    category: 'Direction',
+    angleDeg: 288,
+    radius: 100,
+    note: PARIS_NOTE,
+    // The dots sit only 5° apart on purpose — that's the whole point — so
+    // the labels are pushed to opposite sides instead of both defaulting
+    // to dead center above an already-crowded pair of dots.
+    labelOffset: { dx: -28, dy: -8 },
+  },
+  {
+    label: 'from Paris',
+    category: 'Direction',
+    angleDeg: 293,
+    radius: 108,
+    note: PARIS_NOTE,
+    labelOffset: { dx: 32, dy: 16 },
+  },
 ];
 
 function toVector(p: Point) {
@@ -56,8 +93,15 @@ function toVector(p: Point) {
   return { x: p.radius * Math.cos(rad), y: p.radius * Math.sin(rad) };
 }
 
+// Rounded, not raw — Math.cos/Math.sin can differ in the last decimal place
+// between server and client, which otherwise causes a hydration mismatch on
+// the SVG coordinates (the server-rendered and client-rendered numbers
+// stringify differently even though they're the "same" float).
 function toScreen(v: { x: number; y: number }) {
-  return { x: CENTER + v.x, y: CENTER - v.y };
+  return {
+    x: Math.round((CENTER + v.x) * 100) / 100,
+    y: Math.round((CENTER - v.y) * 100) / 100,
+  };
 }
 
 function cosineSimilarity(
@@ -71,10 +115,15 @@ function cosineSimilarity(
 }
 
 const VECTORS = POINTS.map(toVector);
-// 2, not 3: each category has only 3 members, so a 3rd highlighted "neighbor"
-// would always be a cross-category item filling the last slot, muddying the
-// same-category-clusters-together point this widget exists to make.
+// Highlight up to 2 neighbors, but only ones that clear a real similarity
+// bar — not just whichever 2 happen to score highest. Same-wedge matches
+// score ≥0.95 here; incidental cross-wedge matches top out around 0.72. The
+// 0.8 threshold sits cleanly between the two, which is also what makes the
+// "to Paris" / "from Paris" pair land correctly: querying either highlights
+// only the other (≈0.999), not a second, unrelated point padded in to fill
+// a quota.
 const TOP_K = 2;
+const SIMILARITY_THRESHOLD = 0.8;
 
 export function EmbeddingPlayground() {
   const [queryIndex, setQueryIndex] = useState<number | null>(null);
@@ -90,9 +139,10 @@ export function EmbeddingPlayground() {
       .sort((a, b) => b.similarity - a.similarity);
   }, [queryIndex]);
 
-  const neighborIndexes = new Set(
-    ranked?.slice(0, TOP_K).map((r) => r.index) ?? [],
-  );
+  const topNeighbors = ranked
+    ?.filter((r) => r.similarity >= SIMILARITY_THRESHOLD)
+    .slice(0, TOP_K);
+  const neighborIndexes = new Set(topNeighbors?.map((r) => r.index) ?? []);
 
   return (
     <div className="not-prose bg-fd-card my-6 rounded-xl border p-4">
@@ -105,12 +155,12 @@ export function EmbeddingPlayground() {
           role="img"
           aria-label={
             queryIndex === null
-              ? 'Scatter plot of 13 example words. Click one to see its nearest neighbors by cosine similarity.'
+              ? 'Scatter plot of 15 example words. Click one to see its nearest neighbors by cosine similarity.'
               : `Nearest neighbors of "${POINTS[queryIndex].label}" highlighted.`
           }
         >
           {queryIndex !== null &&
-            ranked?.slice(0, TOP_K).map((r) => {
+            topNeighbors?.map((r) => {
               const from = toScreen(VECTORS[queryIndex]);
               const to = toScreen(VECTORS[r.index]);
               return (
@@ -148,8 +198,8 @@ export function EmbeddingPlayground() {
                   strokeWidth={2}
                 />
                 <text
-                  x={x}
-                  y={y - 11}
+                  x={x + (p.labelOffset?.dx ?? DEFAULT_LABEL_OFFSET.dx)}
+                  y={y + (p.labelOffset?.dy ?? DEFAULT_LABEL_OFFSET.dy)}
                   textAnchor="middle"
                   fontSize={10}
                   className="fill-fd-foreground select-none"
@@ -177,7 +227,9 @@ export function EmbeddingPlayground() {
           {queryIndex === null ? (
             <p className="text-fd-muted-foreground">
               Click any word to make it the query and rank every other word by
-              cosine similarity to it.
+              cosine similarity to it — including &quot;to Paris&quot; and
+              &quot;from Paris&quot;, which aren&apos;t as different as they
+              sound.
             </p>
           ) : (
             <>
@@ -195,7 +247,7 @@ export function EmbeddingPlayground() {
                     className="flex items-center gap-2 text-xs"
                   >
                     <span
-                      className={`w-20 shrink-0 truncate font-mono ${
+                      className={`w-24 shrink-0 truncate font-mono ${
                         neighborIndexes.has(r.index)
                           ? 'text-fd-foreground'
                           : 'text-fd-muted-foreground'
@@ -217,6 +269,12 @@ export function EmbeddingPlayground() {
                   </div>
                 ))}
               </div>
+
+              {POINTS[queryIndex].note && (
+                <p className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/[0.06] p-2.5 text-xs text-amber-700 dark:text-amber-400">
+                  {POINTS[queryIndex].note}
+                </p>
+              )}
             </>
           )}
         </div>
