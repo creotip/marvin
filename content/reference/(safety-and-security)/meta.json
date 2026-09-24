@@ -2,5 +2,5 @@
   "title": "Safety & Security",
   "collapsible": true,
   "defaultOpen": true,
-  "pages": ["ai-safety", "alignment", "prompt-injection", "jailbreak", "adversarial-example", "red-teaming"]
+  "pages": ["ai-safety", "alignment", "interpretability", "sparse-autoencoder", "prompt-injection", "jailbreak", "adversarial-example", "red-teaming"]
 }

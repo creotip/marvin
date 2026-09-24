@@ -1,0 +1,128 @@
+---
+title: How ChatGPT Was Actually Built
+description: A worked narrative tying pretraining, alignment, inference, and security together as one pipeline, instead of as separate topics — illustrative, synthesized from public research, not an insider account
+---
+
+Every lesson so far in this course covers one piece of the pipeline —
+[pretraining](/docs/llms), [RLHF](/docs/ai-safety-and-alignment),
+[inference](/docs/inference-and-serving),
+[security](/docs/ai-security) — as its own topic, in isolation. This is
+the same material read the other way: as one pipeline, in the order it
+actually happens, where each stage's output is the next stage's input.
+
+<Misconception claim="this is a specific insider account of exactly how OpenAI built ChatGPT.">
+  It's a synthesis of what's publicly documented across the field —
+  published papers (most directly, the
+  [InstructGPT paper](https://arxiv.org/abs/2203.02155), which describes
+  the RLHF pipeline ChatGPT's own announcement said it used), scaling
+  laws research, and how production LLM serving is known to work in
+  general. Specific numbers below (dataset sizes, ordering, relative
+  costs) are illustrative of the pattern the whole field converged on,
+  not disclosed figures for any one company's exact run.
+</Misconception>
+
+## Stage 1: pretraining — learning language, not a task
+
+The pipeline starts with [pretraining](/reference/pretraining): predict
+the next token, over and over, across hundreds of billions to trillions
+of tokens of internet-scale text. Nothing here is specific to
+conversation, question-answering, or being helpful — it's the same
+self-supervised objective [LLMs](/docs/llms) covers, and it's what
+produces a **base model**: something that can fluently continue any
+text, with no particular tendency to be a helpful assistant rather than,
+say, autocompleting a list of similar-sounding fake product reviews.
+
+<NapkinMath title="Where the compute actually goes">
+
+[Scaling laws](/reference/scaling-laws) research establishes that, for a
+fixed compute budget, model size and training-data size trade off
+against each other on a predictable curve — which is why labs can plan a
+training run's size in advance rather than discovering it empirically.
+Pretraining a model in the GPT-3 class (175 billion parameters) on
+hundreds of billions of tokens is a run measured in thousands of GPUs
+running for weeks to months. The stages that come after it — the ones
+that actually make the model into a usable chat assistant — are smaller
+by orders of magnitude: a fine-tuning and RLHF pass measured in
+thousands of human-written or human-ranked examples, not hundreds of
+billions of tokens. Pretraining is where nearly all the compute goes;
+alignment is where nearly all the *product* comes from.
+
+</NapkinMath>
+
+## Stage 2: alignment — teaching it to be an assistant
+
+A base model completes text; it doesn't reliably follow instructions or
+refuse harmful requests. [AI Safety &
+Alignment](/docs/ai-safety-and-alignment) covers this stage's mechanics
+in depth — supervised fine-tuning on example conversations, then
+[RLHF](/reference/rlhf): collecting human rankings of candidate
+responses, training a reward model on those rankings, and optimizing the
+base model against it. The InstructGPT paper's own headline finding is
+the clearest evidence this stage matters as much as it does: human
+raters preferred outputs from a 1.3-billion-parameter model that had
+been through this pipeline over outputs from the 175-billion-parameter
+base model it started from — more than 100x smaller, and still
+preferred, because the thing raters were judging wasn't raw capability.
+It was whether the model actually did what was asked.
+
+That preference gap is the entire justification for running an
+expensive alignment stage at all: pretraining alone produces capability,
+not an assistant.
+
+## Stage 3: inference — turning weights into a running service
+
+An aligned model is still just a file full of weights until it's served.
+[Inference & Serving](/docs/inference-and-serving) covers the specific
+engineering here — the [KV cache](/reference/kv-cache) that avoids
+recomputing attention over the whole conversation on every new token,
+[batching](/reference/batching) that shares GPU work across many users'
+requests at once, [quantization](/reference/quantization) that trades a
+little precision for meaningfully less memory and cost per request. None
+of this changes what the model knows or how it was trained — it's
+entirely about the difference between a model that works in a research
+notebook and one that can serve a global product at an acceptable cost
+and latency, which is its own engineering discipline distinct from
+everything in the two stages before it.
+
+## Stage 4: security — the system is now a target
+
+The moment a model is reachable by real users, [AI
+Security](/docs/ai-security) stops being theoretical. A production chat
+assistant is a live target for
+[prompt injection](/reference/prompt-injection) and
+[jailbreaks](/reference/jailbreak) from day one of deployment, which is
+why shipping labs run [red teaming](/reference/red-teaming) before
+release and keep running it after — new attack techniques keep
+surfacing against models that already shipped, the same way new exploits
+keep surfacing against any other widely used piece of deployed software.
+Findings from red teaming often loop back into stage 2, as new refusal
+examples added to future rounds of alignment data — the pipeline isn't
+strictly linear in practice; security findings feed back upstream.
+
+## The shape of the whole thing
+
+<Steps>
+<Step>
+**Pretraining** turns raw text into a capable base model — the large
+majority of the compute budget, none of the assistant behavior yet.
+</Step>
+<Step>
+**Alignment** (SFT + RLHF) turns that base model into something that
+follows instructions and refuses what it's meant to refuse — a small
+fraction of the compute, most of what makes it usable.
+</Step>
+<Step>
+**Inference** turns trained weights into a service that responds in
+real time, at the cost and scale a real product needs.
+</Step>
+<Step>
+**Security** treats the now-live service as a target from day one, and
+feeds what it finds back into the next round of alignment.
+</Step>
+</Steps>
+
+Studied one lesson at a time, pretraining, alignment, inference, and
+security read as four unrelated topics. Studied as this pipeline,
+they're four stages of the same problem — each one a prerequisite the
+next stage takes for granted, and each one, on its own, an answer to a
+completely different question than the others.

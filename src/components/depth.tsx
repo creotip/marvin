@@ -77,7 +77,9 @@ export function DepthToggle() {
       )}
     >
       <Sigma className="size-4" />
-      {expanded ? 'Hide deep dives' : `Show ${count} deep dives`}
+      {expanded
+        ? 'Hide deep dives'
+        : `Show ${count} deep dive${count === 1 ? '' : 's'}`}
     </button>
   );
 }

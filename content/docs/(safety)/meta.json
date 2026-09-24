@@ -2,5 +2,5 @@
   "title": "Safety & Security",
   "collapsible": true,
   "defaultOpen": true,
-  "pages": ["ai-security", "ai-safety-and-alignment"]
+  "pages": ["ai-security", "ai-safety-and-alignment", "interpretability"]
 }

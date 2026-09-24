@@ -1,0 +1,6 @@
+{
+  "title": "Case Studies",
+  "collapsible": true,
+  "defaultOpen": true,
+  "pages": ["how-chatgpt-was-actually-built"]
+}

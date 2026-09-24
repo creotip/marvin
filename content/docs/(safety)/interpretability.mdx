@@ -1,0 +1,133 @@
+---
+title: Interpretability
+description: Reverse-engineering what a trained network's weights actually compute — probing, superposition, sparse autoencoders, and circuits, instead of judging a model by its outputs alone
+---
+
+[AI Safety & Alignment](/docs/ai-safety-and-alignment) closed on a
+specific problem: a model that has learned to *look* aligned and a model
+that actually is can produce identical outputs on every input anyone
+thought to test, and behavioral evaluation alone can't tell them apart.
+**Interpretability** is the research program aimed at that gap directly —
+opening up a trained network and identifying what computation it's
+actually performing internally, rather than inferring intent purely from
+what it outputs.
+
+## The simplest tool: probing
+
+The most direct way to ask "does this model represent concept X
+internally?" is **probing**: take the model's internal activations at
+some layer, for a set of inputs you've labeled by hand (sentences about
+Paris vs. not, say), and train a small linear classifier to predict the
+label from the activation alone. If a simple linear probe can extract
+the concept with high accuracy, that's evidence the concept is
+represented as (roughly) a direction in activation space at that layer —
+not proof the model *uses* that direction for anything, just that the
+information is linearly present.
+
+<Misconception claim="a successful probe proves the model uses that concept to make decisions.">
+  A probe only shows the information is *recoverable* from the
+  activations — it says nothing about whether the model's own downstream
+  computation actually reads and acts on it. A concept can be linearly
+  decodable and still be causally irrelevant to the model's output,
+  which is why interpretability research increasingly favors
+  intervention-based tests (edit the activation and see if behavior
+  changes) over probing alone as the stronger form of evidence.
+</Misconception>
+
+## Why individual neurons are hard to read
+
+Probing works at the level of a whole layer. The obvious next question —
+what does *this specific neuron* represent? — runs into a wall almost
+immediately: individual neurons in trained networks are frequently
+**polysemantic**, responding to several unrelated concepts rather than
+one clean one. A single neuron studied in early interpretability work on
+image classifiers fired on cat faces, car fronts, *and* a particular
+texture of cat fur — three unrelated visual concepts sharing one unit,
+not an interpretable "cat detector."
+
+The leading explanation is **superposition**: a network has vastly more
+concepts it could usefully represent than it has neurons, and it deals
+with that mismatch by encoding features as directions in activation
+space that aren't aligned with individual neuron axes and aren't fully
+orthogonal to each other — trading some interference between features
+for the capacity to represent far more of them than the raw neuron count
+would suggest. Superposition isn't a training accident to be fixed; it's
+a reasonably efficient use of limited dimensions, which is exactly why
+it doesn't go away and has to be worked around instead.
+
+## Sparse autoencoders: decomposing the superposition
+
+The current main tool for working around superposition is the
+**sparse autoencoder (SAE)**: train a separate small network to
+reconstruct a layer's activations, through a much *wider* hidden layer
+than the original activation vector, with a penalty that pushes most of
+that
+wider layer's units to be zero for any given input. The wider,
+sparsely-activating layer gives the model more directions to spread
+concepts across than the original dense activation space had —
+recovering something closer to one **feature** per concept instead of
+several concepts sharing one neuron.
+
+<NapkinMath title="Why wider and sparse, together">
+
+A dense activation vector might have a few thousand dimensions but, under
+superposition, needs to represent many times that many concepts —
+sharing directions between unrelated features is exactly how it fits
+them in. An SAE with a hidden layer tens of times wider gives roughly
+that many more available directions to spread concepts across. The
+sparsity penalty is what makes the extra width actually pay off: without
+it, a wider layer would just re-encode the same overlapping directions
+at a larger scale; forcing most units to be off for any single input
+pushes the autoencoder toward using a small, comparatively clean,
+different subset of features for different concepts.
+
+</NapkinMath>
+
+SAE features found this way are not guaranteed to be pure or
+human-interpretable — some are, many require judgment calls to name, and
+"clean, monosemantic feature" is closer to a spectrum this method moves
+along than a property it fully solves.
+
+## Circuits: features wired together into behavior
+
+A single feature is a snapshot. A **circuit** is a set of features and
+attention heads connected together that implement one specific piece of
+behavior across a forward pass. The clearest documented example is the
+**induction head**: a specific, identifiable pattern of attention heads
+that implements "if the current token previously followed some other
+token earlier in this context, predict that same continuation again" —
+a mechanism that turns out to explain a meaningful share of a
+transformer's in-context learning ability, found not by guessing but by
+tracing which heads' outputs causally feed into which other heads' inputs
+across a specific task.
+
+Circuits are the level at which interpretability findings start
+answering the alignment question this lesson opened with: not just "does
+the model represent deception-relevant concepts" (a probing-level
+question) but "is there an identifiable mechanism that activates during
+deceptive-looking outputs specifically, and does suppressing it change
+the behavior" — a causal claim about how the output was actually
+produced, not just what correlates with it.
+
+## Where this actually stands
+
+Interpretability research can currently explain some circuits, in some
+models, for some behaviors, in real and useful detail — the induction
+head result and others like it are genuine, causally verified findings,
+not speculation. It cannot yet explain most of what a large model does,
+end to end. Two honest limitations worth naming directly:
+
+- **An explanation that looks compelling isn't automatically correct.**
+  A found "circuit" or "feature" can be a plausible-sounding story that
+  fits the cherry-picked examples used to illustrate it without holding
+  up under systematic testing — the same failure mode as any
+  post-hoc pattern-finding exercise, and a large part of why the field
+  leans on causal intervention tests rather than correlational ones.
+- **Coverage is the real bottleneck, not technique.** SAEs and circuit
+  analysis scale to individual behaviors studied in depth, not yet to
+  auditing an entire model's behavior comprehensively — which is
+  precisely the gap that makes interpretability a genuine open problem
+  rather than a solved auditing tool, and why [AI Safety &
+  Alignment](/docs/ai-safety-and-alignment) treats it as one active
+  research direction among several rather than a finished answer to the
+  scalable oversight problem.

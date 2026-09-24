@@ -1,0 +1,49 @@
+---
+title: Interpretability
+description: Interpretability is the practice of identifying what computation a trained network is actually performing internally, instead of inferring intent purely from its outputs.
+---
+
+**Interpretability** identifies what a trained network's weights are
+actually computing internally, rather than inferring intent purely from
+its inputs and outputs. It's a direct response to a specific gap in
+behavioral evaluation: a model that has learned the intended objective
+and one that has learned to merely produce outputs that score well can
+behave identically on every input anyone thought to test —
+[alignment](/reference/alignment) research increasingly treats checking
+the mechanism, not just the output, as necessary for closing that gap.
+
+## How it works
+
+**Probing** trains a simple linear classifier on a model's internal
+activations to test whether some concept is linearly recoverable at a
+given layer. Individual neurons are frequently **polysemantic** —
+responding to several unrelated concepts at once — a consequence of
+**superposition**: a network represents far more concepts than it has
+neurons by encoding them as overlapping directions in activation space
+rather than one concept per neuron. A [sparse
+autoencoder](/reference/sparse-autoencoder) is the main current tool for
+decomposing that superposition back into more individually meaningful
+features, and a **circuit** is a set of features and attention heads
+wired together that implements one specific piece of behavior — the
+level at which findings become causal claims about how an output was
+produced, not just correlational ones.
+
+## When it breaks
+
+- **A compelling explanation isn't automatically a correct one.** A
+  found "circuit" can fit cherry-picked examples without holding up
+  under systematic or causal testing — the same failure mode as any
+  post-hoc pattern-finding exercise.
+- **Probing shows recoverability, not causal use.** A concept being
+  linearly decodable from activations doesn't establish that the model's
+  own downstream computation actually reads or acts on it.
+- **Coverage, not technique, is the bottleneck.** Current methods explain
+  specific circuits for specific behaviors in real depth; they don't yet
+  scale to comprehensively auditing an entire model's behavior.
+
+**See also:** [Alignment](/reference/alignment),
+[Sparse Autoencoder](/reference/sparse-autoencoder),
+[AI Safety](/reference/ai-safety)
+
+**Learn more:** [Interpretability](/docs/interpretability) ·
+[AI Safety & Alignment](/docs/ai-safety-and-alignment)

@@ -149,6 +149,9 @@ Modern training almost never uses plain SGD directly — optimizers like
 **Adam** adapt the effective learning rate per-parameter based on the
 history of past gradients — but they're all still gradient descent at
 heart: compute a gradient, step against it, repeat.
+[Optimization & Training Dynamics](/docs/optimization-and-training-dynamics)
+covers Adam's actual mechanics, why warmup exists, and what batch size
+trades off at scale, in depth.
 
 <NapkinMath title="Why mini-batches exist">
 

@@ -1,0 +1,51 @@
+---
+title: Sparse Autoencoder (SAE)
+description: A sparse autoencoder reconstructs a layer's activations through a much wider, mostly-zero hidden layer, decomposing overlapping neurons into more individually meaningful features.
+---
+
+A **sparse autoencoder (SAE)** is a small network trained to reconstruct
+a layer's activations through a hidden layer that's much *wider* than
+the original activation vector, with a penalty that pushes most of that
+wider layer's units to zero for any given input. It's the main current
+tool [interpretability](/reference/interpretability) research uses to
+work around **superposition** — the way a network packs far more
+concepts than it has neurons into overlapping, non-orthogonal
+directions, leaving most individual neurons **polysemantic** (responding
+to several unrelated concepts rather than one clean one).
+
+## How it works
+
+The extra width gives the model more available directions to spread
+concepts across than the original dense activation space had; the
+sparsity penalty is what makes that width actually pay off, pushing the
+autoencoder toward representing each input with a small, comparatively
+distinct subset of the wider layer's units rather than re-encoding the
+same overlapping directions at a larger scale. Each of those units is
+called a **feature** — the hope, only partially realized in practice, is
+one feature per underlying concept rather than several concepts sharing
+one neuron. Once decomposed this way, individual features can be studied
+directly, and groups of features wired together across a forward pass
+form a **circuit**: an identifiable mechanism behind one specific piece
+of model behavior, such as an induction head's "repeat what followed
+this token last time" pattern.
+
+## When it breaks
+
+- **Not every feature is clean.** SAE features exist on a spectrum from
+  cleanly monosemantic to still-entangled — decomposition moves along
+  that spectrum, it doesn't fully solve it, and naming what a given
+  feature "means" often requires human judgment calls that can be wrong.
+- **Reconstruction quality and interpretability trade off.** A wider,
+  sparser hidden layer tends to produce more individually meaningful
+  features but reconstructs the original activations less exactly —
+  there's no setting that maximizes both at once.
+- **A feature existing doesn't mean it's causally load-bearing.**
+  Confirming a feature actually drives model behavior, rather than
+  merely correlating with it, requires a further intervention test
+  (ablating or amplifying the feature and checking for a behavior
+  change), not just finding it.
+
+**See also:** [Interpretability](/reference/interpretability),
+[Embedding](/reference/embedding)
+
+**Learn more:** [Interpretability](/docs/interpretability)

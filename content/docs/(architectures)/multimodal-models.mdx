@@ -1,0 +1,148 @@
+---
+title: Multimodal Models
+description: How a single model handles more than one kind of input — CLIP's shared embedding space, how vision gets fed into a language model as tokens, and what actually breaks
+---
+
+Everything so far in this course has one modality at a time: [Computer
+Vision](/docs/computer-vision) processes images, [LLMs](/docs/llms)
+process text. A **multimodal model** handles more than one — most
+commonly text and images — inside a single model, not by running two
+separate models and gluing their outputs together afterward. The
+distinction matters: gluing separate models together loses exactly the
+thing that makes multimodal models useful, which is a shared
+representation where a concept means the same thing regardless of which
+modality it arrived through.
+
+## CLIP: putting images and text in the same space
+
+**[CLIP](/reference/clip) (Contrastive Language-Image Pretraining)** is
+the model that established how to get there. It trains two separate encoders — a
+[ViT](/reference/vit) for images, a transformer for text — but trains
+them *together*, on one thing: a large set of `(image, caption)` pairs
+scraped from the web.
+
+The training signal is contrastive, the same underlying idea behind how
+[word2vec](/reference/word2vec) learns from context, generalized across
+modalities:
+
+<Steps>
+<Step>
+Take a batch of `(image, caption)` pairs. Encode every image and every
+caption into a vector with its respective encoder.
+</Step>
+<Step>
+For each real pair, the image vector and its true caption's vector
+should end up close together (high cosine similarity).
+</Step>
+<Step>
+For every *mismatched* pairing within the batch — this image with some
+other caption in the batch — the two vectors should end up far apart.
+</Step>
+<Step>
+Train both encoders jointly to make that true across millions of pairs,
+and the two encoders converge on a **shared embedding space**: a region
+where "a photo of a dog" and an actual photo of a dog land near each
+other, regardless of which encoder produced the vector.
+</Step>
+</Steps>
+
+Once trained, that shared space is directly useful on its own — zero-shot
+image classification, for instance, is just embedding an image and a set
+of candidate text labels, then picking whichever label's embedding is
+closest — no classification-specific training required. But its bigger
+role is as the building block for the next step.
+
+## Feeding vision into a language model
+
+A shared embedding space doesn't by itself let a model have a
+conversation about an image. The dominant current approach connects a
+frozen (or lightly tuned) vision encoder to an existing LLM, so the LLM's
+already-trained language ability transfers over almost for free:
+
+1. Split the image into patches with a ViT-style encoder, exactly as
+   [Computer Vision](/docs/computer-vision) describes.
+2. Run a small trainable **projection layer** that maps each patch
+   embedding from the vision encoder's space into the LLM's own
+   embedding space — the same dimensionality its text token embeddings
+   live in.
+3. Feed those projected patch embeddings into the LLM's context window
+   as if they were ordinary tokens, interleaved with the actual text
+   tokens of the prompt.
+
+From the transformer's [self-attention](/reference/attention)
+mechanism's point of view, an image patch and a word are the same kind
+of thing once this projection has run: a vector in context that every
+other position can attend to. The LLM was never retrained to
+fundamentally understand images — it's attending over a sequence that
+happens to contain some vectors sourced from pixels instead of
+[tokenization](/reference/tokenization).
+
+<NapkinMath title="Why images are expensive in context">
+
+A ViT typically splits an image into patches — a common configuration
+uses roughly 16×16-pixel patches, so a modest 448×448 image becomes
+roughly `(448/16)²` = 784 patches, and each patch becomes one token in
+the LLM's context window. A single image can cost several hundred to
+over a thousand tokens of context before the model has read a single
+word of the actual prompt — which is why multimodal APIs typically
+charge for images by an equivalent token count, and why high-resolution
+images get downsampled or tiled rather than fed in at full resolution by
+default.
+
+</NapkinMath>
+
+## Generation runs the other direction
+
+Everything above is *understanding* — turning an image into something a
+language model can reason about and describe. Generating a *new* image
+from text is a different architecture entirely: [Generative
+Models](/docs/generative-models) covers diffusion models, which are
+conditioned on a text embedding but otherwise don't share machinery with
+CLIP or a vision-language LLM. It's worth keeping the two directions
+separate in your head — "model that can describe a photo" and "model
+that can produce one from a caption" are built differently, even though
+both are routinely called multimodal.
+
+<Misconception claim="a multimodal model sees an image the way a person does.">
+  It sees a fixed grid of patch embeddings in a context window, with no
+  built-in sense of object permanence, physical scale, or 3D structure —
+  everything a person gets for free from continuous visual experience.
+  What looks like visual understanding is pattern-matching over patch
+  embeddings against everything similar the model saw during training,
+  which is exactly why these models can confidently describe a detail
+  that isn't actually in the image, the visual-domain version of
+  [hallucination](/reference/hallucination).
+</Misconception>
+
+## Audio follows the same pattern
+
+Audio-capable models generally reuse the same recipe: an audio encoder
+turns a waveform into a sequence of embeddings (frames of audio instead
+of image patches), a projection layer maps them into the LLM's space,
+and they're fed into context the same way. Nothing about the pattern is
+image-specific — it's a general recipe for bringing any modality that
+can be encoded into a sequence of vectors into a language model's
+context window, which is why new modalities tend to get added to
+existing LLMs faster than earlier architectures could support.
+
+## Where this actually breaks
+
+- **The modality gap.** Even after contrastive training pulls matching
+  pairs together, image embeddings and text embeddings in practice tend
+  to cluster in two distinguishable regions of the shared space rather
+  than fully overlapping — matching pairs are *close relative to
+  mismatched pairs*, which is all contrastive training actually
+  optimizes for, not perfect modality-agnostic overlap. Retrieval that
+  crosses modalities (find the image for this caption) is measurably
+  easier than the reverse in practice.
+- **Resolution is a real tradeoff, not just a cost one.** Downsampling an
+  image to control token cost throws away exactly the detail needed for
+  tasks like reading small text in a photo or counting many small
+  objects — a model can describe a scene well while failing a task that
+  needs the fine detail that got downsampled away.
+- **Grounding failures compound with scale.** A caption-heavy web
+  dataset teaches strong associations between common objects and common
+  captions, which is also what makes it easy for the model to describe
+  a plausible scene that isn't the one in front of it — the training
+  data rewards plausibility, not verified grounding in the specific
+  pixels given.

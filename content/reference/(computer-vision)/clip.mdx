@@ -1,0 +1,49 @@
+---
+title: CLIP (Contrastive Language-Image Pretraining)
+description: CLIP trains an image encoder and a text encoder together with a contrastive loss so that matching image-caption pairs land close together in one shared embedding space.
+---
+
+**CLIP (Contrastive Language-Image Pretraining)** trains an image
+encoder (a [ViT](/reference/vit)) and a text encoder (a transformer)
+together on a large set of `(image, caption)` pairs, so that both land
+in one **shared embedding space** — a matching image and caption end up
+with similar [embeddings](/reference/embedding) regardless of which
+encoder produced them. It's the building block most current
+vision-language models use to connect an image encoder to a language
+model.
+
+## How it works
+
+For a batch of `(image, caption)` pairs, CLIP encodes every image and
+every caption, then trains both encoders with a **contrastive loss**:
+push each true pair's embeddings close together, and push every
+mismatched pairing within the batch apart. No pair is ever labeled with
+a category — the only signal is *which* image goes with *which*
+caption, which is why the training data can just be images and their
+existing web captions, at a scale hand-labeled classification datasets
+can't match.
+
+The trained encoders are directly useful without further training:
+**zero-shot classification** embeds an image once and a set of candidate
+text labels, then picks whichever label's embedding is closest — no
+classifier head, no labeled examples for that specific task.
+
+## When it breaks
+
+- **The modality gap.** Contrastive training only guarantees matching
+  pairs are close *relative to mismatched pairs*, not that image and
+  text embeddings fully overlap — in practice they cluster in two
+  distinguishable regions of the space, and cross-modal retrieval is
+  measurably easier in one direction than the other.
+- **It inherits its captions' biases and gaps.** The model only learns
+  associations present in its web-scraped training captions — objects,
+  phrasings, or contexts rarely captioned online are correspondingly
+  underrepresented in what the model can zero-shot recognize.
+- **Fine-grained detail gets lost.** A single embedding vector per image
+  compresses out exactly the kind of detail (small text, precise counts,
+  spatial layout) that a task might specifically need.
+
+**See also:** [ViT](/reference/vit), [Embedding](/reference/embedding),
+[word2vec](/reference/word2vec)
+
+**Learn more:** [Multimodal Models](/docs/multimodal-models)
