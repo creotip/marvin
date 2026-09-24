@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight, BookOpen, Library, Sparkles, Users } from 'lucide-react';
 import { docs, people, reference } from '@/lib/content';
+import { appDescription, appName, siteUrl } from '@/lib/shared';
 
 const LESSON_COUNT = docs.source
   .getPages()
@@ -46,9 +47,28 @@ const SECTIONS = [
   },
 ] as const;
 
+const HOME_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      name: appName,
+      description: appDescription,
+      url: siteUrl.toString(),
+    },
+    // No `logo` field yet — the site doesn't have one (see ROADMAP.md).
+    { '@type': 'Organization', name: appName, url: siteUrl.toString() },
+  ],
+};
+
 export default function HomePage() {
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-16 sm:py-24">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(HOME_JSON_LD) }}
+      />
+
       <div className="flex flex-col items-center gap-6 text-center">
         <span className="border-fd-primary/30 bg-fd-primary/10 text-fd-primary inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium">
           <Sparkles className="size-3.5" />
