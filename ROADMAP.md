@@ -35,7 +35,12 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 - [ ] Diagram + caption audit — every diagram paired with restating prose, never standalone
 - [ ] Newbie-readability audit — flag jargon introduced without a plain-language anchor
 - [x] **FAQ hub page** — a dedicated `/faq` page for cross-lesson beginner questions that don't map to one specific lesson ("is RAG the same as fine-tuning?", "do I need calculus for this?"). Distinct from the inline FAQ subheadings above — a landing page, not per-lesson headers — targeting "People Also Ask"-style queries.
+- [ ] **Structured data beyond the FAQ page** — `/faq` already has a `FAQPage` JSON-LD schema (see `src/app/(home)/faq/page.tsx`); nothing else does yet. Worth adding: `Article`/`TechArticle` on lesson pages, `DefinedTerm` on glossary entries, `Person` on People profiles, `BreadcrumbList` site-wide, `Organization`/`WebSite` on the homepage.
+- [ ] **Favicon and app icons** — currently missing entirely (no `public/` directory, no `app/icon.tsx`); every browser tab and bookmark falls back to a generic default. Needs a favicon plus the standard size set (apple-touch-icon, etc.).
+- [ ] **Logo / brand mark** — needed to make the favicon and OG images (`src/app/og/[collection]/[...slug]/route.tsx`) something other than text-only. **Blocked on a naming decision** — see below.
 - [ ] Deprioritized: force-directed glossary concept-map graph (no crawlable text, no SEO payoff — revisit after the above)
+
+> **Open decision, not yet scheduled:** possibly renaming the site away from "Marvin." Worth deciding *before* the logo/favicon work above, since the name is baked into `src/lib/shared.ts` (`appName`), page titles, OG images, the GitHub repo (`creotip/marvin`), and the domain — a rename touches all of it, and building a logo for a name that's about to change would be wasted work.
 
 **Phase 3 — Progress tracking (deferred, localStorage only)** — not started
 
