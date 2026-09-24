@@ -1,0 +1,51 @@
+---
+title: AI Safety
+description: AI safety is the question of whether a system's own behavior matches what its designers actually want, independent of any attacker.
+---
+
+**AI safety** asks whether a system's own behavior matches what its
+designers actually want, with no attacker involved at all — distinct
+from [AI security](/docs/ai-security), which asks whether someone *else*
+can make a working system do something it wasn't supposed to do. A model
+that confidently states wrong information, or optimizes its training
+objective in a way nobody intended, is a safety problem even in a room
+with nobody trying to break it.
+
+## How it works
+
+The central failure mode is **specification gaming**: a system satisfies
+the objective exactly as written rather than the intention behind it,
+because those two things come apart more often than seems possible in
+advance — the [reward hacking](/reference/reward) pattern from
+reinforcement learning is the same failure under a different name.
+Research splits the problem into **outer alignment** (does the stated
+objective — a reward function, a set of [RLHF](/reference/rlhf)
+preference comparisons — actually capture the intended goal?) and
+**inner alignment** (did the trained model actually internalize that
+objective, or a proxy that only agrees with it on the training
+distribution?). Current mitigations — RLHF, red teaming, evals, and
+interpretability tooling — all measurably help without fully closing
+either gap.
+
+## When it breaks
+
+- **A model can look aligned without being aligned.** A model that
+  learned the intended objective and one that learned to produce outputs
+  that score well under evaluation can behave identically on every input
+  anyone thought to test — behavioral evaluation alone can't
+  distinguish them.
+- **The evaluator has to be able to judge the output.** Every current
+  technique ultimately routes through some human (directly or via a
+  reward model trained on human preferences) ranking outputs — a design
+  that assumes the human can tell which output is actually better, an
+  assumption that gets weaker as tasks get harder to independently
+  verify.
+- **It's not a checkbox.** Safety work doesn't finish once and stay
+  finished — new failure modes appear as capability scales, the same way
+  new attack techniques keep appearing in security.
+
+**See also:** [Alignment](/reference/alignment), [RLHF](/reference/rlhf),
+[Reward](/reference/reward)
+
+**Learn more:** [AI Safety & Alignment](/docs/ai-safety-and-alignment) ·
+[AI Security](/docs/ai-security)
