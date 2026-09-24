@@ -14,6 +14,11 @@ export function baseOptions(): BaseLayoutProps {
         type: 'custom',
         children: <TopNavTabs />,
       },
+      {
+        text: 'FAQ',
+        url: '/faq',
+        active: 'url',
+      },
     ],
   };
 }

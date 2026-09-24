@@ -49,7 +49,9 @@ export default function FaqPage() {
             <Accordions multiple>
               {category.items.map((item) => (
                 <Accordion key={item.id} id={item.id} title={item.question}>
-                  <p>{renderFaqAnswer(item.answer)}</p>
+                  <p className="text-fd-muted-foreground ps-5 leading-relaxed">
+                    {renderFaqAnswer(item.answer)}
+                  </p>
                 </Accordion>
               ))}
             </Accordions>
