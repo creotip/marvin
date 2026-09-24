@@ -1,6 +1,6 @@
-# Marvin — agent notes
+# OpenDecode — agent notes
 
-An AI-education docs site (Next.js + Fumadocs), named after Marvin Minsky. Read [ai-learning-platform-plan.md](ai-learning-platform-plan.md) (stable architecture/goals) and [ROADMAP.md](ROADMAP.md) (living status/backlog) before making content decisions.
+An AI-education docs site (Next.js + Fumadocs). Read [ai-learning-platform-plan.md](ai-learning-platform-plan.md) (stable architecture/goals) and [ROADMAP.md](ROADMAP.md) (living status/backlog) before making content decisions.
 
 ## Stack
 

@@ -37,10 +37,10 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 - [x] **FAQ hub page** — a dedicated `/faq` page for cross-lesson beginner questions that don't map to one specific lesson ("is RAG the same as fine-tuning?", "do I need calculus for this?"). Distinct from the inline FAQ subheadings above — a landing page, not per-lesson headers — targeting "People Also Ask"-style queries.
 - [x] **Structured data beyond the FAQ page** — `Article` on lesson pages, `DefinedTerm` on glossary entries, `Person` on People profiles, `BreadcrumbList` on all three, `WebSite`/`Organization` on the homepage. `src/lib/json-ld.ts`.
 - [ ] **Favicon and app icons** — currently missing entirely (no `public/` directory, no `app/icon.tsx`); every browser tab and bookmark falls back to a generic default. Needs a favicon plus the standard size set (apple-touch-icon, etc.).
-- [ ] **Logo / brand mark** — needed to make the favicon and OG images (`src/app/og/[collection]/[...slug]/route.tsx`) something other than text-only. **Blocked on a naming decision** — see below.
+- [ ] **Logo / brand mark** — needed to make the favicon and OG images (`src/app/og/[collection]/[...slug]/route.tsx`) something other than text-only. Not built yet.
 - [ ] Deprioritized: force-directed glossary concept-map graph (no crawlable text, no SEO payoff — revisit after the above)
 
-> **Open decision, not yet scheduled:** possibly renaming the site away from "Marvin." Worth deciding _before_ the logo/favicon work above, since the name is baked into `src/lib/shared.ts` (`appName`), page titles, OG images, the GitHub repo (`creotip/marvin`), and the domain — a rename touches all of it, and building a logo for a name that's about to change would be wasted work.
+> **Outstanding follow-up on the site name (OpenDecode):** the domain (`opendecode.dev`, optionally `.ai`/`.org` as redirects) still needs to be registered, `NEXT_PUBLIC_SITE_URL`/Vercel's production domain pointed at it, and the GitHub repo renamed to match. `src/lib/shared.ts`'s `gitConfig.repo` still points at the pre-rename repo name on purpose until that repo rename actually happens.
 
 **Phase 3 — Progress tracking (deferred, localStorage only)** — not started
 
