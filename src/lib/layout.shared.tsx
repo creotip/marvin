@@ -1,12 +1,12 @@
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
 import { TopNavTabs } from '@/components/top-nav-tabs';
-import { appName, gitConfig } from './shared';
+import { Wordmark } from '@/components/wordmark';
+import { gitConfig } from './shared';
 
 export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
-      // JSX supported
-      title: appName,
+      title: <Wordmark />,
     },
     githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}`,
     links: [
