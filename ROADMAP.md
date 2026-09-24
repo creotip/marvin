@@ -36,8 +36,9 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 - [ ] Newbie-readability audit — flag jargon introduced without a plain-language anchor
 - [x] **FAQ hub page** — a dedicated `/faq` page for cross-lesson beginner questions that don't map to one specific lesson ("is RAG the same as fine-tuning?", "do I need calculus for this?"). Distinct from the inline FAQ subheadings above — a landing page, not per-lesson headers — targeting "People Also Ask"-style queries.
 - [x] **Structured data beyond the FAQ page** — `Article` on lesson pages, `DefinedTerm` on glossary entries, `Person` on People profiles, `BreadcrumbList` on all three, `WebSite`/`Organization` on the homepage. `src/lib/json-ld.ts`.
-- [ ] **Favicon and app icons** — currently missing entirely (no `public/` directory, no `app/icon.tsx`); every browser tab and bookmark falls back to a generic default. Needs a favicon plus the standard size set (apple-touch-icon, etc.).
-- [ ] **Logo / brand mark** — needed to make the favicon and OG images (`src/app/og/[collection]/[...slug]/route.tsx`) something other than text-only. Not built yet.
+- [x] **Favicon and app icons** — `src/app/icon.tsx` (32×32) and `apple-icon.tsx` (180×180), a "resolving dots" mark rendered via `next/og`'s `ImageResponse`.
+- [x] **Wordmark** — `src/components/wordmark.tsx`, "Open" in the default foreground color and "Decode" in the brand accent, wired into the shared nav title.
+- [ ] **OG images in brand colors** — `src/app/og/[collection]/[...slug]/route.tsx` still uses fumadocs' generic `generateOGImage()` helper with a plain-text site name; not yet updated to use the wordmark's two-tone treatment or the dots mark.
 - [ ] Deprioritized: force-directed glossary concept-map graph (no crawlable text, no SEO payoff — revisit after the above)
 
 > **Outstanding follow-up on the site name (OpenDecode):** the domain (`opendecode.dev`, optionally `.ai`/`.org` as redirects) still needs to be registered, `NEXT_PUBLIC_SITE_URL`/Vercel's production domain pointed at it, and the GitHub repo renamed to match. `src/lib/shared.ts`'s `gitConfig.repo` still points at the pre-rename repo name on purpose until that repo rename actually happens.
