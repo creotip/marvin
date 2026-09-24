@@ -13,6 +13,7 @@ import { getMDXComponents } from '@/components/mdx';
 import { DepthProvider, DepthToggle } from '@/components/depth';
 import { ReferenceBacklinks } from '@/components/reference-backlinks';
 import type { Collection } from '@/lib/content';
+import { contentJsonLd } from '@/lib/json-ld';
 import { gitConfig } from '@/lib/shared';
 
 export function ContentPage({
@@ -30,6 +31,12 @@ export function ContentPage({
 
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(contentJsonLd(collection, page)),
+        }}
+      />
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription className="mb-0">
         {page.data.description}
