@@ -82,6 +82,21 @@ look — it is not seeing the letters you are seeing.
 
 </Deeper>
 
+BPE isn't the only subword scheme in use — the alternatives differ in
+*how* they decide which pieces belong in the vocabulary:
+
+| Scheme | How pieces are chosen | Used by |
+| --- | --- | --- |
+| BPE (byte-pair encoding) | Greedily merge the most frequent adjacent pair | GPT family, Llama |
+| WordPiece | Merge whichever pair most increases the training data's likelihood, not just frequency | BERT |
+| Unigram | Start from a large candidate vocabulary and prune the pieces that hurt likelihood least | T5, ALBERT |
+
+**SentencePiece** isn't a fourth scheme — it's a language-agnostic
+implementation that runs BPE or Unigram as a library, treating
+whitespace as an ordinary character rather than a word boundary. That
+matters for languages like Japanese or Chinese, which don't use spaces
+to separate words the way English does.
+
 ## Pretraining: next-token prediction at scale
 
 **Pretraining** is self-supervised learning (see
