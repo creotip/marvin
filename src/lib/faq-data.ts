@@ -124,10 +124,10 @@ export const FAQ_CATEGORIES: FaqCategory[] = [
     title: 'About this site',
     items: [
       {
-        id: 'why-marvin',
-        question: 'Why is this site named "Marvin"?',
+        id: 'why-opendecode',
+        question: 'Why is this site named "OpenDecode"?',
         answer:
-          'After [Marvin Minsky](/people/marvin-minsky), a founder of the field who spent his career arguing about what intelligence actually is — co-founder of the MIT AI Lab and one of the earliest people to take the idea of machine intelligence seriously.',
+          'Open, because every lesson, glossary entry, and profile is free to read with no signup. Decode, because the point of the course is demystifying how AI actually works under the hood, not just how to use it.',
       },
       {
         id: 'is-it-free',

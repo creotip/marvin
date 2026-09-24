@@ -72,7 +72,7 @@ export default function HomePage() {
       <div className="flex flex-col items-center gap-6 text-center">
         <span className="border-fd-primary/30 bg-fd-primary/10 text-fd-primary inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium">
           <Sparkles className="size-3.5" />
-          Named for Marvin Minsky
+          Free. Open. No signup.
         </span>
         <h1 className="max-w-3xl text-4xl font-extrabold tracking-tight text-balance sm:text-6xl">
           Learn how AI actually works, from scratch.
