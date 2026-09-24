@@ -2,10 +2,14 @@ import Link from 'next/link';
 import { ArrowRight, BookOpen, Library, Sparkles, Users } from 'lucide-react';
 import { docs, people, reference } from '@/lib/content';
 
-const LESSON_COUNT = docs.source.getPages().length;
+const LESSON_COUNT = docs.source
+  .getPages()
+  .filter((page) => page.url !== docs.route).length;
 const TERM_COUNT = reference.source
   .getPages()
-  .filter((page) => page.url !== reference.route).length;
+  .filter(
+    (page) => page.url !== reference.route && page.slugs.join('/') !== 'a-z',
+  ).length;
 const PEOPLE_COUNT = people.source
   .getPages()
   .filter((page) => page.url !== people.route).length;
