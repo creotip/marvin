@@ -121,6 +121,17 @@ export default function HomePage() {
           </Link>
         ))}
       </div>
+
+      <p className="text-fd-muted-foreground mt-10 text-center text-sm">
+        Got a quick question instead?{' '}
+        <Link
+          href="/faq"
+          className="text-fd-primary underline underline-offset-2"
+        >
+          Check the FAQ
+        </Link>
+        .
+      </p>
     </main>
   );
 }

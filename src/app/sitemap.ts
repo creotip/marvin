@@ -13,6 +13,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 1,
     },
+    {
+      url: url('/faq'),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
     ...docs.source.getPages().map((page) => ({
       url: url(page.url),
       changeFrequency: 'weekly' as const,
