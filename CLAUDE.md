@@ -1,6 +1,6 @@
 # OpenDecode — agent notes
 
-An AI-education docs site (Next.js + Fumadocs), formerly named "Marvin" after Marvin Minsky — renamed to OpenDecode for domain availability (see `ROADMAP.md`). The [People collection](content/people) still profiles Minsky like any other founder of the field; only the site's own brand name changed. Read [ai-learning-platform-plan.md](ai-learning-platform-plan.md) (stable architecture/goals) and [ROADMAP.md](ROADMAP.md) (living status/backlog) before making content decisions.
+An AI-education docs site (Next.js + Fumadocs). Read [ai-learning-platform-plan.md](ai-learning-platform-plan.md) (stable architecture/goals) and [ROADMAP.md](ROADMAP.md) (living status/backlog) before making content decisions.
 
 ## Stack
 
