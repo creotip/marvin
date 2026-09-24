@@ -5,6 +5,7 @@
   "pages": [
     "history-and-landscape",
     "ml-fundamentals",
+    "optimization-and-training-dynamics",
     "probability-and-statistics-foundations",
     "neural-networks-and-backprop",
     "tooling-and-the-dev-stack"
