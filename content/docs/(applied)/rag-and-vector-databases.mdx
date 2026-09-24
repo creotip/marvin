@@ -136,6 +136,13 @@ Postgres). Which one to reach for mostly comes down to scale, whether you
 want a separate system to operate versus extending an existing database,
 and how much of the ANN tuning you want to manage yourself.
 
+| Tool | Type | Best for |
+| --- | --- | --- |
+| Pinecone | Managed service | Production, without operating your own infrastructure |
+| Weaviate / Milvus / Qdrant | Open-source, vector-first | Self-hosting at scale with full control |
+| Chroma | Lightweight, embedded | Local development, small-scale projects |
+| pgvector | Extension for an existing database | Adding vector search to a Postgres database you already run |
+
 ## Recap and what's next
 
 RAG grounds generation in retrieved text, and vector databases are the

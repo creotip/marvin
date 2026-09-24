@@ -123,6 +123,12 @@ it, which is why it demands pure functions and no hidden state.
   (via TensorFlow Lite), but has lost most of the research and new-project
   share to PyTorch over the last several years.
 
+| Framework | Execution style | Best for | Learning curve |
+| --- | --- | --- | --- |
+| PyTorch | Eager — runs immediately, like normal Python | Research and most production training today | Gentlest — the default recommendation |
+| JAX | Function transformations (`grad`, `jit`, `vmap`) | Research and some of the largest-scale training runs | Steepest — a different mental model |
+| TensorFlow/Keras | Eager by default, graph mode available | Existing production systems, mobile/edge (TF Lite) | Moderate — familiar if you already know it |
+
 The same training step — the "model, loss, gradient descent" loop from
 [ML Fundamentals](/docs/ml-fundamentals) — looks different in each,
 which is a useful way to feel the difference in style:

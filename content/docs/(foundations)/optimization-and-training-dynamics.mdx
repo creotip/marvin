@@ -64,6 +64,13 @@ tracking two extra numbers per parameter — for a billion-parameter
 model, that's two billion extra floats of optimizer state, on top of the
 model itself.
 
+| Optimizer | Tracks per parameter | Effective step size | Typical use |
+| --- | --- | --- | --- |
+| SGD | Nothing extra | Fixed, set by the learning rate alone | Simple or small models; a well-understood baseline |
+| SGD + Momentum | Running average of the gradient | Same for every parameter, oscillation damped | Classic computer vision training recipes |
+| Adam | 1st and 2nd moment of the gradient | Adapted per parameter | Fast, reliable convergence out of the box |
+| AdamW | Same as Adam, with decoupled weight decay | Adapted per parameter | Current default for training LLMs from scratch |
+
 <Misconception claim="a fancier optimizer means you can stop worrying about the learning rate.">
   Adam adapts the *relative* step size across parameters, not the
   overall scale of the step — the base learning rate `η` still has to be

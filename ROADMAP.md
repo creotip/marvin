@@ -30,7 +30,7 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 
 **Phase 2.5 — Content quality & SEO**
 
-- [ ] Comparison tables via `TypeTable` (optimizers, vector DBs, tokenization schemes, PyTorch vs. JAX vs. TensorFlow)
+- [x] **Comparison tables** — optimizers (Optimization & Training Dynamics), vector DBs (RAG & Vector Databases), tokenization schemes (LLMs), PyTorch vs. JAX vs. TensorFlow (Tooling & The Dev Stack). Plain GFM markdown tables, not `TypeTable` — that component is a collapsible Prop/Type/Default API-docs widget (see `node_modules/fumadocs-ui/dist/components/type-table.js`), the wrong shape for a scannable side-by-side content comparison.
 - [ ] FAQ-style question subheadings in lessons and glossary "How it works" sections
 - [ ] Diagram + caption audit — every diagram paired with restating prose, never standalone
 - [ ] Newbie-readability audit — flag jargon introduced without a plain-language anchor
