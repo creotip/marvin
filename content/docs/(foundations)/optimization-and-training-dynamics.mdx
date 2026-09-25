@@ -76,7 +76,9 @@ model itself.
   overall scale of the step — the base learning rate `η` still has to be
   set, still has the same too-high-diverges, too-low-crawls failure
   modes as plain gradient descent, and is still the single most
-  important hyperparameter to get right.
+  important **hyperparameter** to get right — a setting you choose
+  before training starts, unlike the model's own weights, which are
+  learned during it.
 </Misconception>
 
 ## Why warmup exists

@@ -67,7 +67,11 @@ specifically.
 ## The framework layer: what defines a model in code
 
 A **deep learning framework** gives you two core things: a way to define a
-computation graph of tensor operations (the forward pass), and
+computation graph of **tensor** operations (a tensor is just a
+multi-dimensional array of numbers — a single number is a 0-d tensor, a
+list of numbers is 1-d, a grid like an image is 2-d, and so on; every
+input, weight, and activation in this course has been a tensor whether
+or not it was called one) — the forward pass — and
 **automatic differentiation** (autograd) — it computes the backward pass
 (backprop, from the previous lesson) for you, automatically, from the
 forward pass you wrote. You never hand-derive gradients in practice; the
@@ -286,7 +290,9 @@ The practical consequence: an out-of-memory error at step 1 is a
 weights-plus-optimizer problem and needs sharding, quantization, or a
 different optimizer. An out-of-memory error part-way into a run is almost
 always an activation problem and is fixed by a smaller batch, a shorter
-sequence, or gradient checkpointing.
+sequence, or gradient checkpointing (discarding activations and
+recomputing them on the backward pass instead of storing them, as
+covered above).
 
 </Deeper>
 
@@ -307,8 +313,10 @@ learning rates, architectures, data). Two categories of tooling exist
 specifically to keep that manageable:
 
 - **Experiment tracking**: **Weights & Biases** and **MLflow** log metrics,
-  hyperparameters, and outputs across runs so you can compare them later
-  instead of relying on memory or scattered notebooks.
+  hyperparameters (the settings you chose before the run — learning
+  rate, batch size, and so on), and outputs across runs so you can
+  compare them later instead of relying on memory or scattered
+  notebooks.
 - **Notebooks vs. scripts**: Jupyter notebooks are common for exploration
   and visualization; actual training jobs (especially anything
   long-running or distributed) are almost always run as plain Python
