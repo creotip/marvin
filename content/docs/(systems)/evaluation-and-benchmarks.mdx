@@ -91,6 +91,17 @@ threshold at once:
 
 <ConfusionMatrixRoc />
 
+Some tasks sit in between: there's a reference answer, but no single
+exact string counts as correct — translation and summarization are the
+classic cases, since two fluent translations of the same sentence can
+use entirely different words. **Reference-based overlap metrics** like
+BLEU and ROUGE score how much word- and phrase-level overlap a
+generated output shares with the reference text. They're cheap and
+reproducible, same as exact match, but they reward wording similarity
+to one specific reference rather than correctness or fluency directly —
+which is exactly why they've fallen out of favor for anything beyond
+translation, as better options below became available.
+
 ## Benchmark suites: standardized exams for models
 
 A **benchmark** is a fixed, standardized set of test questions used to
