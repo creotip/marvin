@@ -26,6 +26,11 @@ worth having the shape of it in mind before the pieces:
   G --> H[Class scores]
 `} />
 
+Each stage below turns one box into the next: raw pixels become feature
+maps, feature maps get downsampled and stacked into higher-level
+features, and what's left gets flattened into a single classification
+decision.
+
 ## The convolution operation
 
 A convolution slides a small grid of learnable numbers — a **kernel** (or
