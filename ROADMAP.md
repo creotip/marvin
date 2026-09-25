@@ -38,7 +38,7 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 - [x] **Structured data beyond the FAQ page** — `Article` on lesson pages, `DefinedTerm` on glossary entries, `Person` on People profiles, `BreadcrumbList` on all three, `WebSite`/`Organization` on the homepage. `src/lib/json-ld.ts`.
 - [x] **Favicon and app icons** — `src/app/icon.tsx` (32×32) and `apple-icon.tsx` (180×180), a "resolving dots" mark rendered via `next/og`'s `ImageResponse`.
 - [x] **Wordmark** — `src/components/wordmark.tsx`, "Open" in the default foreground color and "Decode" in the brand accent, wired into the shared nav title.
-- [ ] **OG images in brand colors** — `src/app/og/[collection]/[...slug]/route.tsx` still uses fumadocs' generic `generateOGImage()` helper with a plain-text site name; not yet updated to use the wordmark's two-tone treatment or the dots mark.
+- [x] **OG images in brand colors** — `src/app/og/[collection]/[...slug]/route.tsx` now passes the two-tone wordmark and dots mark to fumadocs' `generateOGImage()` via its `site`/`icon`/`primaryColor`/`primaryTextColor` props, plus the accent color on the border/dashed rule.
 - [ ] Deprioritized: force-directed glossary concept-map graph (no crawlable text, no SEO payoff — revisit after the above)
 
 > **Outstanding follow-up on the site name (OpenDecode):** the domain (`opendecode.dev`, optionally `.ai`/`.org` as redirects) still needs to be registered, `NEXT_PUBLIC_SITE_URL`/Vercel's production domain pointed at it, and the GitHub repo renamed to match. `src/lib/shared.ts`'s `gitConfig.repo` still points at the pre-rename repo name on purpose until that repo rename actually happens.
