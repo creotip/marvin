@@ -9,10 +9,8 @@ export const siteUrl = new URL(
       : 'http://localhost:3000'),
 );
 
-// `repo` still matches the actual GitHub repo name (creotip/marvin) — update
-// this if/when that repo itself gets renamed to match the new site name.
 export const gitConfig = {
   user: 'creotip',
-  repo: 'marvin',
+  repo: 'opendecode',
   branch: 'main',
 };
