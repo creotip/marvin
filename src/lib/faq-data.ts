@@ -93,7 +93,7 @@ export const FAQ_CATEGORIES: FaqCategory[] = [
         id: 'ai-safety-vs-security',
         question: 'Is "AI safety" the same as "AI security"?',
         answer:
-          "No, and the course draws this line deliberately. AI security is about a deployed system being misused — prompt injection, jailbreaks, data exfiltration — covered in [AI Security](/docs/ai-security). AI safety and alignment is a different question: whether a model's own objectives match what we actually want, independent of any attacker. That's a planned future lesson, not yet published.",
+          "No, and the course draws this line deliberately. AI security is about a deployed system being misused — prompt injection, jailbreaks, data exfiltration — covered in [AI Security](/docs/ai-security). AI safety and alignment is a different question: whether a model's own objectives match what we actually want, independent of any attacker — covered in [AI Safety & Alignment](/docs/ai-safety-and-alignment).",
       },
     ],
   },
