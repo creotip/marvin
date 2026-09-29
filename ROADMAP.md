@@ -2,7 +2,7 @@
 
 Living tracker for what's shipped and what's next. Stable reference material (goals, content outline, architecture, decisions) lives in [ai-learning-platform-plan.md](ai-learning-platform-plan.md); this file is the "what's left to build" view.
 
-**Status: MVP v1 shipped and live on Vercel.** 22 lessons written (including a new "Case Studies" section), 13 widgets shipped (every lesson has at least one), 87 reference glossary terms with auto-linking + backlinks, People collection (23 profiles), Papers collection (12 explainers), FAQ hub page, and a full homepage/theme redesign. The Phase 2.5 "Flagged content" backlog is fully cleared.
+**Status: MVP v1 shipped and live at [opendecode.dev](https://opendecode.dev).** 22 lessons written (including a new "Case Studies" section), 13 widgets shipped (every lesson has at least one), 87 reference glossary terms with auto-linking + backlinks, People collection (23 profiles), Papers collection (12 explainers), FAQ hub page, and a full homepage/theme redesign. The Phase 2.5 "Flagged content" backlog is fully cleared.
 
 ---
 
@@ -42,7 +42,7 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 - [x] **Papers section** — see "Recently shipped" below.
 - [ ] Deprioritized: force-directed glossary concept-map graph (no crawlable text, no SEO payoff — revisit after the above)
 
-> **Outstanding follow-up on the site name (OpenDecode):** `opendecode.dev` is registered (Cloudflare). Still needed: add it as a Vercel domain, add its DNS records in Cloudflare, set `NEXT_PUBLIC_SITE_URL` in Vercel, and rename the GitHub repo to match. `src/lib/shared.ts`'s `gitConfig.repo` still points at the pre-rename repo name on purpose until that repo rename actually happens.
+> **Outstanding follow-up on the site name (OpenDecode):** `opendecode.dev` is live — domain registered on Cloudflare, DNS records added, Vercel production domain set, `NEXT_PUBLIC_SITE_URL` configured. Verified the sitemap, JSON-LD, and OG images all resolve to the real domain now instead of the `.vercel.app` fallback. Only remaining item: rename the GitHub repo to match. `src/lib/shared.ts`'s `gitConfig.repo` still points at the pre-rename repo name on purpose until that repo rename actually happens.
 
 **Phase 3 — Progress tracking (deferred, localStorage only)** — not started
 
