@@ -42,8 +42,6 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 - [x] **Papers section** — see "Recently shipped" below.
 - [ ] Deprioritized: force-directed glossary concept-map graph (no crawlable text, no SEO payoff — revisit after the above)
 
-> **Outstanding follow-up on the site name (OpenDecode):** `opendecode.dev` is live — domain registered on Cloudflare, DNS records added, Vercel production domain set, `NEXT_PUBLIC_SITE_URL` configured. Verified the sitemap, JSON-LD, and OG images all resolve to the real domain now instead of the `.vercel.app` fallback. Only remaining item: rename the GitHub repo to match. `src/lib/shared.ts`'s `gitConfig.repo` still points at the pre-rename repo name on purpose until that repo rename actually happens.
-
 **Phase 3 — Progress tracking (deferred, localStorage only)** — not started
 
 **Phase 4 — Quizzes (deferred, client-side only)** — not started
@@ -73,6 +71,7 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 - **Homepage stats off-by-one fix** — the stats tiles were counting each collection's own intro page (and the reference collection's A-Z index page) as content, showing 23 lessons / 88 glossary terms instead of the real 22 / 87. Caught from a screenshot, not a bug report. ([PR #31](https://github.com/creotip/marvin/pull/31))
 - **Papers section** — a 4th `Collection` (`src/lib/content.ts`), mirroring the existing `people` Collection's pattern: own content dir, own route (`/papers`), auto-registered into the sidebar/auto-linking previews/backlinks/sitemap/OG-images/JSON-LD (`ScholarlyArticle`) with no hardcoded page lists. Seeded with 12 load-bearing papers already cited (by name, if not always by link) across lessons and the glossary: Attention Is All You Need, InstructGPT (RLHF), ResNet, ViT, word2vec, LoRA, Chinchilla, DPO, AlexNet, the original GAN paper, Minsky & Papert's _Perceptrons_ (1969), and the GPT-3 paper. Every direct-to-arXiv/publisher citation across reference entries and lessons now links internally to the matching `/papers/...` explainer first, which itself links out to the source. Also added Alex Krizhevsky to People — the third AlexNet co-author, previously named but unlinked in Hinton's and Sutskever's bios. ([PR #39](https://github.com/creotip/marvin/pull/39), [PR #40](https://github.com/creotip/marvin/pull/40))
 - **FAQ-style question subheadings** — the last Phase 2.5 item, clearing that backlog entirely. See Phase 2.5 above for what it covered. ([PR #41](https://github.com/creotip/marvin/pull/41))
+- **`opendecode.dev` live, GitHub repo renamed** — closed out the last piece of the OpenDecode rename. Domain registered on Cloudflare; DNS records (CNAME to Vercel) added; Vercel production domain and `NEXT_PUBLIC_SITE_URL` configured — verified the sitemap, JSON-LD, and OG images all resolve to the real domain instead of the `.vercel.app` fallback. GitHub repo renamed `creotip/marvin` → `creotip/opendecode` (old URLs auto-redirect); `src/lib/shared.ts`'s `gitConfig.repo` updated to match.
 
 ## Flagged content — not yet built
 
