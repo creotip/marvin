@@ -2,5 +2,12 @@
   "title": "Transformers & LLMs",
   "collapsible": true,
   "defaultOpen": true,
-  "pages": ["attention-is-all-you-need", "lora", "chinchilla", "instructgpt", "dpo"]
+  "pages": [
+    "attention-is-all-you-need",
+    "gpt-3",
+    "lora",
+    "chinchilla",
+    "instructgpt",
+    "dpo"
+  ]
 }

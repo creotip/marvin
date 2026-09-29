@@ -1,0 +1,34 @@
+---
+title: Alex Krizhevsky
+description: Built AlexNet in 2012 with Ilya Sutskever and Geoffrey Hinton, the deep convolutional network whose ImageNet win is widely credited with kicking off the deep learning boom.
+---
+
+**Alex Krizhevsky** built [AlexNet](/papers/alexnet) as a graduate student
+under [Geoffrey Hinton](/people/geoffrey-hinton) at the University of
+Toronto, together with [Ilya Sutskever](/people/ilya-sutskever). Entered
+in the 2012 ImageNet competition, it beat every existing
+hand-engineered computer vision pipeline by a wide margin — roughly
+halving the previous best error rate — and is now widely treated as the
+single result that convinced the rest of the field deep learning was
+worth taking seriously again.
+
+The result depended as much on engineering as on the architecture itself:
+Krizhevsky implemented the training in raw CUDA and split the network
+across two GPUs to fit it in memory, at a time when training a network
+this size on GPUs at all was still unusual. That combination — a deep
+[CNN](/reference/cnn), [ReLU](/reference/activation-function) activations,
+[dropout](/reference/overfitting), and GPU training done well enough to be
+practical — became the template computer vision followed for years
+afterward.
+
+He largely stepped back from AI research in the years after, but the
+paper's influence didn't need him to: AlexNet is one of the most-cited
+papers in computer science, and the "just add more compute and data"
+lesson it demonstrated echoes through every scaling result that followed
+it.
+
+**See also:** [Geoffrey Hinton](/people/geoffrey-hinton),
+[Ilya Sutskever](/people/ilya-sutskever)
+
+**Learn more:** [Computer Vision](/docs/computer-vision) ·
+[History & Landscape](/docs/history-and-landscape)

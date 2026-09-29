@@ -1,0 +1,64 @@
+---
+title: Perceptrons
+description: Minsky & Papert, 1969 — a rigorous mathematical critique of the single-layer perceptron that stalled neural network research funding for most of a decade, the first AI winter.
+---
+
+**Perceptrons** (Marvin Minsky and Seymour Papert, 1969) is not a
+research paper but a book — and one of the most consequential
+publications in the field's history regardless, for what it took away
+rather than what it added: it's the single publication most credited with
+triggering the first AI winter.
+
+## What problem it solved
+
+By the late 1960s, [Frank Rosenblatt](/people/frank-rosenblatt)'s
+[perceptron](/reference/perceptron) had generated significant hype — press
+coverage suggested machines that could see, speak, and think were close
+at hand. Minsky and Papert set out to answer a narrower, more rigorous
+question that the hype had outrun: *what, precisely, can a single-layer
+perceptron actually compute?*
+
+## The key idea
+
+Prove it mathematically rather than argue it informally. The book's
+central result shows that a single-layer perceptron can only learn
+functions that are **linearly separable** — representable by a single
+straight-line (or hyperplane) decision boundary — and demonstrates that
+even a function as simple as **XOR** falls outside that class. No amount
+of training data or training time lets a single-layer perceptron learn
+XOR, because the limitation is structural, not a matter of optimization.
+
+<Misconception claim="Minsky and Papert showed neural networks fundamentally can't work.">
+  Their own book noted that stacking perceptrons into multiple layers
+  could in principle overcome the linear-separability limit — the
+  specific claim was narrower than the way it got read. What the book
+  didn't have was a way to *train* a multi-layer network; the algorithm
+  that made that practical, [backpropagation](/reference/backpropagation),
+  was over a decade away. The result was read (fairly or not) as a
+  broader case against neural networks as a research direction, not just
+  against the single-layer case the math actually covered.
+</Misconception>
+
+## Why it mattered
+
+Funding for connectionist (neural network) research collapsed for most of
+a decade following the book's publication — the period historians call
+the first AI winter for neural networks specifically, as research
+attention shifted toward symbolic AI approaches. The irony the field
+returned to repeatedly afterward: the book's proof was correct, and the
+fix (hidden layers, trained with backpropagation) was exactly what its
+own text gestured at as a theoretical possibility. It's a standing
+reminder that a rigorous negative result about one specific architecture
+can be misread as a verdict on an entire research direction — and that
+[Marvin Minsky](/people/marvin-minsky), one of the field's founders, is
+also the person most associated with nearly ending one of its most
+important sub-fields before it had the tools to succeed.
+
+**Authors:** Marvin Minsky, Seymour Papert (MIT)
+
+**See also:** [Marvin Minsky](/people/marvin-minsky) ·
+[Frank Rosenblatt](/people/frank-rosenblatt)
+
+**Learn more:** [Perceptron](/reference/perceptron) ·
+[History & Landscape](/docs/history-and-landscape) ·
+[Wikipedia: Perceptrons (book)](<https://en.wikipedia.org/wiki/Perceptrons_(book)>)
