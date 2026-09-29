@@ -1,4 +1,10 @@
 {
   "title": "Papers",
-  "pages": ["index", "(history)", "(computer-vision)", "(transformers-and-llms)"]
+  "pages": [
+    "index",
+    "(history)",
+    "(computer-vision)",
+    "(generative-models)",
+    "(transformers-and-llms)"
+  ]
 }

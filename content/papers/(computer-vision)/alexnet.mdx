@@ -1,0 +1,71 @@
+---
+title: ImageNet Classification with Deep Convolutional Neural Networks
+description: Krizhevsky, Sutskever & Hinton, 2012 — the paper widely credited with restarting deep learning, by winning ImageNet with a deep CNN trained on GPUs by a margin nobody expected.
+---
+
+**"ImageNet Classification with Deep Convolutional Neural Networks"**
+(Alex Krizhevsky, Ilya Sutskever, and Geoffrey Hinton, 2012) introduced
+**AlexNet** — the single result most historians point to as the moment
+deep learning went from a niche, mostly-abandoned approach to the
+field's dominant paradigm.
+
+## What problem it solved
+
+By 2012, neural networks had a credibility problem. The
+[first AI winter](/people/marvin-minsky) had been triggered partly by
+doubts about what networks like the [perceptron](/papers/perceptrons)
+could learn, and even after
+[backpropagation](/reference/backpropagation) revived multi-layer
+networks in the 1980s, hand-engineered feature pipelines — features
+designed by domain experts rather than learned from data — still beat
+neural networks on most real computer vision benchmarks. The question
+this paper effectively answered: given enough data and enough compute,
+could a network that *learns* its own features actually outperform
+decades of hand-engineered ones?
+
+## The key idea
+
+Scale up an existing idea — the deep [CNN](/reference/cnn) — further than
+anyone had successfully trained one before, and pair it with a handful of
+practical choices that made that scale trainable at all:
+
+- **ReLU activations** instead of `tanh`/sigmoid, which trained several
+  times faster and didn't saturate the way earlier activation functions
+  did.
+- **GPU training.** The full network didn't fit in one GPU's memory, so
+  it was split across two, with careful engineering to keep them
+  communicating efficiently — an early, hands-on case of the
+  model-parallelism techniques large models still rely on.
+- **Dropout** and heavy data augmentation (random crops, flips, color
+  jitter) to fight [overfitting](/reference/overfitting) on a network
+  with roughly 60 million parameters, large for the time.
+
+None of these ideas were individually brand new — the contribution was
+combining them at a scale nobody had successfully made work before, on a
+dataset ([ImageNet](/docs/history-and-landscape)) finally large enough for
+that scale to pay off.
+
+## Why it mattered
+
+AlexNet won the 2012 ImageNet competition by a margin that stunned the
+field — roughly halving the error rate of the next-best entry, which was
+still using hand-engineered features. Within a few years, virtually every
+serious computer vision system was built on deep CNNs, and the
+"more data, more compute, learned features beat hand-engineered ones"
+lesson generalized far past vision — it's the same bet that later drove
+scaling large language models. [ResNet](/papers/resnet) and
+[ViT](/papers/vit), covered elsewhere in this section, are both direct
+continuations of the architecture line AlexNet reopened.
+
+**Authors:** Alex Krizhevsky, Ilya Sutskever, Geoffrey Hinton (University
+of Toronto)
+
+**Read the paper:** [NeurIPS 2012](https://papers.nips.cc/paper/4824-imagenet-classification-with-deep-convolutional-neural-networks)
+
+**See also:** [Alex Krizhevsky](/people/alex-krizhevsky) ·
+[Ilya Sutskever](/people/ilya-sutskever) ·
+[Geoffrey Hinton](/people/geoffrey-hinton)
+
+**Learn more:** [AlexNet](/reference/alexnet) ·
+[Computer Vision](/docs/computer-vision) ·
+[History & Landscape](/docs/history-and-landscape)

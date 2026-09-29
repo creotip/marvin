@@ -1,0 +1,64 @@
+---
+title: Generative Adversarial Networks
+description: Goodfellow et al., 2014 — proposed training two networks against each other, a generator and a discriminator, as a way to learn to generate realistic data. Dominated image generation for most of the following decade.
+---
+
+**"Generative Adversarial Networks"** (Ian Goodfellow, Jean
+Pouget-Abadie, Mehdi Mirza, and colleagues, 2014) introduced the
+**GAN** — reportedly conceived during a bar conversation and implemented
+the same night, and the architecture that made realistic image generation
+possible for the first time.
+
+## What problem it solved
+
+Before this paper, generative models — ones that produce new data rather
+than classify existing data — mostly relied on explicitly modeling a
+probability distribution over the data and sampling from it, an approach
+that scaled poorly to complex, high-dimensional data like natural images.
+There was no training setup that let a network *implicitly* learn to
+produce realistic samples without first solving the much harder problem
+of writing down an explicit density function for what "realistic" meant.
+
+## The key idea
+
+Turn generation into a two-player game instead of a direct optimization
+problem. Train two networks simultaneously, with opposing goals:
+
+- The **generator** takes random noise as input and tries to produce
+  outputs realistic enough to fool the discriminator.
+- The **discriminator** is an ordinary classifier, trained to tell the
+  generator's fake outputs apart from real training examples.
+
+Each network's training signal comes from the other: the generator
+improves by getting better at fooling an increasingly capable
+discriminator, and the discriminator improves by getting better at
+catching an increasingly capable generator. Neither network needs an
+explicit model of what "realistic" means — that entire problem is
+outsourced to the adversarial game itself, which the paper formalizes as
+a minimax objective with a Nash equilibrium as its target rather than a
+simple minimum.
+
+## Why it mattered
+
+GANs became the dominant approach to high-fidelity image generation for
+roughly the next decade, producing results — photorealistic faces,
+style transfer, image-to-image translation — that earlier generative
+approaches couldn't match. The adversarial training setup itself proved
+fragile (mode collapse, unstable convergence, no single loss to monitor),
+which is a large part of why [diffusion models](/reference/diffusion-model)
+eventually displaced GANs for state-of-the-art image generation — but the
+core idea, that a learned discriminator can substitute for a hand-designed
+loss function, outlived the specific architecture and reappears across
+generative modeling more broadly.
+
+**Authors:** Ian Goodfellow, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu,
+David Warde-Farley, Sherjil Ozair, Aaron Courville, Yoshua Bengio
+(Université de Montréal)
+
+**Read the paper:** [arXiv:1406.2661](https://arxiv.org/abs/1406.2661)
+
+**See also:** [Ian Goodfellow](/people/ian-goodfellow) ·
+[Yoshua Bengio](/people/yoshua-bengio)
+
+**Learn more:** [GAN](/reference/gan) ·
+[Generative Models](/docs/generative-models)
