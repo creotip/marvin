@@ -73,7 +73,7 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 
 ## Flagged content — not yet built
 
-Empty — everything flagged as of the last pass has shipped. See "North star" below for where new items would come from.
+- [ ] **Papers section** — a 4th `Collection` (`src/lib/content.ts`), mirroring the existing `people` Collection's pattern (own content directory, own route, auto-registers into the sidebar/auto-linking/backlinks/sitemap/OG-images/A-Z-style index with no extra code, per `CLAUDE.md`'s Collection architecture note). Seed with the most load-bearing papers first — ones already cited ad hoc across lessons/glossary, so the initial batch upgrades existing links rather than inventing new scope: "Attention Is All You Need" (Transformer, arXiv 1706.03762 — already referenced 3×), the InstructGPT/RLHF paper (arXiv 2203.02155 — already referenced 2×), ResNet (arXiv 1512.03385), ViT (arXiv 2010.11929), word2vec (arXiv 1301.3781), LoRA (arXiv 2106.09685), Chinchilla/scaling laws (arXiv 2203.15556), DPO (arXiv 2305.18290). Also worth including once their existing in-lesson citation format is double-checked: AlexNet (2012 NeurIPS), the original GAN paper (Goodfellow et al. 2014), and Minsky/Papert's *Perceptrons* (1969). Each page: what problem it solved, its key idea in plain language, and why it mattered — not a paper summary/abstract restatement.
 
 ---
 
