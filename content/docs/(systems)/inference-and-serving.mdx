@@ -55,6 +55,8 @@ prefill pass, then a loop that runs once per generated token:
   G -- yes --> H[Detokenize and<br/>stream to the user]
 `} />
 
+### Why is generating a response slower than reading the prompt?
+
 This distinction is why **time to first token** and **tokens per second**
 (below) behave so differently and are optimized somewhat separately: a
 long prompt mostly costs prefill time; a long generated response mostly

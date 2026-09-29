@@ -14,6 +14,8 @@ directly.
 
 ## How it works
 
+### Why does LoRA use two small matrices instead of one?
+
 For a frozen weight matrix `W` of shape `(d, k)`, LoRA learns two small
 matrices `A` of shape `(r, k)` and `B` of shape `(d, r)`, and computes
 the layer as `W x + (alpha / r) * B A x`. The rank `r` is small —

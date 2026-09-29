@@ -119,6 +119,8 @@ It's called **self**-attention because Q, K, and V all come from the same
 sequence — every token attends to (potentially) every other token in the
 same input, including itself.
 
+### Why does attention need multiple heads?
+
 In practice, transformers use **multi-head attention**: run several
 attention computations in parallel, each with its own learned Q/K/V
 projection matrices, then combine the results. Each "head" can specialize
