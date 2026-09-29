@@ -42,7 +42,7 @@ See [ai-learning-platform-plan.md §3](ai-learning-platform-plan.md) for the liv
 - [x] **Papers section** — see "Recently shipped" below.
 - [ ] Deprioritized: force-directed glossary concept-map graph (no crawlable text, no SEO payoff — revisit after the above)
 
-> **Outstanding follow-up on the site name (OpenDecode):** the domain (`opendecode.dev`, optionally `.ai`/`.org` as redirects) still needs to be registered, `NEXT_PUBLIC_SITE_URL`/Vercel's production domain pointed at it, and the GitHub repo renamed to match. `src/lib/shared.ts`'s `gitConfig.repo` still points at the pre-rename repo name on purpose until that repo rename actually happens.
+> **Outstanding follow-up on the site name (OpenDecode):** `opendecode.dev` is registered (Cloudflare). Still needed: add it as a Vercel domain, add its DNS records in Cloudflare, set `NEXT_PUBLIC_SITE_URL` in Vercel, and rename the GitHub repo to match. `src/lib/shared.ts`'s `gitConfig.repo` still points at the pre-rename repo name on purpose until that repo rename actually happens.
 
 **Phase 3 — Progress tracking (deferred, localStorage only)** — not started
 
