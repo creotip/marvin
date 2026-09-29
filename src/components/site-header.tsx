@@ -63,7 +63,7 @@ function HeaderChrome({
         />
       }
     >
-      <div className="mx-auto flex h-14 w-full max-w-[1400px] items-center gap-3 px-4 md:px-6">
+      <div className="mx-auto flex h-14 w-full max-w-[var(--fd-layout-width,1400px)] items-center gap-3 px-4 md:px-6">
         <Link
           href="/"
           className="inline-flex shrink-0 items-center gap-2.5 font-semibold"
@@ -120,7 +120,7 @@ function HeaderChrome({
       </div>
 
       <CollapsibleContent className="lg:hidden">
-        <div className="mx-auto flex max-w-[1400px] flex-col gap-4 border-t px-4 py-4">
+        <div className="mx-auto flex max-w-[var(--fd-layout-width,1400px)] flex-col gap-4 border-t px-4 py-4">
           <TopNavTabs />
           <Link
             href="/faq"

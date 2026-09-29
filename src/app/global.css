@@ -75,3 +75,16 @@ h6,
   font-family: var(--font-heading), sans-serif;
   letter-spacing: -0.02em;
 }
+
+/*
+ * fumadocs' home layout hardcodes --fd-layout-width: 1400px on its own
+ * container; the notebook layout (docs/reference/people/papers) leaves it
+ * unset and falls back to its own 97rem default. That drove the sidebar/
+ * main/toc grid to a different width than the shared header, which reads
+ * this same variable — misaligning the header's logo against the sidebar's
+ * left edge. Pinning it here for the notebook layout too keeps every part
+ * of every page's layout deriving from one shared width.
+ */
+#nd-notebook-layout {
+  --fd-layout-width: 1400px;
+}
