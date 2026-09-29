@@ -75,15 +75,3 @@ h6,
   font-family: var(--font-heading), sans-serif;
   letter-spacing: -0.02em;
 }
-
-/*
- * fumadocs' home layout caps its header at a fixed 1400px, centered — while
- * the notebook layout (docs/reference/people/papers) stretches its header
- * edge-to-edge. That made the homepage nav visibly narrower/boxed compared
- * to every other page. Overriding the CSS variable here (an ID selector
- * naturally outranks the library's own utility class, no !important needed)
- * makes the homepage header full-width to match.
- */
-#nd-home-layout {
-  --fd-layout-width: 100%;
-}
