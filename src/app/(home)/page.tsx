@@ -1,6 +1,13 @@
 import Link from 'next/link';
-import { ArrowRight, BookOpen, Library, Sparkles, Users } from 'lucide-react';
-import { docs, people, reference } from '@/lib/content';
+import {
+  ArrowRight,
+  BookOpen,
+  FileText,
+  Library,
+  Sparkles,
+  Users,
+} from 'lucide-react';
+import { docs, papers, people, reference } from '@/lib/content';
 import { appDescription, appName, siteUrl } from '@/lib/shared';
 
 const LESSON_COUNT = docs.source
@@ -14,12 +21,16 @@ const TERM_COUNT = reference.source
 const PEOPLE_COUNT = people.source
   .getPages()
   .filter((page) => page.url !== people.route).length;
+const PAPER_COUNT = papers.source
+  .getPages()
+  .filter((page) => page.url !== papers.route).length;
 const WIDGET_COUNT = 13;
 
 const STATS = [
   { value: LESSON_COUNT, label: 'Lessons' },
   { value: TERM_COUNT, label: 'Glossary terms' },
   { value: PEOPLE_COUNT, label: 'People profiled' },
+  { value: PAPER_COUNT, label: 'Papers explained' },
   { value: WIDGET_COUNT, label: 'Interactive widgets' },
 ];
 
@@ -44,6 +55,13 @@ const SECTIONS = [
     title: 'People',
     description:
       'Who actually built this field — profiles from founding theory to current labs.',
+  },
+  {
+    href: '/papers',
+    icon: FileText,
+    title: 'Papers',
+    description:
+      'Plain-language explainers for the research papers the course cites most.',
   },
 ] as const;
 
@@ -100,7 +118,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="mt-16 grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="mt-16 grid grid-cols-2 gap-4 sm:grid-cols-5">
         {STATS.map((stat) => (
           <div
             key={stat.label}
@@ -130,7 +148,7 @@ export default function HomePage() {
         <ArrowRight className="text-fd-primary size-5 shrink-0" />
       </Link>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {SECTIONS.map((section) => (
           <Link
             key={section.href}

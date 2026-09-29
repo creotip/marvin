@@ -1,0 +1,6 @@
+{
+  "title": "Transformers & LLMs",
+  "collapsible": true,
+  "defaultOpen": true,
+  "pages": ["attention-is-all-you-need", "lora", "chinchilla", "instructgpt", "dpo"]
+}

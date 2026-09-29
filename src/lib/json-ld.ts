@@ -7,11 +7,11 @@ type ContentPageData = {
 };
 
 /**
- * JSON-LD for a docs/reference/people page: a BreadcrumbList plus a
+ * JSON-LD for a docs/reference/people/papers page: a BreadcrumbList plus a
  * collection-appropriate primary entity — Article for a lesson, DefinedTerm
- * for a glossary entry, Person for a profile. No `datePublished`/`dateModified`
- * — content has no date frontmatter, and fabricating one would be worse than
- * omitting it.
+ * for a glossary entry, Person for a profile, ScholarlyArticle for a paper
+ * explainer. No `datePublished`/`dateModified` — content has no date
+ * frontmatter, and fabricating one would be worse than omitting it.
  */
 export function contentJsonLd(collection: Collection, page: ContentPageData) {
   const url = new URL(page.url, siteUrl).toString();
@@ -54,15 +54,23 @@ export function contentJsonLd(collection: Collection, page: ContentPageData) {
             description: page.data.description,
             url,
           }
-        : {
-            '@type': 'Article',
-            headline: page.data.title,
-            description: page.data.description,
-            url,
-            mainEntityOfPage: url,
-            author: { '@type': 'Organization', name: appName },
-            publisher: { '@type': 'Organization', name: appName },
-          };
+        : collection.name === 'papers'
+          ? {
+              '@type': 'ScholarlyArticle',
+              headline: page.data.title,
+              description: page.data.description,
+              url,
+              mainEntityOfPage: url,
+            }
+          : {
+              '@type': 'Article',
+              headline: page.data.title,
+              description: page.data.description,
+              url,
+              mainEntityOfPage: url,
+              author: { '@type': 'Organization', name: appName },
+              publisher: { '@type': 'Organization', name: appName },
+            };
 
   return {
     '@context': 'https://schema.org',

@@ -8,18 +8,18 @@ An AI-education docs site (Next.js + Fumadocs). Read [ai-learning-platform-plan.
 - Always run `pnpm format && pnpm lint && pnpm test` before committing. Run `pnpm build` too for any change touching routing, components, or content structure (catches MDX/frontmatter errors `dev` sometimes doesn't surface until requested).
 - Dev server is hardcoded to port 3000. If `preview_start` reports the port in use, run `lsof -ti:3000 | xargs -r kill -9` first — a stale process from an earlier session is the usual cause.
 
-## Content architecture — three Collections
+## Content architecture — four Collections
 
-`docs`, `reference`, and `people` (`src/lib/content.ts`), all built on the same `createCollection` abstraction over `defineDocs`. Adding a new page to any of them is entirely a content change:
+`docs`, `reference`, `people`, and `papers` (`src/lib/content.ts`), all built on the same `createCollection` abstraction over `defineDocs`. Adding a new page to any of them is entirely a content change:
 
 - Drop a `.mdx` file in the right `content/<collection>/(group)/` folder (the `(group)` parens are Fumadocs' route-group syntax — organizes the sidebar, invisible in the URL).
 - Add its slug to that folder's `meta.json` `pages` array (and add the folder itself to the parent `meta.json` if it's a new group).
 - **Nothing else needs registering.** The following all update automatically from the filesystem, with no code change: the sidebar tree, auto-linking (both directions), "Mentioned in" backlinks, `sitemap.xml`, OG images, `llms.mdx`/`llms.txt`, and the [A-Z glossary index](content/reference/a-z.mdx). If you ever catch yourself hardcoding a list of pages somewhere, that's a sign to make it read from `collection.source.getPages()` instead.
-- **Homepage stats** (`src/app/(home)/page.tsx`, the "Lessons / Glossary terms / People profiled / Interactive widgets" tiles): the first three are computed live from `collection.source.getPages()` (filtered to exclude each collection's own intro/index page and the A-Z index — don't remove those filters, they fix a real off-by-one) and need no manual update — same as the [A-Z glossary index](content/reference/a-z.mdx) itself, which also reads live from `reference.source.getPages()`. `WIDGET_COUNT` is the one **hardcoded constant** in the group — bump it by hand whenever a widget is added or removed.
+- **Homepage stats** (`src/app/(home)/page.tsx`, the "Lessons / Glossary terms / People profiled / Papers explained / Interactive widgets" tiles): the first four are computed live from `collection.source.getPages()` (filtered to exclude each collection's own intro/index page and the A-Z index — don't remove those filters, they fix a real off-by-one) and need no manual update — same as the [A-Z glossary index](content/reference/a-z.mdx) itself, which also reads live from `reference.source.getPages()`. `WIDGET_COUNT` is the one **hardcoded constant** in the group — bump it by hand whenever a widget is added or removed.
 
 ## Auto-linking system (`src/lib/remark-reference-links.ts`)
 
-- `collectReferenceTerms(dir, baseUrl)` scans a content directory's frontmatter to build a term list. `docs` and `people` lessons/bios get **both** `remarkReferenceLinks` (auto-linking) and `remarkReferencePreviews` (hover card); `reference` pages get previews only (glossary entries don't auto-link to each other, to avoid a page linking out mid-definition).
+- `collectReferenceTerms(dir, baseUrl)` scans a content directory's frontmatter to build a term list. `docs` and `people` lessons/bios get **both** `remarkReferenceLinks` (auto-linking) and `remarkReferencePreviews` (hover card); `reference` and `papers` pages get previews only (glossary entries don't auto-link to each other, to avoid a page linking out mid-definition; `papers` is deliberately excluded from the term list fed into `docs`/`people` too, since a paper's official title — e.g. "Attention Is All You Need" — would otherwise compete with a same-named `reference` glossary entry for a match). Link from a lesson/reference `Learn more:` line to a `/papers/...` page by hand where relevant, the way the existing arXiv citations were converted.
 - A page's own subject never self-links (matched by filename vs. the term's URL) — this also means a bolded first-mention of a subject in its own bio/page won't accidentally get de-emphasized into a link. Don't reintroduce a special case for this; it's handled generically.
 - Only the **first** mention of a term on a page gets linked; repeats after that are left as plain text.
 - `titleAliases()` handles `"CNN (Convolutional Neural Network)"`-style titles by generating both halves as separate matchable terms pointing at the same URL.
@@ -27,6 +27,8 @@ An AI-education docs site (Next.js + Fumadocs). Read [ai-learning-platform-plan.
 ## Content house style
 
 **Reference glossary entries**: `title` + `description` frontmatter, a bolded-term intro paragraph, `## How it works`, `## When it breaks` (a bulleted list of real failure modes, not generic caveats), `**See also:**`, `**Learn more:**` linking back to the lesson. Look at an existing entry in the same group before writing a new one.
+
+**Paper explainers** (`content/papers/`): `title` frontmatter is the paper's own official title (quoted in YAML if it contains a colon), `description` names the authors/year and the one-sentence why-it-matters. Body: bolded-title intro naming authors and year, `## What problem it solved`, `## The key idea`, `## Why it mattered`, then `**Authors:**`, `**Read the paper:**` (arXiv link), optionally `**See also:**`, and `**Learn more:**` linking back to the matching reference/lesson page. Not a summary of the abstract — the point is the paper as an event (what was broken before, what changed, what it unlocked), which the glossary/lesson pages don't cover.
 
 **Lessons**: use the registered MDX components (`src/components/mdx.tsx`) rather than plain prose/tables where they fit — `<Deeper>` for optional math/derivations, `<Misconception>` for "you might think X, but", `<NapkinMath>` for back-of-envelope numbers, `<Steps>` for sequences, `<Mermaid>` for process diagrams, `<Timeline>`/`<TimelineItem>` for chronological content, `<TypeTable>` for comparison tables.
 

@@ -8,6 +8,7 @@ const TABS = [
   { href: '/docs', label: 'Docs' },
   { href: '/reference', label: 'Reference' },
   { href: '/people', label: 'People' },
+  { href: '/papers', label: 'Papers' },
 ] as const;
 
 export function TopNavTabs() {

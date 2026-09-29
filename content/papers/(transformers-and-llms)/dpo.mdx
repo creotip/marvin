@@ -1,0 +1,56 @@
+---
+title: "Direct Preference Optimization: Your Language Model Is Secretly a Reward Model"
+description: Rafailov et al., 2023 — showed the reward model and reinforcement learning stages of RLHF could be replaced with one direct supervised loss on human preference pairs, no RL loop required.
+---
+
+**"Direct Preference Optimization: Your Language Model Is Secretly a
+Reward Model"** (Rafael Rafailov, Archit Sharma, Eric Mitchell, and
+colleagues at Stanford, 2023) introduced
+[DPO](/reference/dpo) — a way to get much of what
+[RLHF](/reference/rlhf) achieves without ever training a separate reward
+model or running a reinforcement learning loop.
+
+## What problem it solved
+
+The RLHF pipeline described in the [InstructGPT paper](/papers/instructgpt)
+works, but it's operationally heavy: train a separate reward model on
+human preference data, then run [PPO](/reference/ppo) — a reinforcement
+learning algorithm known for being sensitive to hyperparameters and prone
+to instability — to fine-tune the language model against that reward
+model. That's two models to train and a genuinely tricky RL optimization
+in the middle, adding real engineering cost and failure modes on top of
+ordinary supervised fine-tuning.
+
+## The key idea
+
+The paper's core move is a piece of math, not a new training trick: it
+shows that the RLHF objective — maximize reward from the learned reward
+model, subject to not drifting too far from the original model — has a
+closed-form solution that expresses the *optimal reward function* directly
+in terms of the language model's own output probabilities. Substituting
+that relationship back into the standard preference-comparison loss
+eliminates the reward model entirely, leaving a single, ordinary supervised
+loss computed directly on pairs of preferred/rejected responses. In other
+words: instead of training a reward model and then running RL to satisfy
+it, DPO adjusts the language model's own probabilities directly so that
+preferred responses become more likely than rejected ones relative to a
+reference model — with a single loss function and no RL loop at all.
+
+## Why it mattered
+
+DPO reaches comparable results to full RLHF on much of the benchmarks the
+paper tested, while being simpler to implement, more stable to train (no
+RL-specific instability), and cheaper — one model being trained instead of
+two, with one supervised loss instead of a reward model plus a PPO loop.
+That made preference tuning practical for far more teams than could
+previously run a full RLHF pipeline, and DPO (along with variants it
+inspired) has become one of the most widely used alignment techniques
+since, often preferred over full RLHF specifically for its simplicity.
+
+**Authors:** Rafael Rafailov, Archit Sharma, Eric Mitchell, and colleagues
+(Stanford)
+
+**Read the paper:** [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
+
+**Learn more:** [DPO](/reference/dpo) ·
+[LLMs](/docs/llms)
