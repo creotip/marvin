@@ -1,0 +1,56 @@
+---
+title: "An Image Is Worth 16x16 Words: Transformers for Image Recognition at Scale"
+description: Dosovitskiy et al., 2020 — showed that a plain transformer, with no convolutions at all, could match or beat CNNs on image classification if trained on enough data, by treating an image as a sequence of patches.
+---
+
+**"An Image Is Worth 16x16 Words: Transformers for Image Recognition at
+Scale"** (Alexey Dosovitskiy et al., 2020) introduced the **Vision
+Transformer ([ViT](/reference/vit))** — the paper that showed the
+[transformer](/reference/transformer) architecture behind every modern
+language model wasn't actually language-specific at all.
+
+## What problem it solved
+
+By 2020, [CNNs](/reference/cnn) had dominated computer vision for nearly a
+decade, largely because their [inductive bias](/docs/computer-vision) —
+the built-in assumption that nearby pixels are related and that useful
+patterns are local and translation-invariant — was a great match for
+images. Transformers, meanwhile, were winning in NLP with almost the
+opposite property: few built-in assumptions, letting
+[attention](/reference/attention) learn whatever relationships the data
+actually contained. The open question was whether that same
+assumption-light architecture could work on images at all, or whether
+vision genuinely needed the convolutional prior to be data-efficient.
+
+## The key idea
+
+Make an image look like a sentence. Cut it into a grid of fixed-size
+patches (16×16 pixels each, hence the title), flatten each patch into a
+vector, and feed the sequence of patch vectors into an ordinary
+transformer encoder — the same architecture from
+["Attention Is All You Need"](/papers/attention-is-all-you-need), unmodified. A patch plays the same
+structural role a word token plays in a language transformer. No
+convolution, no vision-specific inductive bias — just attention deciding
+which patches are relevant to which.
+
+## Why it mattered
+
+The result confirmed the tradeoff the question implied: on modest amounts
+of training data, ViT underperformed CNNs of similar size, because it
+genuinely lacked the built-in assumptions that let CNNs learn efficiently
+from less data. But trained on very large datasets (hundreds of millions
+of images), that disadvantage disappeared and ViT matched or exceeded
+state-of-the-art CNNs — evidence that the inductive bias CNNs relied on was
+a shortcut for limited data, not a hard requirement for vision itself. The
+result kicked off a wave of transformer-based vision work and set up the
+architecture that today's [multimodal models](/docs/multimodal-models) use
+to feed images into the same transformer backbone processing text.
+
+**Authors:** Alexey Dosovitskiy, Lucas Beyer, Alexander Kolesnikov, and
+others (Google Research, Brain Team)
+
+**Read the paper:** [arXiv:2010.11929](https://arxiv.org/abs/2010.11929)
+
+**Learn more:** [ViT](/reference/vit) ·
+[Computer Vision](/docs/computer-vision) ·
+[Multimodal Models](/docs/multimodal-models)

@@ -1,0 +1,72 @@
+---
+title: Attention Is All You Need
+description: Vaswani et al., 2017 — introduced the transformer, dropping recurrence and convolution entirely in favor of self-attention. The architecture behind essentially every modern LLM.
+---
+
+**"Attention Is All You Need"** (Ashish Vaswani, Noam Shazeer, Niki
+Parmar, and colleagues, 2017) introduced the
+[transformer](/reference/transformer) — arguably the single most
+consequential architecture paper in the current era of AI, and the
+direct ancestor of every major [LLM](/reference/llm) in use today.
+
+## What problem it solved
+
+The dominant approach to sequence modeling before this paper —
+[RNNs](/reference/rnn) and their gated variants (LSTMs, GRUs) — processed
+a sequence one token at a time, each step depending on the previous one's
+output. That recurrence was a genuine bottleneck in two ways: it made
+training slow, since positions couldn't be computed in parallel, and it
+made it hard for information from early in a long sequence to still
+influence predictions much later, since it had to survive being passed
+through every intermediate step. Prior work had already shown that adding
+an attention mechanism on top of a recurrent model improved results — the
+open question this paper asked was more radical: what if you removed the
+recurrence entirely and kept only attention?
+
+## The key idea
+
+Replace recurrence with [self-attention](/reference/attention): a
+mechanism where every position in a sequence directly computes how much to
+"attend to" every other position, in a single parallel operation, instead
+of information having to flow step by step through a chain. Since removing
+recurrence also removes any built-in notion of word order, the model adds
+explicit **positional encodings** to each token so it still knows where in
+the sequence each one falls. Stack several layers of this — self-attention
+followed by a small feed-forward network, repeated — and you have the
+**transformer**: no recurrence, no convolution, and (as the title insists)
+attention doing essentially all of the representational work.
+
+<NapkinMath title="Why dropping recurrence was a training-speed win">
+
+An RNN over a sequence of length $n$ requires $n$ sequential steps that
+can't be parallelized — step $t$ can't start until step $t-1$ finishes.
+A transformer's self-attention computes all pairwise interactions in one
+parallel matrix operation: $O(1)$ sequential steps instead of $O(n)$. On
+modern GPUs, built for exactly this kind of parallel computation, that
+difference turned training runs that would take weeks into ones that take
+days — a large part of why transformers scaled as far as they have.
+
+</NapkinMath>
+
+## Why it mattered
+
+Every major LLM built since — GPT, Claude, Gemini, LLaMA, and the rest —
+is a descendant of the architecture this paper introduced, typically using
+only the decoder half of the original encoder-decoder design. It also
+turned out the idea wasn't language-specific at all: the same
+architecture, with only the input representation changed, became the
+basis for [ViT](/papers/vit) in vision and for models across audio,
+biology, and other domains entirely. Few architecture papers have had
+their central idea reused this widely, this directly, this many years
+later.
+
+**Authors:** Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit,
+Llion Jones, Aidan N. Gomez, Łukasz Kaiser, Illia Polosukhin (Google)
+
+**Read the paper:** [arXiv:1706.03762](https://arxiv.org/abs/1706.03762)
+
+**See also:** [Ashish Vaswani](/people/ashish-vaswani) ·
+[Noam Shazeer](/people/noam-shazeer)
+
+**Learn more:** [Transformer](/reference/transformer) ·
+[Attention & Transformers](/docs/attention-and-transformers)

@@ -1,0 +1,60 @@
+---
+title: Efficient Estimation of Word Representations in Vector Space
+description: Mikolov et al., 2013 — showed that a shallow, cheaply-trained neural network could turn words into vectors that captured meaning, kicking off the embedding era that everything from search to LLMs now depends on.
+---
+
+**"Efficient Estimation of Word Representations in Vector Space"** (Tomas
+Mikolov, Kai Chen, Greg Corrado, and Jeffrey Dean, 2013) introduced
+[word2vec](/reference/word2vec) — the paper that made **word
+embeddings** a standard tool rather than an academic curiosity, by making
+them fast enough to train on billions of words on ordinary hardware.
+
+## What problem it solved
+
+Before this paper, representing a word for a machine learning model
+usually meant one-hot encoding: a huge sparse vector with a single 1 marking
+that word's position in the vocabulary and 0s everywhere else. Every word
+was equally "far" from every other word — "cat" and "dog" were no more
+related than "cat" and "bicycle." Earlier neural approaches to learning
+richer word representations existed, but were slow enough that training on
+a genuinely large corpus was impractical.
+
+## The key idea
+
+Strip the model down to almost nothing. Instead of a deep network, the
+authors used a shallow log-linear model trained on one of two simple
+prediction tasks:
+
+- **CBOW (Continuous Bag of Words):** predict a word from the words around
+  it.
+- **Skip-gram:** predict the surrounding words from one word.
+
+Neither task is the actual goal — nobody cares about predicting a missing
+word for its own sake. The goal is what the network learns *in order to*
+get good at that task: to make useful predictions, it has to place words
+that appear in similar contexts near each other in vector space. That
+byproduct — the learned vectors — is word2vec's actual output. Because the
+model itself is so shallow, training scales to billions of words, which is
+exactly the volume needed for the resulting vectors to capture genuinely
+useful structure.
+
+## Why it mattered
+
+The resulting vectors captured relationships nobody explicitly trained them
+to represent — most famously, vector arithmetic like
+`king − man + woman ≈ queen` fell directly out of the geometry the model
+converged to, with no manual encoding of the concept "gender" or
+"royalty." That result made "dense vectors capture meaning" a concrete,
+demonstrable claim rather than a hope, and the embedding approach it
+popularized became the standard way to represent words — the direct
+ancestor of the token embeddings inside every modern
+[LLM](/reference/llm), even though today's embeddings are learned jointly
+with a much larger model rather than as a standalone step.
+
+**Authors:** Tomas Mikolov, Kai Chen, Greg Corrado, Jeffrey Dean (Google)
+
+**Read the paper:** [arXiv:1301.3781](https://arxiv.org/abs/1301.3781)
+
+**Learn more:** [word2vec](/reference/word2vec) ·
+[History & Landscape](/docs/history-and-landscape) ·
+[LLMs](/docs/llms)

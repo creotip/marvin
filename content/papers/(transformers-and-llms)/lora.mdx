@@ -1,0 +1,63 @@
+---
+title: "LoRA: Low-Rank Adaptation of Large Language Models"
+description: Hu et al., 2021 — made fine-tuning huge models affordable by freezing the original weights and training a tiny pair of low-rank matrices alongside them instead.
+---
+
+**"LoRA: Low-Rank Adaptation of Large Language Models"** (Edward Hu,
+Yelong Shen, Phillip Wallis, and colleagues, 2021) introduced
+[LoRA](/reference/lora) — a fine-tuning technique that turned adapting a
+massive pretrained model from something that needed a data-center-scale
+training run into something a single GPU could do.
+
+## What problem it solved
+
+Full [fine-tuning](/reference/fine-tuning) of a large pretrained model
+updates every single weight, which means storing a full copy of the
+model's parameters — and the optimizer state needed to train them — for
+every task you want to adapt it to. For a model with tens of billions of
+parameters, that's an enormous amount of GPU memory and storage just to
+teach the model one new skill, and it makes serving many different
+fine-tunes of the same base model impractical, since each one is a full
+independent copy.
+
+## The key idea
+
+Don't touch the original weights at all — freeze them completely. Instead,
+for each weight matrix you'd normally fine-tune, add a separate,
+much smaller pair of matrices alongside it that get trained instead, and
+add their product back into the frozen weight's output:
+
+```
+output = W₀x + BAx
+```
+
+$W_0$ is the frozen original weight matrix; $B$ and $A$ are the new,
+trainable matrices, and their product $BA$ approximates the *change*
+fine-tuning would have made to $W_0$. The trick is that $A$ and $B$ are
+chosen to be **low-rank** — much narrower than $W_0$ — based on the
+empirical observation that the actual change needed during fine-tuning
+tends to have low "intrinsic rank," meaning it doesn't need nearly as many
+free parameters to represent as the full weight matrix has. A rank of 4 or
+8, versus a weight matrix with thousands of dimensions, can already
+capture most of fine-tuning's benefit.
+
+## Why it mattered
+
+LoRA cuts the number of trainable parameters for a fine-tuning run by
+orders of magnitude — often well under 1% of the base model's total
+parameters — with little to no drop in task performance compared to full
+fine-tuning. That makes fine-tuning large models accessible on consumer
+hardware, and because the base weights never change, one frozen base model
+can serve many different LoRA adapters, swapping in the small trained
+matrices per request instead of hosting a full separate copy of the model
+for every task. It's become the default way most people fine-tune large
+models in practice, covered in more depth in
+[Tooling & The Dev Stack](/docs/tooling-and-the-dev-stack).
+
+**Authors:** Edward J. Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu,
+Yuanzhi Li, Shean Wang, Lu Wang, Weizhu Chen (Microsoft)
+
+**Read the paper:** [arXiv:2106.09685](https://arxiv.org/abs/2106.09685)
+
+**Learn more:** [LoRA](/reference/lora) ·
+[Tooling & The Dev Stack](/docs/tooling-and-the-dev-stack)

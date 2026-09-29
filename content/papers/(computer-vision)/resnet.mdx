@@ -1,0 +1,59 @@
+---
+title: Deep Residual Learning for Image Recognition
+description: He et al., 2015 — solved the mystery of why stacking more layers made deep networks worse, not better, by adding a shortcut connection around every block. Won ImageNet 2015 and made 100+ layer networks routine.
+---
+
+**"Deep Residual Learning for Image Recognition"** (Kaiming He, Xiangyu
+Zhang, Shaoqing Ren, and Jian Sun, 2015) introduced
+[ResNet](/reference/resnet) — the architecture change that made it
+possible to train neural networks dozens or hundreds of layers deep,
+something that had been quietly breaking every deeper network before it.
+
+## What problem it solved
+
+Intuition says a deeper network should never do *worse* than a shallower
+one — in the worst case, the extra layers could just learn to pass their
+input through unchanged. In practice, researchers found the opposite: past
+a certain depth, adding more layers made both training and test accuracy
+*worse*, and not because of overfitting — the deeper network's own training
+error was higher. Something about the way layers were stacked made it
+genuinely hard for a deep network to learn even the trivial "do nothing"
+function, let alone something useful.
+
+## The key idea
+
+Instead of asking each block of layers to learn a full transformation of
+its input, restructure the block to learn a **residual** — the difference
+between its input and its desired output — and add that residual back onto
+the input via a **skip connection**:
+
+```
+output = F(x) + x
+```
+
+If the ideal function really is close to "do nothing," the block only has
+to push $F(x)$ toward zero, which is a far easier optimization target than
+learning an identity mapping from scratch through several nonlinear
+layers. The skip connection also gives gradients a direct, unobstructed
+path backward through the network during [backpropagation](/reference/backpropagation),
+which is why residual networks train far more reliably at extreme depth
+than plain stacks of layers do.
+
+## Why it mattered
+
+ResNet won the ImageNet 2015 classification competition and, more
+importantly, made "just add more layers" a viable strategy again — the
+paper's own experiments went as deep as 152 layers, roughly 8× deeper than
+the VGG networks that came before it, with *lower* error. The residual
+connection itself outlived the specific architecture: it's now a default
+building block used far outside computer vision, including inside the
+[transformer](/reference/transformer) blocks that every modern
+[LLM](/reference/llm) is built from.
+
+**Authors:** Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun (Microsoft
+Research)
+
+**Read the paper:** [arXiv:1512.03385](https://arxiv.org/abs/1512.03385)
+
+**Learn more:** [ResNet](/reference/resnet) ·
+[Computer Vision](/docs/computer-vision)

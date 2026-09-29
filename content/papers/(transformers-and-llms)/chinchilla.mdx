@@ -1,0 +1,57 @@
+---
+title: Training Compute-Optimal Large Language Models
+description: Hoffmann et al., 2022 (the "Chinchilla" paper) — showed most large language models of the era were badly undertrained relative to their size, and derived a rule for splitting a fixed compute budget between model size and data.
+---
+
+**"Training Compute-Optimal Large Language Models"** (Jordan Hoffmann,
+Sebastian Borgeaud, Arthur Mensch, and colleagues at DeepMind, 2022) —
+widely known as the **Chinchilla paper** after the 70-billion-parameter
+model it trained — reshaped how the field decides what size model to train
+for a given amount of compute.
+
+## What problem it solved
+
+Training a large language model costs a fixed compute budget, and that
+budget can be spent two ways: on a bigger model, or on more training data.
+Before this paper, the field's dominant intuition — set largely by prior
+[scaling laws](/reference/scaling-laws) work — leaned heavily toward
+bigger models trained on comparatively modest amounts of data, producing
+enormous models like the 175-billion-parameter GPT-3 trained on around 300
+billion tokens. The open question was whether that split was actually
+optimal, or whether the field had been systematically making models too
+big relative to how much data they were shown.
+
+## The key idea
+
+Run a large, controlled sweep: train over 400 language models spanning a
+wide range of sizes and token counts, holding total compute fixed within
+each comparison, and fit a curve to how final loss varies with the
+size/data split. The result was a strikingly clean empirical relationship:
+for compute-optimal training, model size and training tokens should scale
+at roughly the **same rate** — not the previous convention, where model
+size scaled much faster than data. As a concrete illustration, the paper
+trained **Chinchilla**, a 70-billion-parameter model on 1.4 trillion
+tokens — smaller but shown *far* more data than the roughly 4×-larger
+Gopher model it was compared against — and Chinchilla outperformed it
+across the board, using the identical training compute budget.
+
+## Why it mattered
+
+The result meant a large fraction of the era's models had been trained
+past the point where adding more parameters was the best use of compute —
+the same budget spent on more data (and a smaller, cheaper-to-run model)
+would have gone further. This directly reshaped how frontier labs
+allocate compute: instead of asking "how big can I make the model," the
+question became "given this compute budget, what's the size and data
+split that minimizes loss" — the compute-optimal frontier this paper
+defined. It also meant a smaller compute-optimal model is cheaper to run
+at inference time for the same quality, which mattered as much for
+deployment cost as it did for training cost.
+
+**Authors:** Jordan Hoffmann, Sebastian Borgeaud, Arthur Mensch, and
+colleagues (DeepMind)
+
+**Read the paper:** [arXiv:2203.15556](https://arxiv.org/abs/2203.15556)
+
+**Learn more:** [Scaling Laws](/reference/scaling-laws) ·
+[History & Landscape](/docs/history-and-landscape)

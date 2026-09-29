@@ -1,0 +1,65 @@
+---
+title: Training Language Models to Follow Instructions with Human Feedback
+description: Ouyang et al., 2022 (the "InstructGPT" paper) — the paper behind RLHF as practiced at scale, showing a smaller model tuned on human feedback could beat a much larger raw language model at actually being useful.
+---
+
+**"Training Language Models to Follow Instructions with Human Feedback"**
+(Long Ouyang, Jeff Wu, Xu Jiang, and colleagues at OpenAI, 2022) — commonly
+called the **InstructGPT paper** — is the paper most directly behind the
+technique that turned raw language models into usable assistants:
+[RLHF](/reference/rlhf).
+
+## What problem it solved
+
+A base language model is trained only to predict the next token of
+internet-scale text, which makes it good at continuing text in whatever
+style it was shown — not at doing what a user actually wants. Asked a
+direct question, a raw model might continue it with more questions,
+ramble, or complete it the way it most often appeared in training data,
+rather than answering helpfully. The gap between "predicts plausible next
+text" and "does what the user actually asked for" is sometimes called the
+**alignment gap**, and it doesn't close just by making the base model
+bigger — a larger raw model is a better text-predictor, not automatically
+a more obedient one.
+
+## The key idea
+
+Use human feedback as a training signal, in three stages. First,
+**supervised fine-tuning** on a smaller set of examples written by human
+labelers, showing the model examples of the instruction-following behavior
+it should imitate. Second, train a separate **reward model** by showing
+labelers several of the model's own outputs for the same prompt and having
+them rank which one is best — turning human preference judgments into a
+model that can score any output for quality. Third, use that reward model
+to fine-tune the language model further with reinforcement learning,
+specifically [PPO](/reference/ppo), optimizing the model's outputs to
+score highly according to the learned reward model rather than to match
+any single fixed example. That three-stage pipeline — supervised
+fine-tuning, reward modeling, RL against the reward model — is what
+[RLHF](/reference/rlhf) refers to.
+
+## Why it mattered
+
+The paper's headline result was blunt: human labelers preferred outputs
+from a 1.3-billion-parameter InstructGPT model over outputs from the
+175-billion-parameter GPT-3 it was built from — a 100×-smaller model,
+winning on actual usefulness, purely because of how it was trained rather
+than how large it was. That result made the case that alignment
+techniques, not just scale, were a first-class lever for building useful
+models, and RLHF became the standard technique nearly every major
+assistant-style LLM has used since. It's also the direct starting point
+for the problems covered in
+[AI Safety & Alignment](/docs/ai-safety-and-alignment) — RLHF makes a
+model more helpful and more likely to follow instructions, but it
+optimizes against a learned reward model rather than against what people
+actually want, which is exactly where issues like reward hacking and
+sycophancy come from.
+
+**Authors:** Long Ouyang, Jeff Wu, Xu Jiang, and colleagues (OpenAI)
+
+**Read the paper:** [arXiv:2203.02155](https://arxiv.org/abs/2203.02155)
+
+**Learn more:** [RLHF](/reference/rlhf) ·
+[LLMs](/docs/llms) ·
+[How ChatGPT Was Actually Built](/docs/how-chatgpt-was-actually-built) ·
+[AI Safety & Alignment](/docs/ai-safety-and-alignment)

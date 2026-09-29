@@ -80,6 +80,33 @@ const peopleCollection = defineDocs({
   meta: { schema: metaSchema },
 });
 
+const papersCollection = defineDocs({
+  dir: 'content/papers',
+  docs: {
+    schema: pageSchema,
+    postprocess: { includeProcessedMarkdown: true },
+    // Paper write-ups read like short essays and mention plenty of glossary
+    // terms and people — give them previews the same way reference pages get
+    // them, but leave them out of the terms fed *into* docs/people/reference so
+    // a paper's official title (e.g. "Attention Is All You Need") never
+    // competes with a same-named reference glossary entry for a match.
+    mdxOptions: async (environment) => {
+      const { createMdxOptions } = await import('./mdx-options');
+      const glossary = await import('./remark-reference-links');
+
+      const terms = [
+        ...glossary.collectReferenceTerms('content/reference', '/reference'),
+        ...glossary.collectReferenceTerms('content/people', '/people'),
+      ];
+
+      return createMdxOptions(environment, {
+        remarkPlugins: [[glossary.remarkReferencePreviews, terms]],
+      });
+    },
+  },
+  meta: { schema: metaSchema },
+});
+
 type PageRef = { slugs: string[]; locale?: string };
 
 function createCollection(
@@ -131,8 +158,12 @@ export const people = createCollection(
   'people',
   peopleCollection.toFumadocsSource(),
 );
+export const papers = createCollection(
+  'papers',
+  papersCollection.toFumadocsSource(),
+);
 
-export const collections = [docs, reference, people];
+export const collections = [docs, reference, people, papers];
 
 export type Collection = (typeof collections)[number];
 

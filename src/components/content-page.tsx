@@ -58,7 +58,9 @@ export function ContentPage({
             })}
           />
         </DocsBody>
-        {(collection.name === 'reference' || collection.name === 'people') && (
+        {(collection.name === 'reference' ||
+          collection.name === 'people' ||
+          collection.name === 'papers') && (
           <ReferenceBacklinks collection={collection} url={page.url} />
         )}
       </DepthProvider>
