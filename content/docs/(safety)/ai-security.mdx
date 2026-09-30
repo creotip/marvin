@@ -95,6 +95,20 @@ injected instruction.
 The person who never typed anything malicious is the one whose agent
 just got hijacked.
 
+Indirect injection isn't limited to hijacking an agent's actions — it
+can also blind the tools built to catch attacks in the first place. In
+2026, researchers documented a technique nicknamed
+[**GuardBreaker**](https://www.welivesecurity.com/en/business-security/guardbreaker-derailing-ai-assisted-malware-analysis-code-comment/):
+malware embedded a decoy prompt in a code comment — a request for
+guidance on building a nuclear weapon — aimed at tripping an
+LLM-powered malware scanner's own safety refusal before the scanner
+ever reached the actual malicious code that followed. If a scanning
+pipeline treats a model's refusal or a truncated, incomplete analysis
+as "nothing found" rather than "analysis failed, flag for review," the
+attacker gets a free blind spot without defeating a single signature,
+sandbox, or behavioral rule. The vulnerability isn't in the malware —
+it's in trusting an LLM's silence as a verdict.
+
 ## Jailbreaks: attacking the model's own training
 
 A [jailbreak](/reference/jailbreak) is a different target: instead of
