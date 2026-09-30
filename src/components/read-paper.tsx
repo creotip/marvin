@@ -12,7 +12,7 @@ export function ReadPaper({
       href={href}
       target="_blank"
       rel="noreferrer noopener"
-      className="bg-fd-primary text-fd-primary-foreground my-4 inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold no-underline transition-opacity hover:opacity-90"
+      className="border-fd-primary/40 text-fd-primary hover:bg-fd-primary/10 my-4 inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-semibold no-underline transition-colors"
     >
       Read the paper — {children}
       <ArrowUpRight className="size-4" />
