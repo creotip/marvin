@@ -3,8 +3,10 @@
   "pages": [
     "index",
     "(history)",
+    "(training-techniques)",
     "(computer-vision)",
     "(generative-models)",
+    "(reinforcement-learning)",
     "(transformers-and-llms)"
   ]
 }

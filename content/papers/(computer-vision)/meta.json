@@ -2,5 +2,5 @@
   "title": "Computer Vision",
   "collapsible": true,
   "defaultOpen": true,
-  "pages": ["alexnet", "resnet", "vit"]
+  "pages": ["alexnet", "resnet", "vit", "clip"]
 }

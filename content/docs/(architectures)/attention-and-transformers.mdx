@@ -265,7 +265,7 @@ values can never change, so they can be computed once and reused.
 The original transformer paper actually describes two halves working
 together, and different modern model families use different halves:
 
-- **Encoder-only** (e.g. **BERT**): uses full (non-causal) self-attention
+- **Encoder-only** (e.g. [**BERT**](/papers/bert)): uses full (non-causal) self-attention
   — every token sees every other token, including future ones. Good at
   *understanding* a fixed piece of text (classification, extracting
   answers from a passage), not at generating new text token by token.

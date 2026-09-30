@@ -1,0 +1,59 @@
+---
+title: Denoising Diffusion Probabilistic Models
+description: Ho, Jain & Abbeel, 2020 — showed that training a network to reverse a fixed noise-adding process, one small step at a time, could generate images that eventually surpassed GANs.
+---
+
+**"Denoising Diffusion Probabilistic Models"** (Jonathan Ho, Ajay
+Jain, and Pieter Abbeel, 2020) is the paper that made diffusion models
+practical, kicking off the approach that now dominates state-of-the-art
+image generation.
+
+## What problem it solved
+
+Diffusion-style ideas — destroy structure with noise, then learn to
+reverse it — had been proposed years earlier, but early versions were
+difficult to train and produced results well behind
+[GANs](/papers/gan) and [VAEs](/papers/vae). The open question was
+whether a diffusion-style model could be made to actually work well in
+practice, with a training objective simple and stable enough to compete
+with the dominant generative approaches of the time.
+
+## The key idea
+
+Fix the forward "destroy" process as pure, un-learned arithmetic:
+gradually add small amounts of Gaussian noise to a real image over many
+steps, until it's indistinguishable from pure noise. Then train a
+single network to do one narrow, well-defined job at every step of the
+reverse direction: given a noisy image and how many steps of noise it's
+had added, predict the noise that was added — not the clean image
+directly, a subtlety the paper showed mattered for training stability.
+Subtracting that predicted noise moves the image one step back toward
+clean. The training objective this produces is strikingly simple: an
+ordinary mean-squared-error regression between the network's predicted
+noise and the actual noise that was added, no adversarial setup and no
+sampling required during training at all. Generating a new image just
+runs this trained denoising step repeatedly, starting from pure random
+noise.
+
+## Why it mattered
+
+This paper's specific parameterization (predict the noise, not the
+image) and training recipe are what turned diffusion from a
+theoretical curiosity into a method that produced genuinely
+competitive, eventually superior, image quality compared to GANs — with
+none of GANs' notorious training instability, since there's no
+adversary and no Nash equilibrium to hunt for, just a single stable
+regression loss. The tradeoff, covered in
+[Generative Models](/docs/generative-models), is inference cost:
+generating one image means running the denoising network many times in
+sequence, far slower than a GAN's single forward pass. Nearly every
+major image (and increasingly video and audio) generation system since
+— Stable Diffusion, Midjourney's underlying approach, and others —
+builds directly on the training recipe this paper established.
+
+**Authors:** Jonathan Ho, Ajay Jain, Pieter Abbeel (UC Berkeley)
+
+**Read the paper:** [arXiv:2006.11239](https://arxiv.org/abs/2006.11239)
+
+**Learn more:** [Diffusion Model](/reference/diffusion-model) ·
+[Generative Models](/docs/generative-models)

@@ -2,5 +2,5 @@
   "title": "Generative Models",
   "collapsible": true,
   "defaultOpen": true,
-  "pages": ["gan"]
+  "pages": ["gan", "vae", "ddpm"]
 }

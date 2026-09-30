@@ -1,0 +1,58 @@
+---
+title: "Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift"
+description: Ioffe & Szegedy, 2015 — rescales each layer's outputs during training, letting networks use much higher learning rates and train reliably at far greater depth.
+---
+
+**"Batch Normalization: Accelerating Deep Network Training by Reducing
+Internal Covariate Shift"** (Sergey Ioffe and Christian Szegedy, 2015)
+introduced **batch normalization** — a small addition to a network
+architecture that had an outsized effect on how deep and how fast
+networks could be trained.
+
+## What problem it solved
+
+As a deep network trains, every layer's weights are updating
+simultaneously — which means the *distribution* of values a given layer
+receives as input keeps shifting throughout training, since it depends
+on every layer before it, all of which are also changing. The paper
+calls this **internal covariate shift**: each layer is constantly
+having to re-adapt to a moving target, which the authors argued was a
+major reason very deep networks were slow and finicky to train, forcing
+low learning rates and careful weight initialization just to avoid
+things blowing up or stalling out.
+
+## The key idea
+
+Explicitly rescale a layer's outputs during training, per mini-batch:
+subtract the batch's mean and divide by the batch's standard deviation,
+so the values flowing into the next layer have roughly zero mean and
+unit variance, regardless of how earlier layers' weights have shifted.
+Two learnable parameters (a scale and a shift) are added back afterward,
+so the network can still represent the original, unnormalized
+distribution if that's actually what's optimal — normalization doesn't
+remove capacity, it just gives training a well-behaved starting point at
+every layer, every step.
+
+## Why it mattered
+
+Batch normalization let networks train with substantially higher
+learning rates and much less sensitivity to initialization, and made
+very deep networks — the kind covered in
+[Computer Vision](/docs/computer-vision) and
+[Neural Networks & Backprop](/docs/neural-networks-and-backprop) —
+dramatically more reliable to train. [ResNet](/papers/resnet), the
+paper that pushed depth to 100+ layers, uses batch normalization after
+every convolution as a matter of course; without it, networks anywhere
+near that deep were far harder to train at all. Its main limitation —
+needing a reasonably large batch to estimate stable statistics, which
+breaks down for sequence data with variable lengths — is exactly why
+[transformers](/reference/transformer) and RNNs use **layer
+normalization** instead, a close variant that normalizes across a
+single example's features rather than across a batch.
+
+**Authors:** Sergey Ioffe, Christian Szegedy (Google)
+
+**Read the paper:** [arXiv:1502.03167](https://arxiv.org/abs/1502.03167)
+
+**Learn more:** [Batch/Layer Normalization](/reference/batch-normalization) ·
+[Neural Networks & Backprop](/docs/neural-networks-and-backprop)

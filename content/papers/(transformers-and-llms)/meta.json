@@ -4,6 +4,7 @@
   "defaultOpen": true,
   "pages": [
     "attention-is-all-you-need",
+    "bert",
     "gpt-3",
     "lora",
     "chinchilla",
