@@ -1,0 +1,63 @@
+---
+title: "Adam: A Method for Stochastic Optimization"
+description: Kingma & Ba, 2014 — combined momentum with a per-parameter adaptive step size into one optimizer, which became the default choice for training almost everything that followed.
+---
+
+**"Adam: A Method for Stochastic Optimization"** (Diederik P. Kingma
+and Jimmy Ba, 2014) introduced the **Adam** optimizer — quietly one of
+the most-used pieces of software in machine learning, and still the
+default starting point for training a new model.
+
+## What problem it solved
+
+Plain [gradient descent](/reference/gradient-descent) takes the same
+step size, in the raw gradient direction, for every parameter, at every
+point in training. That's a poor fit for real loss landscapes: some
+parameters need large, confident steps and others need small, cautious
+ones, and the right step size for any given parameter often changes as
+training progresses. Prior fixes existed for pieces of this problem —
+momentum (smooth out noisy gradients by averaging over recent steps) and
+adaptive per-parameter learning rates (existing optimizers like AdaGrad
+and RMSProp) — but not combined into one method that reliably worked
+well across a wide range of problems with little tuning.
+
+## The key idea
+
+Track two running averages of the gradient for every parameter,
+individually, and use both together:
+
+- **First moment (momentum)**: an exponential moving average of the
+  raw gradient itself, smoothing out noise from one step to the next.
+- **Second moment (adaptive scale)**: an exponential moving average of
+  the *squared* gradient, tracking how large that parameter's gradients
+  have typically been.
+
+The actual update divides the (bias-corrected) first moment by the
+square root of the (bias-corrected) second moment — a parameter with
+small, consistent gradients gets a comparatively large effective step,
+and a parameter with large or noisy gradients gets a comparatively
+small one. Both terms are the same simple arithmetic every training
+step; the "bias correction" is a small algebraic fix for the fact that
+both moving averages start at zero and are therefore biased toward zero
+in early training, which the paper derives and corrects for explicitly.
+
+## Why it mattered
+
+Adam converges faster and more reliably than plain gradient descent
+across a strikingly wide range of problems, largely without needing the
+careful per-problem learning-rate tuning earlier methods required —
+covered in depth, including its interaction with warmup and learning-
+rate schedules, in
+[Optimization & Training Dynamics](/docs/optimization-and-training-dynamics).
+That combination of reliability and low tuning cost is why it became
+the default optimizer choice across deep learning almost immediately,
+and why **AdamW** (a later, small fix decoupling weight decay from the
+adaptive step size) is the current default specifically for training
+large language models from scratch.
+
+**Authors:** Diederik P. Kingma, Jimmy Ba (University of Toronto,
+independent)
+
+**Read the paper:** [arXiv:1412.6980](https://arxiv.org/abs/1412.6980)
+
+**Learn more:** [Optimization & Training Dynamics](/docs/optimization-and-training-dynamics)

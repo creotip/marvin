@@ -1,0 +1,6 @@
+{
+  "title": "Training Techniques",
+  "collapsible": true,
+  "defaultOpen": true,
+  "pages": ["adam", "batch-normalization", "dropout"]
+}

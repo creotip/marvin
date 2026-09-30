@@ -1,0 +1,62 @@
+---
+title: Playing Atari with Deep Reinforcement Learning
+description: Mnih et al., 2013 (the "DQN" paper) — combined Q-learning with a neural network to learn to play Atari games directly from raw pixels, no hand-engineered features, from a single reward signal.
+---
+
+**"Playing Atari with Deep Reinforcement Learning"** (Volodymyr Mnih
+and colleagues at DeepMind, 2013) introduced the **Deep Q-Network
+(DQN)** — the paper that showed reinforcement learning could work
+directly from raw sensory input, not hand-designed features, using
+nothing but the score as a training signal.
+
+## What problem it solved
+
+Classic [Q-learning](/reference/q-learning) stores a value for every
+(state, action) pair in a table — workable for small, discrete state
+spaces, but hopeless for anything with a visually rich environment, like
+a video game's raw pixel screen. There are far too many possible pixel
+configurations to ever build or store such a table, and no way to
+generalize from one state to a visually similar one it hasn't seen
+before. Prior attempts to combine neural networks with Q-learning
+existed but were notoriously unstable — the combination tended to
+diverge rather than converge to a useful policy.
+
+## The key idea
+
+Replace the Q-value lookup table with a neural network that takes raw
+pixels as input and outputs an estimated value for each possible action
+— the same "swap a hand-designed representation for a learned one"
+pattern that runs throughout this course. Getting this to actually
+train stably needed two specific fixes the paper introduced together:
+
+- **Experience replay**: instead of training on each new experience
+  once and discarding it, store experiences in a buffer and train on
+  randomly sampled batches from it. This breaks the strong correlation
+  between consecutive frames of gameplay, which otherwise destabilizes
+  training the same way training on non-shuffled, ordered data would.
+- **A separate target network**: use a second, slowly-updated copy of
+  the network to compute the training targets, rather than the network
+  currently being updated. Without this, the target moves every time
+  the network updates, which can spiral into instability.
+
+## Why it mattered
+
+DQN learned to play a range of Atari 2600 games — often at or above
+human level — from nothing but raw pixel input and the game's own
+score, no game-specific engineering beyond the network architecture
+itself, and the same network architecture and algorithm worked across
+every game tested. That was the first clear, widely-recognized
+demonstration that deep learning and reinforcement learning could be
+combined into something that scaled and actually worked, rather than
+being a theoretical curiosity — directly setting up the case, covered in
+[Reinforcement Learning](/docs/reinforcement-learning), for RL as a
+serious third paradigm alongside supervised and unsupervised learning,
+and for DeepMind's later, much larger results like AlphaGo.
+
+**Authors:** Volodymyr Mnih, Koray Kavukcuoglu, David Silver, and
+colleagues (DeepMind)
+
+**Read the paper:** [arXiv:1312.5602](https://arxiv.org/abs/1312.5602)
+
+**Learn more:** [Q-Learning](/reference/q-learning) ·
+[Reinforcement Learning](/docs/reinforcement-learning)

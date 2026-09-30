@@ -1,0 +1,63 @@
+---
+title: Auto-Encoding Variational Bayes
+description: Kingma & Welling, 2013 — introduced the VAE, showing how to train an encoder-decoder pair so that its compressed latent space is smooth and sampleable enough to generate new, plausible data.
+---
+
+**"Auto-Encoding Variational Bayes"** (Diederik P. Kingma and Max
+Welling, 2013) introduced the **variational autoencoder (VAE)** — the
+paper that turned an ordinary autoencoder into a genuine generative
+model, by making its compressed latent space something you could
+actually sample from.
+
+## What problem it solved
+
+A plain autoencoder — an encoder that compresses an input to a small
+latent vector, and a decoder that reconstructs it — learns a useful
+compressed representation, but not a *generative* one. Nothing forces
+the latent space to be organized in a way where a randomly sampled
+point decodes to something realistic; most of that space, sampled
+blindly, decodes to noise. The question this paper answered: how do you
+train an autoencoder so that its latent space itself becomes a
+meaningful probability distribution you can draw new samples from?
+
+## The key idea
+
+Make the encoder output a **distribution** over latent vectors instead
+of a single point — in practice, a mean and variance defining a
+Gaussian — and sample a specific latent vector from that distribution
+before decoding it. Training then optimizes two goals at once: the
+usual reconstruction accuracy (the decoded output should match the
+original input), plus a second term that pulls every input's latent
+distribution toward a simple, shared reference distribution (a
+standard normal). That second term is what makes the whole latent space
+coherent and sampleable — instead of each input claiming an isolated
+pocket of latent space, every input's distribution overlaps with a
+shared, well-behaved region, so a point sampled from that shared region
+decodes to something plausible even if no real input mapped there
+during training. The paper's key technical contribution, the
+**reparameterization trick**, is what makes this samples-inside-training
+setup differentiable: instead of sampling directly (which has no useful
+gradient), it samples fixed noise and combines it with the encoder's
+output through simple arithmetic, so gradients can flow back through
+the sampling step during training.
+
+## Why it mattered
+
+The VAE became one of the two dominant approaches to generative
+modeling for the following decade, alongside [GANs](/papers/gan) —
+training far more stably than adversarial approaches (a single,
+well-defined loss rather than two competing networks), at the cost of
+historically blurrier outputs. Its core idea outlived its own
+architecture: modern [diffusion models](/papers/ddpm) commonly run
+their denoising process inside a pretrained VAE's compressed latent
+space rather than on raw pixels, combining both techniques rather than
+choosing one, exactly as covered in
+[Generative Models](/docs/generative-models).
+
+**Authors:** Diederik P. Kingma, Max Welling (Universiteit van
+Amsterdam)
+
+**Read the paper:** [arXiv:1312.6114](https://arxiv.org/abs/1312.6114)
+
+**Learn more:** [VAE (Variational Autoencoder)](/reference/vae) ·
+[Generative Models](/docs/generative-models)

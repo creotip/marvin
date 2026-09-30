@@ -1,0 +1,62 @@
+---
+title: "Learning Transferable Visual Models From Natural Language Supervision"
+description: Radford et al., 2021 (the "CLIP" paper) — trained an image encoder and a text encoder together on 400 million image-caption pairs, producing a shared embedding space that later became the standard bridge into multimodal models.
+---
+
+**"Learning Transferable Visual Models From Natural Language
+Supervision"** (Alec Radford and colleagues at OpenAI, 2021) introduced
+**CLIP** — the paper that showed captions scraped from the internet,
+not hand-labeled categories, could train a vision model that
+generalized better than ones trained the traditional way.
+
+## What problem it solved
+
+Standard computer vision models were trained on datasets with a fixed,
+hand-curated set of labels (ImageNet's roughly 1,000 categories, for
+instance) — expensive to build, and brittle once deployed: a model
+trained to recognize exactly those 1,000 categories has no natural way
+to recognize a 1,001st. Meanwhile, the internet already contains an
+enormous, freely available supervisory signal: images with
+natural-language captions written by people, describing what's actually in
+them, with no fixed category list at all. The question was whether that
+noisier, far larger signal could train a *better* vision model than the
+smaller, cleanly labeled datasets vision research had relied on.
+
+## The key idea
+
+Train two encoders together — a [ViT](/papers/vit) (or a CNN, in
+earlier variants) for images and a transformer for text — with a
+**contrastive** objective: given a batch of image-caption pairs, push
+each image's embedding close to its *own* caption's embedding, and away
+from every other caption's embedding in the same batch. Neither encoder
+is trained to predict any fixed label; the only signal is "this image
+and this caption go together, and these other pairings don't." Trained
+at scale — 400 million image-caption pairs scraped from the internet —
+this produces a single shared embedding space where semantically
+related images and text land near each other, regardless of which
+modality they arrived through.
+
+## Why it mattered
+
+CLIP's shared embedding space did two things at once. First, it made
+**zero-shot** image classification practical: to classify an image into
+categories CLIP was never explicitly trained on, just embed the
+category names as text and pick whichever is closest to the image's
+embedding — no retraining needed, a direct product of the contrastive
+training objective rather than a fixed label set. Second, and more
+consequentially, CLIP's image encoder became the standard way to feed
+images into systems built for text: encode an image into CLIP's space,
+and it now lives in the same geometric neighborhood as related
+language, which is exactly the bridge
+[multimodal models](/docs/multimodal-models) use to let a language model
+reason over images. Both the zero-shot classification and image
+generation lineages (CLIP-guided and later diffusion-based generators)
+trace directly back to this shared-embedding-space idea.
+
+**Authors:** Alec Radford, Jong Wook Kim, Chris Hallacy, and colleagues
+(OpenAI)
+
+**Read the paper:** [arXiv:2103.00020](https://arxiv.org/abs/2103.00020)
+
+**Learn more:** [CLIP](/reference/clip) ·
+[Multimodal Models](/docs/multimodal-models)

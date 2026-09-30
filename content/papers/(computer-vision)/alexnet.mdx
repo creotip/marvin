@@ -36,7 +36,7 @@ practical choices that made that scale trainable at all:
   it was split across two, with careful engineering to keep them
   communicating efficiently — an early, hands-on case of the
   model-parallelism techniques large models still rely on.
-- **Dropout** and heavy data augmentation (random crops, flips, color
+- **[Dropout](/papers/dropout)** and heavy data augmentation (random crops, flips, color
   jitter) to fight [overfitting](/reference/overfitting) on a network
   with roughly 60 million parameters, large for the time.
 

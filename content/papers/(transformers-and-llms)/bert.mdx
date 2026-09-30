@@ -1,0 +1,61 @@
+---
+title: "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding"
+description: Devlin et al., 2018 — the paper that made "pretrain on unlabeled text, then fine-tune" the default recipe for NLP, by training on masked, bidirectional context instead of predicting left to right.
+---
+
+**"BERT: Pre-training of Deep Bidirectional Transformers for Language
+Understanding"** (Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina
+Toutanova, 2018) introduced **BERT** — the encoder-only counterpart to
+decoder-only models like GPT, and for several years the dominant way to
+adapt a pretrained language model to a specific task.
+
+## What problem it solved
+
+Before this paper, the strongest language representations came from
+models trained left-to-right (predict the next word from everything
+before it) — a natural fit for generation, but a real limitation for
+*understanding* a piece of text, since a model reading strictly
+left-to-right can never use context from later in the sentence when
+building a word's representation. Earlier bidirectional approaches
+existed but were shallow (combining two separate left-to-right and
+right-to-left models rather than jointly conditioning on both
+directions at once).
+
+## The key idea
+
+Train the [transformer](/reference/transformer) encoder on a task that
+*requires* using context from both directions at once:
+**masked language modeling**. Randomly hide about 15% of the input
+tokens and train the model to predict the hidden words from the
+surrounding context on *both* sides — a token's prediction can draw on
+words before and after it simultaneously, something a left-to-right
+model structurally cannot do. A second pretraining task, **next
+sentence prediction**, trained the model to judge whether one sentence
+plausibly follows another, aimed at tasks that reason about
+relationships between sentences. After this pretraining, adapting BERT
+to a specific task (question answering, sentiment classification, named
+entity recognition) meant adding one small task-specific output layer
+and [fine-tuning](/reference/fine-tuning) the whole model briefly on
+labeled data for that task — far cheaper than training a task-specific
+architecture from scratch.
+
+## Why it mattered
+
+BERT set new state-of-the-art results across a wide range of NLP
+benchmarks simultaneously, and more importantly, it established
+"pretrain once on unlabeled text, fine-tune cheaply per task" as the
+standard playbook for NLP — the same pattern
+[GPT-3](/papers/gpt-3) and every later LLM would take even further by
+skipping fine-tuning almost entirely in favor of prompting. BERT's
+[encoder-only](/reference/encoder-decoder) design remains the standard
+choice whenever a task calls for *understanding* a fixed piece of text
+rather than generating new text, a distinction covered in
+[Attention & Transformers](/docs/attention-and-transformers).
+
+**Authors:** Jacob Devlin, Ming-Wei Chang, Kenton Lee, Kristina
+Toutanova (Google AI Language)
+
+**Read the paper:** [arXiv:1810.04805](https://arxiv.org/abs/1810.04805)
+
+**Learn more:** [Encoder-Decoder Architecture](/reference/encoder-decoder) ·
+[Attention & Transformers](/docs/attention-and-transformers)

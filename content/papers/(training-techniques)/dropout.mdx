@@ -1,0 +1,68 @@
+---
+title: "Dropout: A Simple Way to Prevent Neural Networks from Overfitting"
+description: Srivastava, Hinton, Krizhevsky, Sutskever & Salakhutdinov, 2014 — randomly deleting a fraction of a network's units during each training step, forcing it to stop relying on any single one.
+---
+
+**"Dropout: A Simple Way to Prevent Neural Networks from Overfitting"**
+(Nitish Srivastava, Geoffrey Hinton, Alex Krizhevsky, Ilya Sutskever,
+and Ruslan Salakhutdinov, 2014) introduced **dropout** — a strikingly
+simple regularization technique that became a default ingredient in
+large networks for years afterward, including
+[AlexNet](/papers/alexnet), published by three of the same authors two
+years earlier.
+
+## What problem it solved
+
+Large neural networks have enough capacity to memorize their training
+data outright rather than learn patterns that generalize —
+[overfitting](/reference/overfitting). A specific way this shows up:
+units in a network can end up in **co-adaptations**, where several units
+only work correctly in combination with each other's specific
+idiosyncrasies, a fragile, overly-specific reliance that doesn't
+transfer to new data. Existing regularization techniques at the time
+didn't directly target this failure mode.
+
+## The key idea
+
+During training, randomly and independently "drop" each unit (set its
+output to zero) with some fixed probability, typically 50%, at every
+training step. A different random subset of the network is deleted on
+every single step, which means no unit can safely rely on any other
+specific unit being present — the co-adaptation the paper targeted
+becomes much harder to form, since the exact set of collaborators a unit
+can lean on keeps changing underneath it. At test time, dropout is
+turned off and every unit's output is scaled down to compensate for the
+fact that, during training, only a fraction of them were active on
+average. The authors also frame this as training an enormous number of
+different "thinned" sub-networks that share weights, and test time as
+approximating the average prediction across all of them — a cheap
+approximation to model averaging, normally an expensive technique
+requiring many separately trained models.
+
+## Why it mattered
+
+Dropout was cheap to implement, added no meaningful computational
+overhead, and reliably improved generalization across a wide range of
+architectures and tasks, making it one of the most widely adopted
+regularization techniques of the deep learning era —
+[AlexNet](/papers/alexnet) used it in its fully-connected layers as
+one of the specific choices credited with making its result possible.
+Later architectural changes reduced how load-bearing dropout is in some
+settings — [batch normalization](/papers/batch-normalization) and
+residual connections both have some regularizing effect of their own,
+and very large models trained on enormous datasets sometimes skip
+dropout entirely — but it remains a standard, well-understood tool
+covered alongside other regularization techniques in
+[ML Fundamentals](/docs/ml-fundamentals).
+
+**Authors:** Nitish Srivastava, Geoffrey Hinton, Alex Krizhevsky, Ilya
+Sutskever, Ruslan Salakhutdinov (University of Toronto)
+
+**Read the paper:** [JMLR, Vol. 15](https://jmlr.org/papers/v15/srivastava14a.html)
+
+**See also:** [Geoffrey Hinton](/people/geoffrey-hinton) ·
+[Alex Krizhevsky](/people/alex-krizhevsky) ·
+[Ilya Sutskever](/people/ilya-sutskever)
+
+**Learn more:** [Regularization](/reference/regularization) ·
+[ML Fundamentals](/docs/ml-fundamentals)
