@@ -7,6 +7,9 @@
     "(computer-vision)",
     "(generative-models)",
     "(reinforcement-learning)",
-    "(transformers-and-llms)"
+    "(transformers-and-llms)",
+    "(applied-systems)",
+    "(inference-and-efficiency)",
+    "(safety-and-security)"
   ]
 }

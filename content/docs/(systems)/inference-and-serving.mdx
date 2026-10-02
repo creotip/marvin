@@ -275,7 +275,7 @@ far for a given model and use case.
 
 Because decode is memory-bandwidth-bound rather than compute-bound (see
 above), the GPU often has *spare compute capacity* during generation even
-though it's the bottleneck on speed. **Speculative decoding** exploits
+though it's the bottleneck on speed. **[Speculative decoding](/papers/speculative-decoding)** exploits
 this: use a small, fast "draft" model to quickly generate several
 candidate next tokens (say, 4–5) ahead of time, then have the full model
 verify all of them in a *single* parallel forward pass — which the GPU

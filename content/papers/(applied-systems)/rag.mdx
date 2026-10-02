@@ -1,0 +1,67 @@
+---
+title: Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks
+description: Lewis et al., 2020 — paired a text generator with a searchable index of documents so answers come from retrieved passages rather than only from what the model memorized.
+---
+
+**"Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks"**
+(Patrick Lewis, Ethan Perez, Aleksandra Piktus, and colleagues at
+Facebook AI Research, University College London, and NYU, 2020)
+introduced the name and the pattern behind [RAG](/reference/rag).
+
+## What problem it solved
+
+A language model keeps what it knows inside its weights. That makes its
+knowledge hard to inspect (there's no way to ask where a fact came
+from), hard to update (changing one fact means retraining), and prone to
+confident invention when it doesn't actually know. Pure
+retrieval systems have the opposite profile: they can point at a source
+and be updated by editing a document store, but they can't compose a
+fluent answer. The question was whether the two could be combined into
+one trainable system for tasks that need real facts, like open-domain
+question answering.
+
+## The key idea
+
+Give a generator a second kind of memory it can read at answer time. The
+paper combined a pretrained sequence-to-sequence generator (BART) with a
+**non-parametric memory**: a dense vector index of Wikipedia passages,
+searched by a neural retriever. For each question, the retriever fetches
+the most relevant passages, and the generator conditions on the question
+*plus* those passages when writing its answer. The retriever's
+query encoder and the generator were fine-tuned together (the document
+index itself stayed fixed), so retrieval improved because the
+generator's needs were pushing on it.
+
+The mechanics will look familiar from
+[RAG & Vector Databases](/docs/rag-and-vector-databases): [embed](/reference/embedding)
+text into vectors, find the nearest ones to the query by similarity
+search, and hand the winners to the model as context.
+
+## Why it mattered
+
+It set new state-of-the-art results on several open-domain question
+answering benchmarks, and it offered practical advantages that outlasted
+the benchmarks: answers could be traced back to the passages that
+produced them, and the model's knowledge could be updated by swapping
+the index, with no retraining.
+
+One distinction matters for reading the literature. What most
+applications now call RAG is a looser version of this paper's design: a
+frozen, general-purpose [LLM](/reference/llm) that's handed retrieved
+text in its prompt, with the retriever and generator never trained
+together. The pattern is the same and the name stuck, but the paper's
+end-to-end training is the part most deployed systems leave out. The
+approach also created a new attack surface, since retrieved text is
+exactly the untrusted content that
+[indirect prompt injection](/docs/ai-security) rides in on.
+
+**Authors:** Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio
+Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich Küttler, Mike Lewis,
+Wen-tau Yih, Tim Rocktäschel, Sebastian Riedel, Douwe Kiela (Facebook AI
+Research, University College London, New York University)
+
+<ReadPaper href="https://arxiv.org/abs/2005.11401">arXiv:2005.11401</ReadPaper>
+
+**Learn more:** [RAG](/reference/rag) ·
+[RAG & Vector Databases](/docs/rag-and-vector-databases) ·
+[AI Security](/docs/ai-security)

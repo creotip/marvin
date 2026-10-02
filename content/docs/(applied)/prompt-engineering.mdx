@@ -27,7 +27,8 @@ instruction to interpret.
 Explicitly asking the model to reason step by step before giving a final
 answer — or simply appending "let's think step by step" — measurably
 improves accuracy on tasks requiring multi-step reasoning: arithmetic,
-logic puzzles, multi-hop questions.
+logic puzzles, multi-hop questions. The technique comes from the
+[chain-of-thought prompting paper](/papers/chain-of-thought).
 
 The mechanism is a direct consequence of how these models generate: each
 output token is produced conditioned on everything generated so far, so

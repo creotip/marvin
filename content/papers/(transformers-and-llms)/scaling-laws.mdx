@@ -1,0 +1,70 @@
+---
+title: Scaling Laws for Neural Language Models
+description: Kaplan et al., 2020 — measured how language-model loss falls as a smooth power law in model size, data, and compute, turning "make it bigger" from a bet into a forecast.
+---
+
+**"Scaling Laws for Neural Language Models"** (Jared Kaplan, Sam
+McCandlish, Tom Henighan, and colleagues at OpenAI and Johns Hopkins,
+2020) is the paper that put numbers on how language models improve with
+scale, and the direct predecessor of the
+[Chinchilla paper](/papers/chinchilla) that later revised its advice.
+
+## What problem it solved
+
+Through the 2010s, building a bigger model was a hopeful experiment.
+Nobody could say in advance how much better a ten-times-larger model
+would be, whether the gains would fade, or whether the extra money
+should go into parameters, data, or training time. Labs were making
+multimillion-dollar compute decisions on intuition. The question was whether
+model quality followed any regularity that could be measured on small
+runs and extrapolated to large ones.
+
+## The key idea
+
+Train a very large number of transformer language models across many
+orders of magnitude of size, data, and compute, then fit the results.
+Three findings carried the paper:
+
+- **Loss follows a power law.** Test loss falls as a straight line on a
+  log-log plot against each of parameters, dataset size, and compute,
+  across more than seven orders of magnitude, as long as the other two
+  aren't the bottleneck. The curves showed no sign of flattening within
+  the range tested.
+- **Shape barely matters.** Within reasonable limits, details like depth
+  versus width had only a weak effect compared to total parameter count.
+- **Bigger models are more sample-efficient.** A larger model reaches a
+  given loss having seen fewer tokens, so for a fixed compute budget the
+  paper recommended spending most of it on model size and stopping well
+  before convergence.
+
+## Why it mattered
+
+It turned scaling into something you could plan. A lab could train a
+family of small models, fit the curve, and predict the loss of a run
+costing a thousand times more before paying for it. That is the
+reasoning behind the jump from GPT-2 to [GPT-3](/papers/gpt-3), which
+this paper's authors and their colleagues built in the same year, and
+it's the empirical backbone of the "scaling hypothesis" covered in
+[History & Landscape](/docs/history-and-landscape).
+
+The paper's budget advice turned out to be wrong in an instructive way.
+Its recommendation to favor model size over data rested on runs that
+used one fixed learning-rate schedule regardless of how long each model
+trained; [Chinchilla](/papers/chinchilla) redid the experiment with the
+schedule matched to each run's length and found parameters and tokens
+should grow together, which is why many models built on the Kaplan
+advice were undertrained for their size. The
+core finding, smooth predictable power laws, survived; the allocation
+recipe did not.
+
+**Authors:** Jared Kaplan, Sam McCandlish, Tom Henighan, Tom B. Brown,
+Benjamin Chess, Rewon Child, Scott Gray, Alec Radford, Jeffrey Wu, Dario
+Amodei (OpenAI, Johns Hopkins University)
+
+<ReadPaper href="https://arxiv.org/abs/2001.08361">arXiv:2001.08361</ReadPaper>
+
+**See also:** [Dario Amodei](/people/dario-amodei)
+
+**Learn more:** [Scaling Laws](/reference/scaling-laws) ·
+[History & Landscape](/docs/history-and-landscape) ·
+[LLMs](/docs/llms)

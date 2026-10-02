@@ -1,9 +1,9 @@
 {
-  "title": "Reinforcement Learning",
+  "title": "Applied Systems",
   "collapsible": true,
   "defaultOpen": true,
   "pages": [
-    "dqn",
-    "ppo"
+    "chain-of-thought",
+    "rag"
   ]
 }

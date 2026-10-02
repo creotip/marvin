@@ -1,0 +1,10 @@
+{
+  "title": "Inference & Efficiency",
+  "collapsible": true,
+  "defaultOpen": true,
+  "pages": [
+    "flash-attention",
+    "speculative-decoding",
+    "mixture-of-experts"
+  ]
+}

@@ -1,0 +1,66 @@
+---
+title: Explaining and Harnessing Adversarial Examples
+description: Goodfellow, Shlens & Szegedy, 2014 — argued that tiny crafted perturbations fool networks because of their near-linear behavior in high dimensions, and gave a one-step method to generate them cheaply.
+---
+
+**"Explaining and Harnessing Adversarial Examples"** (Ian Goodfellow,
+Jonathon Shlens, and Christian Szegedy, 2014) is the paper that turned a
+puzzling observation into a method and an explanation, and launched
+adversarial robustness as a research area.
+
+## What problem it solved
+
+A year earlier, Szegedy and colleagues had reported something strange:
+adding a tiny, structured perturbation to an image could make a
+well-trained classifier confidently output the wrong label, even though a
+person couldn't see any change. That raised an unsettling question
+nobody could answer. Was this a quirk of a particular network, a
+byproduct of overfitting, or something deeper? The leading guesses blamed
+the networks' extreme nonlinearity, which would have made the problem
+look both exotic and unfixable.
+
+## The key idea
+
+The paper's explanation is the opposite of the leading guess: the cause
+is **linearity**. In a high-dimensional input, a perturbation that
+changes each pixel by a tiny, imperceptible amount can still shift the
+network's output enormously, because the effect of all those small
+changes adds up across thousands of dimensions. Networks are trained to
+be roughly linear in many regions precisely because linear behavior is
+easy to optimize, so they inherit this weakness.
+
+That explanation produced a simple attack, the **fast gradient sign
+method (FGSM)**: compute the gradient of the loss with respect to the
+*input* (not the weights), take the sign of each component, and move the
+input a small step ε in that direction. One gradient computation, no
+iteration. It's the same machinery as
+[gradient descent](/reference/gradient-descent) turned around, run against
+the input and in the direction that increases the loss. The paper also
+showed that training on adversarial examples as they're generated
+(**adversarial training**) made networks measurably more robust, a
+regularizing effect beyond just defense.
+
+## Why it mattered
+
+It gave the field both a cheap way to attack and a way to defend, and it
+established the pattern behind [adversarial examples](/reference/adversarial-example)
+as the lesson describes them: perturbations aimed at the model's own
+decision boundary, derived from its own gradients. The paper also noted
+that adversarial examples often transferred between models trained
+separately, which is what makes them a practical threat even when an
+attacker can't see the target's weights. The problem has proven stubborn:
+robustness defenses keep being broken, and the same gradient-guided idea
+reappears in attacks on language models, including automatically
+generated suffixes that push a model past its safety training, covered in
+[AI Security](/docs/ai-security).
+
+**Authors:** Ian J. Goodfellow, Jonathon Shlens, Christian Szegedy
+(Google)
+
+<ReadPaper href="https://arxiv.org/abs/1412.6572">arXiv:1412.6572</ReadPaper>
+
+**See also:** [Ian Goodfellow](/people/ian-goodfellow)
+
+**Learn more:** [Adversarial Example](/reference/adversarial-example) ·
+[AI Security](/docs/ai-security) ·
+[Generative Adversarial Networks](/papers/gan)

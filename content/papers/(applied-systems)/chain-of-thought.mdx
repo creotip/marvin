@@ -1,0 +1,67 @@
+---
+title: Chain-of-Thought Prompting Elicits Reasoning in Large Language Models
+description: Wei et al., 2022 — showed that putting worked reasoning steps in a prompt's examples makes large models solve multi-step problems they otherwise fail, with no training involved.
+---
+
+**"Chain-of-Thought Prompting Elicits Reasoning in Large Language
+Models"** (Jason Wei, Xuezhi Wang, Dale Schuurmans, and colleagues at
+Google Brain, 2022) is the paper behind the most widely used prompting
+trick in practice: asking a model to show its work.
+
+## What problem it solved
+
+By 2022, the standard way to use a large model on a new task was
+[few-shot prompting](/docs/prompt-engineering): show a handful of
+input-output examples and let the model continue the pattern. That
+worked well for classification and lookup-style questions and badly for
+anything needing several steps, like grade-school word problems or
+multi-hop logic. Scaling the model up helped on many tasks but barely
+moved these, which led some to argue that reasoning wasn't something
+language models would pick up from scale alone.
+
+## The key idea
+
+Change what the examples in the prompt contain. Instead of
+`question → answer`, each example is
+`question → reasoning steps → answer`, with the steps written out in
+natural language, such as working through the arithmetic of a word
+problem one line at a time. Given those examples,
+the model imitates the format on a new question: it produces its own
+intermediate steps first, then an answer.
+
+This works for the reason covered in
+[Prompt Engineering](/docs/prompt-engineering): a model generates each
+token conditioned on everything before it, so reasoning steps that are
+*part of the output* become context the final answer can use, rather
+than something that has to happen invisibly inside one forward pass.
+
+## Why it mattered
+
+On math word problems, commonsense, and symbolic tasks, the gains were
+large, and a sufficiently big model with eight worked examples beat
+earlier approaches that fine-tuned for the task. Two details are worth
+holding onto. First, the effect appeared mostly at scale: smaller models
+produced fluent but illogical chains and often did worse than with
+plain prompting, so reasoning-by-prompt looked like something that
+*emerged* with model size. Second, a follow-up (Kojima et al., 2022)
+found that for large models you often don't need examples at all;
+appending "let's think step by step" is enough, which is the form most
+people now use.
+
+The idea also outlived the prompt. Training models to produce long
+reasoning traces before answering, rather than relying on a prompt to
+coax them, builds directly on this one, and benchmarks like GSM8K in
+[Evaluation & Benchmarks](/docs/evaluation-and-benchmarks) are the
+multi-step arithmetic tests this technique was first measured on. It
+carries a standing caution too: the written chain is
+what the model produced, not a verified account of how it reached the
+answer.
+
+**Authors:** Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma,
+Brian Ichter, Fei Xia, Ed Chi, Quoc Le, Denny Zhou (Google Brain)
+
+<ReadPaper href="https://arxiv.org/abs/2201.11903">arXiv:2201.11903</ReadPaper>
+
+**Learn more:** [Prompt Engineering](/reference/prompt-engineering) ·
+[Prompt Engineering lesson](/docs/prompt-engineering) ·
+[Evaluation & Benchmarks](/docs/evaluation-and-benchmarks)
