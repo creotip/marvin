@@ -2,5 +2,9 @@
   "title": "Foundations",
   "collapsible": true,
   "defaultOpen": true,
-  "pages": ["perceptrons", "word2vec"]
+  "pages": [
+    "perceptrons",
+    "backpropagation",
+    "word2vec"
+  ]
 }

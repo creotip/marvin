@@ -1,0 +1,61 @@
+---
+title: Proximal Policy Optimization Algorithms
+description: Schulman et al., 2017 — a policy-gradient method that keeps each update small by clipping how far the new policy may move, simple enough to become the default and the RL step inside RLHF.
+---
+
+**"Proximal Policy Optimization Algorithms"** (John Schulman, Filip
+Wolski, Prafulla Dhariwal, Alec Radford, and Oleg Klimov at OpenAI,
+2017) introduced [PPO](/reference/ppo), the reinforcement learning
+algorithm that ended up in the final stage of
+[RLHF](/reference/rlhf).
+
+## What problem it solved
+
+Policy gradient methods improve a [policy](/reference/policy) directly by
+nudging it toward actions that earned more reward, but they're fragile
+about step size. Too small and learning crawls; too large and one bad
+update can wreck a policy that was working, after which the data it
+collects is worse and recovery is slow. A prior method, TRPO, solved this
+with a hard constraint on how far each update could move the policy, but
+it needed second-order optimization and was awkward to implement,
+combine with other components, or run in parallel. The field wanted TRPO's
+stability without TRPO's machinery.
+
+## The key idea
+
+Compare the new policy to the old one on the same experience, using the
+ratio of the probabilities each assigns to the action actually taken.
+If that ratio drifts far from 1, the policy has moved a lot, and the
+objective stops rewarding further movement: it **clips** the ratio to a
+narrow band around 1 and takes the more pessimistic of the clipped and
+unclipped values. There's no benefit to pushing a probability beyond the
+band, so the optimizer doesn't.
+
+That one change does the work of TRPO's constraint using nothing more
+exotic than ordinary first-order [gradient descent](/reference/gradient-descent).
+It also allows something plain policy gradient can't do safely: running
+several epochs of minibatch updates on the same batch of experience,
+which makes far better use of expensive data.
+
+## Why it mattered
+
+PPO was easy to implement, forgiving about hyperparameters, and
+competitive with much more complex methods, so it became the default
+policy-gradient algorithm for a wide range of problems, including game
+agents and robotics. Its biggest consequence for this course came later:
+when OpenAI built the RL stage of
+[InstructGPT](/papers/instructgpt), PPO was the algorithm they used to
+optimize a language model against a learned reward model, which is why
+the RLHF pipeline you've seen in this course is so often described as
+"reward model plus PPO." It's also where RLHF's cost comes from: PPO keeps
+the policy, a reference copy, a reward model, and a value model in play at
+once. [DPO](/papers/dpo) exists largely to get rid of that machinery.
+
+**Authors:** John Schulman, Filip Wolski, Prafulla Dhariwal, Alec Radford,
+Oleg Klimov (OpenAI)
+
+<ReadPaper href="https://arxiv.org/abs/1707.06347">arXiv:1707.06347</ReadPaper>
+
+**Learn more:** [PPO](/reference/ppo) ·
+[Reinforcement Learning](/docs/reinforcement-learning) ·
+[RLHF](/reference/rlhf)

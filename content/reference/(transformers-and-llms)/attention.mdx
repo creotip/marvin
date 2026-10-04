@@ -33,7 +33,7 @@ subspace.
 - **Quadratic cost.** The score matrix is `seq × seq` per head, so
   memory and compute grow with the square of context length. Naive
   implementations exhaust VRAM long before the model runs out of
-  capability; fused kernels like FlashAttention avoid materializing it.
+  capability; fused kernels like [FlashAttention](/papers/flash-attention) avoid materializing it.
 - **Order blindness.** Attention is permutation-equivariant on its own,
   so without [positional encoding](/reference/positional-encoding) the
   model sees an unordered bag of tokens.
@@ -47,4 +47,5 @@ subspace.
 **See also:** [Transformer](/reference/transformer), [LLM](/reference/llm)
 
 **Learn more:** [Attention & Transformers](/docs/attention-and-transformers) ·
-[Paper: Attention Is All You Need](/papers/attention-is-all-you-need)
+[Paper: Attention Is All You Need](/papers/attention-is-all-you-need) ·
+[Paper: FlashAttention](/papers/flash-attention)

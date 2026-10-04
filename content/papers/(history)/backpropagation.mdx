@@ -1,0 +1,67 @@
+---
+title: Learning Representations by Back-Propagating Errors
+description: Rumelhart, Hinton & Williams, 1986 — showed that backpropagation could train multi-layer networks to build their own useful internal representations, answering the single-layer limits Minsky and Papert had proven.
+---
+
+**"Learning representations by back-propagating errors"** (David
+Rumelhart, Geoffrey Hinton, and Ronald Williams, *Nature*, 1986) is the
+paper that made [backpropagation](/reference/backpropagation) a working
+tool for training neural networks with hidden layers, and put it in
+front of the whole field.
+
+## What problem it solved
+
+By the mid-1980s the single-layer [perceptron](/reference/perceptron)'s
+limits were well understood — [*Perceptrons*](/papers/perceptrons) had
+proven it couldn't learn functions like XOR, and the book's own text
+pointed at hidden layers as the way out. The missing piece was a
+practical way to *train* them. A hidden unit has no label of its own, so
+nothing says what it should output, and with no target there was no
+obvious way to know how to adjust its weights. Until that was solved,
+"just add layers" was a hypothesis, not a method.
+
+## The key idea
+
+Treat the whole network as one composed function and use the chain rule
+to push the output error backward through it, layer by layer. Each
+weight gets a precise answer to "if I nudged you slightly, how much would
+the final error change?", including weights in hidden layers that never
+see a label directly. That gradient feeds ordinary
+[gradient descent](/reference/gradient-descent), exactly as in
+[Neural Networks & Backprop](/docs/neural-networks-and-backprop).
+
+The paper's second contribution is easy to miss: it didn't only show the
+procedure worked, it showed what the hidden units *learned*. On tasks
+like learning family-tree relationships, the hidden layer organized
+itself into units that captured meaningful features (generation,
+nationality, branch of the family) that nobody had specified. The claim
+wasn't just "this fits the data" but "the network invents useful
+internal representations," which is the idea the whole deep learning
+field rests on.
+
+## Why it mattered
+
+It gave connectionism a credible answer to the objection that had
+frozen funding for over a decade, and it's the algorithm still used to
+train every network in this course, from CNNs to the
+[transformers](/reference/transformer) behind LLMs. It also isn't the
+origin of the underlying math: reverse-mode automatic differentiation
+was published by Seppo Linnainmaa in 1970, and Paul Werbos proposed
+applying it to neural networks in 1974. What this paper did was
+demonstrate it convincingly on problems people cared about and make it
+widely known, which is why it, rather than the earlier work, is the one
+the field dates the revival from. Even then, it took until
+[AlexNet](/papers/alexnet) in 2012 — datasets and GPUs finally large
+enough — for the approach to decisively win.
+
+**Authors:** David Rumelhart, Geoffrey Hinton, Ronald Williams (UC San
+Diego, Carnegie Mellon)
+
+<ReadPaper href="https://www.nature.com/articles/323533a0">Nature, 1986</ReadPaper>
+
+**See also:** [David Rumelhart](/people/david-rumelhart) ·
+[Geoffrey Hinton](/people/geoffrey-hinton)
+
+**Learn more:** [Backpropagation](/reference/backpropagation) ·
+[Neural Networks & Backprop](/docs/neural-networks-and-backprop) ·
+[History & Landscape](/docs/history-and-landscape)

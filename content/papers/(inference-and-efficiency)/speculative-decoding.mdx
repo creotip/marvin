@@ -1,0 +1,59 @@
+---
+title: Fast Inference from Transformers via Speculative Decoding
+description: Leviathan, Kalman & Matias, 2022 — lets a small draft model guess several tokens ahead and a large model check them all at once, speeding up generation without changing a single output.
+---
+
+**"Fast Inference from Transformers via Speculative Decoding"** (Yaniv
+Leviathan, Matan Kalman, and Yossi Matias at Google, 2022) introduced
+the technique behind [speculative decoding](/reference/speculative-decoding),
+now a standard way to make large-model generation faster.
+
+## What problem it solved
+
+Generating text from a large model is slow for a reason covered in
+[Inference & Serving](/docs/inference-and-serving): decode produces one
+token per forward pass, and each pass has to stream the model's whole
+set of weights through the GPU's memory. The arithmetic units sit mostly
+idle waiting on memory. Earlier speedups, such as smaller models,
+quantization, or approximations, generally traded away some output
+quality. The question was whether you could go faster while producing
+*exactly* the tokens the big model would have produced anyway.
+
+## The key idea
+
+Use a cheap model to guess, and the expensive model to check. A small
+**draft** model generates a short run of candidate tokens, say four or
+five. The large **target** model then scores all of those positions in a
+single parallel forward pass, which costs about the same as generating
+one token, because the bottleneck is reading weights, not arithmetic.
+
+A modified rejection-sampling rule then decides how many guesses to
+keep. Each candidate is accepted or rejected based on how the draft's
+probability compares to the target's; at the first rejection, a
+replacement token is sampled from a corrected distribution and the rest
+of the guesses are discarded. The paper proves that this procedure
+yields samples from exactly the target model's distribution. A good
+draft means several tokens accepted per large-model pass; a bad draft
+means you fall back to roughly one, so the worst case is close to
+ordinary decoding.
+
+## Why it mattered
+
+It was the rare speedup with no quality cost: the same distribution as
+before, not an approximation of it. The paper reported 2x to 3x faster
+generation on a large T5 model without changing the model or retraining
+it, and the technique needs only a draft model that tends to agree with
+the target on easy tokens, which is most of them. DeepMind published the
+same idea at nearly the same time as speculative sampling, and variants
+(draft heads on the main model, drafting from the prompt itself) are now
+common in production serving stacks. The trade-off to remember is that
+the speedup depends on how often the draft is right, so it helps most on
+predictable text and least on surprising text.
+
+**Authors:** Yaniv Leviathan, Matan Kalman, Yossi Matias (Google
+Research)
+
+<ReadPaper href="https://arxiv.org/abs/2211.17192">arXiv:2211.17192</ReadPaper>
+
+**Learn more:** [Speculative Decoding](/reference/speculative-decoding) ·
+[Inference & Serving](/docs/inference-and-serving)

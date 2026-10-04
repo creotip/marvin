@@ -1,0 +1,64 @@
+---
+title: "Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer"
+description: Shazeer et al., 2017 — a layer made of thousands of expert subnetworks where a learned router activates only a few per input, growing parameter count enormously without growing compute.
+---
+
+**"Outrageously Large Neural Networks: The Sparsely-Gated
+Mixture-of-Experts Layer"** (Noam Shazeer, Azalia Mirhoseini, Krzysztof
+Maziarz, Andy Davis, Quoc Le, Geoffrey Hinton, and Jeff Dean at Google
+Brain, 2017) is the paper that made
+[mixture of experts](/reference/mixture-of-experts) practical at scale.
+
+## What problem it solved
+
+A neural network's capacity, how much it can absorb and remember, grows
+with its parameter count, and in a standard dense network so does its
+cost: every input flows through every parameter. Doubling the parameters
+roughly doubles the compute for every example, which put a hard ceiling
+on how big a model anyone could afford to train or run. The idea of
+splitting a network into specialized experts with a gate choosing among
+them was decades old, but earlier versions were small and hit practical
+barriers around training stability and hardware efficiency.
+
+## The key idea
+
+Replace a layer with a bank of up to thousands of small feed-forward
+**expert** networks, plus a trainable **gating network** that looks at
+each input and picks only the top few experts (the paper uses a handful)
+to run. The experts that weren't selected do no work and receive no
+gradient for that example. Total parameters can be enormous, while compute
+per input stays about what a small dense layer costs: capacity and cost
+are finally decoupled.
+
+Getting this to train needed two fixes the paper spells out. Left alone,
+the gate collapses onto a few favorite experts and the rest never learn,
+so the training objective includes an auxiliary term that pushes load to
+be spread evenly. And because sparse routing sends different examples to
+different experts, the paper also had to solve the engineering problem of
+batching efficiently across many machines.
+
+## Why it mattered
+
+The headline result was a language model with up to 137 billion
+parameters in the expert layer, much larger than typical models of the
+period, with more than a thousand-fold increase in capacity for only
+a modest increase in compute, and it improved translation and language
+modeling quality at lower cost than dense baselines. The paper applied
+the idea inside LSTMs; the same layer was later carried into
+[transformers](/reference/transformer) (GShard and Switch Transformer
+among the early ones), and it's the architecture family behind many of
+today's largest models, which keep a very large total parameter count
+while activating only a fraction per token. The costs to keep in mind are
+the ones the paper already had to fight: routing that needs balancing, and
+memory that has to hold *every* expert even though few run at once.
+
+**Authors:** Noam Shazeer, Azalia Mirhoseini, Krzysztof Maziarz, Andy
+Davis, Quoc Le, Geoffrey Hinton, Jeff Dean (Google Brain)
+
+<ReadPaper href="https://arxiv.org/abs/1701.06538">arXiv:1701.06538</ReadPaper>
+
+**See also:** [Noam Shazeer](/people/noam-shazeer) ·
+[Geoffrey Hinton](/people/geoffrey-hinton)
+
+**Learn more:** [Mixture of Experts](/reference/mixture-of-experts) ·
+[Attention & Transformers](/docs/attention-and-transformers)

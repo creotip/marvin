@@ -1,0 +1,9 @@
+{
+  "title": "Safety & Security",
+  "collapsible": true,
+  "defaultOpen": true,
+  "pages": [
+    "adversarial-examples",
+    "monosemanticity"
+  ]
+}

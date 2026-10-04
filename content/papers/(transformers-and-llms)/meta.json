@@ -6,6 +6,7 @@
     "attention-is-all-you-need",
     "bert",
     "gpt-3",
+    "scaling-laws",
     "lora",
     "chinchilla",
     "instructgpt",

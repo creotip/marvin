@@ -284,7 +284,7 @@ $$
 for batch size $B$, sequence length $L$, and hidden size $d$ — so it is the
 *only* term you control at runtime. Attention adds a term that grows with
 $L^2$ unless a fused implementation avoids materialising the full score
-matrix, which is what FlashAttention-style kernels are for.
+matrix, which is what [FlashAttention](/papers/flash-attention)-style kernels are for.
 
 The practical consequence: an out-of-memory error at step 1 is a
 weights-plus-optimizer problem and needs sharding, quantization, or a

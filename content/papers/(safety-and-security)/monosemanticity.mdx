@@ -1,0 +1,69 @@
+---
+title: "Towards Monosemanticity: Decomposing Language Models With Dictionary Learning"
+description: Bricken et al., 2023 (Anthropic) — trained a sparse autoencoder on a small transformer's activations and recovered thousands of human-interpretable features that individual neurons mix together.
+---
+
+**"Towards Monosemanticity: Decomposing Language Models With Dictionary
+Learning"** (Trenton Bricken, Adly Templeton, Chris Olah, and colleagues
+at Anthropic, 2023) is the paper that showed
+[sparse autoencoders](/reference/sparse-autoencoder) could pull readable
+features out of a language model, and it's the starting point for much of
+the interpretability work described in the
+[Interpretability](/docs/interpretability) lesson.
+
+## What problem it solved
+
+The natural way to understand a network is to ask what each neuron does.
+That mostly fails for language models, because neurons are
+**polysemantic**: a single neuron may respond to unrelated things, such
+as academic citations, English dialogue, and HTTP requests, all at once.
+The leading explanation is **superposition**: the model needs to
+represent far more concepts than it has neurons, so it packs many
+features into overlapping combinations of them. Reading individual
+neurons then tells you almost nothing, and without a readable unit of
+analysis, claims about what a model "knows" or intends can't be checked.
+
+## The key idea
+
+If features are packed into overlapping directions, find the directions
+instead of the neurons. The paper trained a **sparse autoencoder** on the
+activations of the MLP layer in a small, one-layer transformer: a
+separate network that reconstructs those activations through a much
+*wider* hidden layer, with a penalty that makes most of its units zero
+for any given input. The sparsity forces each input to be explained by
+only a few active units, and the width gives the model room to give each
+feature its own unit, unscrambling the superposition.
+
+The authors then did the unglamorous part that makes the result
+credible: they inspected the features by hand and with automated tests.
+The recovered features turned out to be far more interpretable than the
+neurons they came from, with clean, specific meanings such as text in
+Arabic script, DNA sequences, base64 strings, and particular kinds of
+legal language, and changing a feature's activation changed the model's
+output in the expected way.
+
+## Why it mattered
+
+It supplied a working tool for the central obstacle in interpretability,
+and it did so on real model activations rather than a toy. A follow-up,
+*Scaling Monosemanticity* (2024), applied the same recipe to a
+production-scale model and found features tied to concepts such as
+specific places, code bugs, and deception. The honest caveats are the
+ones the lesson stresses: this paper studied a one-layer model, the
+features it finds are a useful decomposition rather than a proven
+ground truth, and a feature that looks clean is evidence about what the
+model represents, not a guarantee about how it will behave. It is a
+method for looking, not a finished account of what's inside.
+
+**Authors:** Trenton Bricken, Adly Templeton, Joshua Batson, Brian Chen,
+Adam Jermyn, Tom Conerly, Nick Turner, Cem Anil, Carson Denison, Amanda
+Askell, Robert Lasenby, Yifan Wu, Shauna Kravec, Nicholas Schiefer, Tim
+Maxwell, Nicholas Joseph, Zac Hatfield-Dodds, Alex Tamkin, Karina
+Nguyen, Brayden McLean, Josiah E. Burke, Tristan Hume, Shan Carter, Tom
+Henighan, Chris Olah (Anthropic)
+
+<ReadPaper href="https://transformer-circuits.pub/2023/monosemantic-features/index.html">transformer-circuits.pub</ReadPaper>
+
+**Learn more:** [Sparse Autoencoder (SAE)](/reference/sparse-autoencoder) ·
+[Interpretability](/docs/interpretability) ·
+[AI Safety & Alignment](/docs/ai-safety-and-alignment)
