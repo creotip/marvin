@@ -25,7 +25,7 @@ without any further training at all?
 ## The key idea
 
 Scale the model far beyond what had been tried before — to 175 billion
-parameters, roughly 10× larger than the largest prior language models —
+parameters, roughly 10× larger than any previous non-sparse language model —
 and test it purely through **in-context learning**: at inference time,
 place a short description of the task and a handful of example
 input-output pairs directly in the prompt, then ask the model to continue
@@ -34,8 +34,9 @@ training run — the "learning" happens entirely within the forward pass,
 just from the examples sitting in the context window. The paper tested
 this across three settings of decreasing information — few-shot (several
 examples), one-shot (a single example), and zero-shot (a task
-description with no examples at all) — and found performance improved
-smoothly and substantially with scale across all three.
+description with no examples at all) — and found that
+performance improved with scale in all three, with the largest gains in
+the few-shot setting.
 
 <NapkinMath title="How much bigger than what came before">
 

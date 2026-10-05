@@ -27,25 +27,27 @@ Replace the Q-value lookup table with a neural network that takes raw
 pixels as input and outputs an estimated value for each possible action
 — the same "swap a hand-designed representation for a learned one"
 pattern that runs throughout this course. Getting this to actually
-train stably needed two specific fixes the paper introduced together:
+train stably leaned on one key technique:
 
 - **Experience replay**: instead of training on each new experience
   once and discarding it, store experiences in a buffer and train on
   randomly sampled batches from it. This breaks the strong correlation
   between consecutive frames of gameplay, which otherwise destabilizes
   training the same way training on non-shuffled, ordered data would.
-- **A separate target network**: use a second, slowly-updated copy of
-  the network to compute the training targets, rather than the network
-  currently being updated. Without this, the target moves every time
-  the network updates, which can spiral into instability.
+
+A second stabilizer often bundled into the name "DQN", a separate,
+slowly-updated **target network** used to compute training targets so
+they don't shift with every update, came in DeepMind's 2015 *Nature*
+follow-up, "Human-level control through deep reinforcement learning,"
+which is also where the DQN name comes from.
 
 ## Why it mattered
 
-DQN learned to play a range of Atari 2600 games — often at or above
-human level — from nothing but raw pixel input and the game's own
-score, no game-specific engineering beyond the network architecture
-itself, and the same network architecture and algorithm worked across
-every game tested. That was the first clear, widely-recognized
+The network learned to play seven Atari 2600 games from nothing but
+raw pixel input and the game's own score, outperforming all earlier
+methods on six of them and a human expert on three, with no
+game-specific engineering: the same architecture, algorithm, and
+hyperparameters were used for every game. That was the first clear, widely-recognized
 demonstration that deep learning and reinforcement learning could be
 combined into something that scaled and actually worked, rather than
 being a theoretical curiosity — directly setting up the case, covered in

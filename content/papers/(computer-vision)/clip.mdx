@@ -7,7 +7,8 @@ description: Radford et al., 2021 (the "CLIP" paper) — trained an image encode
 Supervision"** (Alec Radford and colleagues at OpenAI, 2021) introduced
 **CLIP** — the paper that showed captions scraped from the internet,
 not hand-labeled categories, could train a vision model that
-generalized better than ones trained the traditional way.
+matched a standard supervised ResNet-50 on ImageNet without ever being
+trained on ImageNet's labels, and held up better under distribution shift.
 
 ## What problem it solved
 
@@ -24,8 +25,8 @@ smaller, cleanly labeled datasets vision research had relied on.
 
 ## The key idea
 
-Train two encoders together — a [ViT](/papers/vit) (or a CNN, in
-earlier variants) for images and a transformer for text — with a
+Train two encoders together — a [ViT](/papers/vit) (the paper tried both
+ViT and ResNet encoders) for images and a transformer for text — with a
 **contrastive** objective: given a batch of image-caption pairs, push
 each image's embedding close to its *own* caption's embedding, and away
 from every other caption's embedding in the same batch. Neither encoder

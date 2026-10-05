@@ -43,8 +43,9 @@ can't be parallelized — step $t$ can't start until step $t-1$ finishes.
 A transformer's self-attention computes all pairwise interactions in one
 parallel matrix operation: $O(1)$ sequential steps instead of $O(n)$. On
 modern GPUs, built for exactly this kind of parallel computation, that
-difference turned training runs that would take weeks into ones that take
-days — a large part of why transformers scaled as far as they have.
+difference is a large part of why transformers could be trained at the
+scale they have been — the paper's large model trained in about three
+and a half days on eight GPUs.
 
 </NapkinMath>
 

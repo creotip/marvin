@@ -48,9 +48,9 @@ it's the empirical backbone of the "scaling hypothesis" covered in
 [History & Landscape](/docs/history-and-landscape).
 
 The paper's budget advice turned out to be wrong in an instructive way.
-Its recommendation to favor model size over data rested on runs that
-used one fixed learning-rate schedule regardless of how long each model
-trained; [Chinchilla](/papers/chinchilla) redid the experiment with the
+Its recommendation to favor model size over data partly rested on runs
+that used one fixed learning-rate schedule regardless of how long each
+model trained (and on mostly small models); [Chinchilla](/papers/chinchilla) redid the experiment with the
 schedule matched to each run's length and found parameters and tokens
 should grow together, which is why many models built on the Kaplan
 advice were undertrained for their size. The
