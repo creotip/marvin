@@ -43,8 +43,9 @@ It was the rare speedup with no quality cost: the same distribution as
 before, not an approximation of it. The paper reported 2x to 3x faster
 generation on a large T5 model without changing the model or retraining
 it, and the technique needs only a draft model that tends to agree with
-the target on easy tokens, which is most of them. DeepMind published the
-same idea at nearly the same time as speculative sampling, and variants
+the target on easy tokens, which is most of them. DeepMind published an
+independent version of the same idea shortly afterward as speculative
+sampling, and variants
 (draft heads on the main model, drafting from the prompt itself) are now
 common in production serving stacks. The trade-off to remember is that
 the speedup depends on how often the draft is right, so it helps most on

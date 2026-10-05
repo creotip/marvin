@@ -1,6 +1,6 @@
 ---
 title: Denoising Diffusion Probabilistic Models
-description: Ho, Jain & Abbeel, 2020 — showed that training a network to reverse a fixed noise-adding process, one small step at a time, could generate images that eventually surpassed GANs.
+description: Ho, Jain & Abbeel, 2020 — showed that training a network to reverse a fixed noise-adding process, one small step at a time, could generate images matching the best GANs of the time.
 ---
 
 **"Denoising Diffusion Probabilistic Models"** (Jonathan Ho, Ajay
@@ -26,7 +26,7 @@ steps, until it's indistinguishable from pure noise. Then train a
 single network to do one narrow, well-defined job at every step of the
 reverse direction: given a noisy image and how many steps of noise it's
 had added, predict the noise that was added — not the clean image
-directly, a subtlety the paper showed mattered for training stability.
+directly, a choice the paper found gave better sample quality.
 Subtracting that predicted noise moves the image one step back toward
 clean. The training objective this produces is strikingly simple: an
 ordinary mean-squared-error regression between the network's predicted
@@ -40,8 +40,10 @@ noise.
 This paper's specific parameterization (predict the noise, not the
 image) and training recipe are what turned diffusion from a
 theoretical curiosity into a method that produced genuinely
-competitive, eventually superior, image quality compared to GANs — with
-none of GANs' notorious training instability, since there's no
+competitive image quality — the paper reports sample quality matching
+ProgressiveGAN on 256×256 LSUN, and later work showed diffusion models
+beating GANs outright — without GANs' notorious training instability,
+since there's no
 adversary and no Nash equilibrium to hunt for, just a single stable
 regression loss. The tradeoff, covered in
 [Generative Models](/docs/generative-models), is inference cost:
