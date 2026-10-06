@@ -1,0 +1,66 @@
+---
+title: Distilling the Knowledge in a Neural Network
+description: Hinton, Vinyals & Dean, 2015 — showed that a small model can learn much of a large model's (or an ensemble's) ability by training on its soft output probabilities instead of only the hard labels.
+---
+
+**"Distilling the Knowledge in a Neural Network"** (Geoffrey Hinton, Oriol
+Vinyals, and Jeff Dean at Google, 2015) gave
+[knowledge distillation](/reference/knowledge-distillation) its name and
+its standard recipe.
+
+## What problem it solved
+
+The most reliable way to improve almost any model is to train several of
+them and average their predictions. An ensemble like that is too slow and
+too large to deploy where latency and memory matter, such as a speech
+model answering on a phone, and a single big network can be nearly as
+costly. The practical question was how to get the quality of the big
+model or ensemble into something small enough to serve. Compressing models
+had been tried before (the paper cites earlier work on it); this paper
+supplied the general framing and the temperature recipe below.
+
+## The key idea
+
+Train the small **student** on the big **teacher**'s full output
+distribution, not just its top answer. The teacher's probabilities for the
+*wrong* classes carry real information. In the paper's own example, a
+photo of a BMW is far more likely to be mistaken for a garbage truck than
+for a carrot, even though both are unlikely; that ranking tells you how
+the classes relate, and a hard label throws all of it away. The paper calls these **soft targets**.
+
+There's a practical obstacle: a confident teacher puts nearly all its
+probability on one answer, so the small probabilities carry almost no
+signal. The paper's fix is a **temperature** in the softmax. Raising it
+flattens the distribution, so the wrong-class probabilities become large
+enough to learn from. The student is trained at that raised temperature,
+usually with a second term that also fits the true labels, and then run at
+normal temperature at deployment. The paper also shows that matching the
+teacher's raw outputs (logits) is a limiting case of the same idea.
+
+## Why it mattered
+
+It made "train something big, then ship something small" a routine
+workflow. The paper demonstrated it on MNIST and on a commercial acoustic
+model for speech recognition, where a distilled single model recovered
+much of the benefit of an ensemble. The idea has since become one of the
+standard tools for making models cheaper to run, alongside
+[quantization](/reference/quantization): quantization shrinks the
+precision of the weights you already have, while distillation trains a
+genuinely smaller network. Many of the small models people actually run
+descend from a larger one this way, and the same logic shows up when a
+cheap draft model is paired with a large one in
+[speculative decoding](/papers/speculative-decoding).
+
+It also has limits worth remembering. A student can approach but not
+exceed its teacher, and capabilities like long multi-step reasoning or
+rare long-tail knowledge tend to survive compression worse than broad
+recall does.
+
+**Authors:** Geoffrey Hinton, Oriol Vinyals, Jeff Dean (Google)
+
+<ReadPaper href="https://arxiv.org/abs/1503.02531">arXiv:1503.02531</ReadPaper>
+
+**See also:** [Geoffrey Hinton](/people/geoffrey-hinton)
+
+**Learn more:** [Knowledge Distillation](/reference/knowledge-distillation) ·
+[Inference & Serving](/docs/inference-and-serving)

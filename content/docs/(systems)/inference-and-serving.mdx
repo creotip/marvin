@@ -290,7 +290,7 @@ once, several tokens for roughly the cost of one decode step; wherever a
 guess is wrong, generation falls back to the full model's actual choice
 from that point on. The speedup depends entirely on how often the small
 model's guesses match the large model's — most effective when the two
-models are closely related (e.g. distilled from each other) or the text
+models are closely related (e.g. one [distilled](/papers/distillation) from the other) or the text
 is fairly predictable.
 
 ## Serving models too large for one GPU

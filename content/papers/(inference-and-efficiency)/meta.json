@@ -5,6 +5,7 @@
   "pages": [
     "flash-attention",
     "speculative-decoding",
-    "mixture-of-experts"
+    "mixture-of-experts",
+    "distillation"
   ]
 }
