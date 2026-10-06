@@ -271,6 +271,66 @@ far for a given model and use case.
   speeds up decoding even on a GPU that had plenty of spare memory.
 </Misconception>
 
+## Distillation: shrinking the model itself
+
+Quantization keeps the same network and stores each weight in fewer bits.
+**[Distillation](/papers/distillation)** cuts the cost the other way: it
+trains a genuinely smaller network to behave like a big one. The big model
+is the **teacher**, the small one the **student**, and only the student
+gets deployed.
+
+The obvious way to train the small model would be on the same labeled data
+the big one saw. Distillation instead trains it on the teacher's full
+output [probability distribution](/reference/probability-distribution),
+because a hard label ("cat") throws away most of what the teacher knows.
+A teacher that says 95% cat, 5% dog, and almost nothing for truck is also
+telling the student that dogs and cats are easily confused and trucks
+aren't, which is information no label contains.
+
+<Mermaid chart={`flowchart LR
+  D[Training examples] --> T[Teacher<br/>large, frozen]
+  D --> S[Student<br/>small, being trained]
+  T -- soft targets --> L[Loss<br/>trains the student]
+  D -- true labels --> L
+  S -- its predictions --> L
+  S -.-> P[Only the student<br/>is deployed]
+`} />
+
+The student is trained to match the teacher's soft targets and, usually,
+the true labels too. The teacher only runs during training and does no
+learning of its own.
+
+<NapkinMath title="Why distillation raises the temperature">
+
+A confident teacher leaves almost nothing to learn from in its wrong
+answers. Take raw scores (logits) of 8, 5, 1 and -2 for cat, dog, fox and
+truck, and pass them through a softmax that divides the scores by a
+**temperature** $T$ first:
+
+| Class | $T = 1$ | $T = 4$ |
+| --- | --- | --- |
+| cat | 95.2% | 57.9% |
+| dog | 4.7% | 27.3% |
+| fox | 0.09% | 10.1% |
+| truck | 0.004% | 4.7% |
+
+At $T = 1$ the wrong answers sit at fractions of a percent, far too small
+to move a student's training. At $T = 4$ the same teacher's ranking of
+them (dog, then fox, then truck) is easy to see and to learn from. So the
+student is trained at the raised temperature, and run at $T = 1$ once
+deployed.
+
+</NapkinMath>
+
+Applied to language models, the idea comes in looser forms too. The
+closest to the original is matching the teacher's next-token
+probabilities. A cheaper variant just fine-tunes the small model on text
+the large model wrote, which hands the student the teacher's chosen words
+but not its probabilities. Either way the same limit applies as in the
+[glossary entry](/reference/knowledge-distillation): a student can
+approach but not exceed its teacher, and rare, long-tail knowledge tends
+to compress worst.
+
 ## Speculative decoding: guessing ahead to go faster
 
 Because decode is memory-bandwidth-bound rather than compute-bound (see
